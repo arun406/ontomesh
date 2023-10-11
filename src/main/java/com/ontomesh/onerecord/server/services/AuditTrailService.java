@@ -120,7 +120,7 @@ public class AuditTrailService {
      * @param logisticsObject
      * @return
      */
-    public void saveChangeRequest(LogisticsObject logisticsObject) {
+    public IRI saveChangeRequest(LogisticsObject logisticsObject) {
 
         IRI changeId = logisticsObject.iri();
         log.debug("change changeId :{}", changeId);
@@ -141,6 +141,8 @@ public class AuditTrailService {
         boolean result = changeRequest.addAll(logisticsObject.model());
 
         this.repository.persist(changeRequestId, changeRequest);
+
+        return changeRequestId;
     }
 
     /**

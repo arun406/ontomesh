@@ -46,11 +46,11 @@ public class OneRecordRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter 
                                 Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
         log.debug("@afterBodyRead");
         log.debug("request url : {}", httpServletRequest.getRequestURL());
-        URI loId = URIUtil.getURI(httpServletRequest.getRequestURL().toString());
         if (body instanceof LogisticsObject logisticsObject && httpServletRequest.getMethod().startsWith("PATCH")) {
             log.debug("IRI of the change request : {}", logisticsObject.iri());
-            IRI auditTrailId = this.auditTrailService.createAuditTrail(logisticsObject, loId);
-            log.debug("Audit Trail Id :{}", auditTrailId);
+            IRI changeRequestIRI = this.auditTrailService.saveChangeRequest(logisticsObject);
+            log.debug("Change Request IRI :{}", changeRequestIRI);
+            httpServletRequest.setAttribute("changeRequestIRI", changeRequestIRI);
         }
         return body;
     }
