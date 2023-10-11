@@ -1,11 +1,8 @@
 package com.ontomesh.onerecord.server.api;
 
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
-import com.ontomesh.onerecord.server.services.AuditTrailService;
 import com.ontomesh.onerecord.server.services.LogisticsObjectService;
 import com.ontomesh.onerecord.server.services.LogisticsObjectValidationService;
-import com.ontomesh.onerecord.server.util.ModelToStringConverter;
-import com.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,20 +34,21 @@ public class LogisticsObjectController extends BaseController {
      * @param uri
      * @return
      */
-    @GetMapping(path = "/{id}", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
+    @GetMapping(path = "/{id}", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
+            SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    private ResponseEntity findLogisticsObject(@RequestHeader(HttpHeaders.ACCEPT) MediaType accept,
-                                               HttpServletRequest httpServletRequest,
-                                               @PathVariable("id") String uri) {
+    private ResponseEntity<LogisticsObject> findLogisticsObject(@RequestHeader(HttpHeaders.ACCEPT) MediaType accept,
+                                                                HttpServletRequest httpServletRequest,
+                                                                @PathVariable("id") String uri) {
         OntoMeshId loId = getLoId(uri);
         log.info("URI to search : {}", loId.uri());
         URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
         LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(requestURI);
 
-        String rdfString = new ModelToStringConverter(RDFUtil.getFormat(accept)).convert(logisticsObject.model());
+//        String rdfString = new ModelToStringConverter(RDFUtil.getFormat(accept)).convert(logisticsObject.model());
         HttpHeaders headers = getResponseHeaders(httpServletRequest);
 
-        return ResponseEntity.ok().headers(headers).body(rdfString);
+        return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
 
 

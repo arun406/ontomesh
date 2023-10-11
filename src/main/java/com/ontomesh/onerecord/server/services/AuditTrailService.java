@@ -39,7 +39,7 @@ public class AuditTrailService {
     }
 
 
-    public IRI createAuditTrail(LogisticsObject logisticsObject, OntoMeshId loId) {
+    public IRI createAuditTrail(LogisticsObject logisticsObject, URI loId) {
         IRI changeId = logisticsObject.iri();
         log.debug("change changeId :{}, lo id :{}", changeId, loId);
 
@@ -76,12 +76,12 @@ public class AuditTrailService {
     }
 
     /**
-     * @param loId
+     * @param uri
      * @return
      */
-    private IRI getAuditIri(OntoMeshId loId) {
-        URI uri = URIUtil.addPath(loId.uri(), "audit-trail");
-        return RDFUtil.createIRI(uri);
+    private IRI getAuditIri(URI uri) {
+        URI auditTrailUri = URIUtil.addPath(uri, "audit-trail");
+        return RDFUtil.createIRI(auditTrailUri);
     }
 
 

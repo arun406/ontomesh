@@ -6,7 +6,9 @@ import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.api.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
+import com.ontomesh.onerecord.server.util.ModelToStringConverter;
 import com.ontomesh.onerecord.server.util.RDFUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -18,6 +20,7 @@ import org.eclipse.rdf4j.model.util.Statements;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -25,6 +28,8 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,12 +38,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
 @Slf4j
-public class RDFMessageConverter extends AbstractHttpMessageConverter<LogisticsObject> {
+@Component
+public class LogigisticsObjectToRDFMessageConverter extends AbstractHttpMessageConverter<LogisticsObject> {
 
     private final IdProvider idProvider;
     private final BlankNodeReplacingStatementHandler statementHandler;
+
+    private final HttpServletRequest httpServletRequest;
     /**
      * The default charset used by the converter.
      */
@@ -46,9 +53,10 @@ public class RDFMessageConverter extends AbstractHttpMessageConverter<LogisticsO
     private final IRI hasPredefinedIri = SimpleValueFactory.getInstance().createIRI("https://www.ontomesh.com/onerecord#", "hasId");
 
 
-    public RDFMessageConverter(IdProvider idProvider, BlankNodeReplacingStatementHandler statementHandler) {
+    public LogigisticsObjectToRDFMessageConverter(IdProvider idProvider, BlankNodeReplacingStatementHandler statementHandler, HttpServletRequest httpServletRequest) {
         this.idProvider = idProvider;
         this.statementHandler = statementHandler;
+        this.httpServletRequest = httpServletRequest;
     }
 
     protected boolean supports(Class<?> clazz) {
@@ -58,7 +66,7 @@ public class RDFMessageConverter extends AbstractHttpMessageConverter<LogisticsO
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return clazz.isAssignableFrom(LogisticsObject.class)
-                && (mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_TURTLE)
+                && mediaType != null && (mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_TURTLE)
                 || mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)
                 || mediaType.isCompatibleWith(SemanticWebMediaType.TEXT_TURTLE));
     }
@@ -66,7 +74,7 @@ public class RDFMessageConverter extends AbstractHttpMessageConverter<LogisticsO
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
         return clazz.isAssignableFrom(LogisticsObject.class)
-                && (mediaType.equals(SemanticWebMediaType.APPLICATION_TURTLE)
+                && mediaType != null && (mediaType.equals(SemanticWebMediaType.APPLICATION_TURTLE)
                 || mediaType.equals(SemanticWebMediaType.APPLICATION_JSON_LD)
                 || mediaType.equals(SemanticWebMediaType.TEXT_TURTLE));
     }
@@ -78,15 +86,17 @@ public class RDFMessageConverter extends AbstractHttpMessageConverter<LogisticsO
         return getLogisticObject(inputStream, rdfFormat);
     }
 
+    @Override
     protected void writeInternal(LogisticsObject logisticsObject, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-//        if (logisticsObject != null) {
-//            ByteArrayOutputStream out = new ByteArrayOutputStream();
-//            Rio.write(logisticsObject.model(), out, RDFFormat.JSONLD);
-//            StreamUtils.copy(out.toByteArray(), outputMessage.getBody());
-//        }
-        log.debug("logistics object iri :{}", logisticsObject.iri());
-        log.debug("content Type: {}", outputMessage.getHeaders().getContentType());
-
+        log.debug("logistics object iri {}", logisticsObject.iri());
+        String acceptHeader = httpServletRequest.getHeader(HttpHeaders.ACCEPT);
+        MediaType selectedContentType = SemanticWebMediaType.APPLICATION_JSON_LD;
+        // override the default with requested content type
+        if (StringUtils.hasText(acceptHeader)) {
+            selectedContentType = MediaType.valueOf(acceptHeader);
+        }
+        String rdfString = new ModelToStringConverter(RDFUtil.getFormat(selectedContentType)).convert(logisticsObject.model());
+        StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
     }
 
 

@@ -51,7 +51,6 @@ public class SubscriptionController extends BaseController {
     public ResponseEntity<String> subscribe(LogisticsObject logisticsObject, @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType,
                                             @RequestBody String input) throws IOException {
 
-//        LogisticsObject logisticsObject = getLogisticObject(contentType, input);
         String loType = getLoType(logisticsObject);
         log.info("lo type :{}", loType);
         boolean hasId = isIdPresent(logisticsObject);
@@ -79,7 +78,8 @@ public class SubscriptionController extends BaseController {
      * @param accept
      * @return
      */
-    @GetMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
+    @GetMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
+            SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
     public ResponseEntity<String> handleProposal(@RequestParam("topic") String topic,
                                                  @RequestParam("topicType") String topicType,

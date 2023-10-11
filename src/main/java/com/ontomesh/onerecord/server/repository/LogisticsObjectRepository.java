@@ -2,7 +2,6 @@ package com.ontomesh.onerecord.server.repository;
 
 import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
-import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.springframework.stereotype.Component;
