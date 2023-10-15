@@ -1,6 +1,6 @@
 package com.ontomesh.onerecord.server.config;
 
-import com.ontomesh.onerecord.server.converter.LogigisticsObjectToRDFMessageConverter;
+import com.ontomesh.onerecord.server.converter.LogisticsObjectToRDFMessageConverter;
 import com.ontomesh.onerecord.server.handler.ChangeHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -15,11 +15,11 @@ import java.util.List;
 public class WebConfig implements WebMvcConfigurer {
 
     private final ChangeHandler changeHandler;
-    private final LogigisticsObjectToRDFMessageConverter logigisticsObjectToRdfMessageConverter;
+    private final LogisticsObjectToRDFMessageConverter logisticsObjectToRdfMessageConverter;
 
-    public WebConfig(ChangeHandler changeHandler, LogigisticsObjectToRDFMessageConverter logigisticsObjectToRdfMessageConverter) {
+    public WebConfig(ChangeHandler changeHandler, LogisticsObjectToRDFMessageConverter logisticsObjectToRdfMessageConverter) {
         this.changeHandler = changeHandler;
-        this.logigisticsObjectToRdfMessageConverter = logigisticsObjectToRdfMessageConverter;
+        this.logisticsObjectToRdfMessageConverter = logisticsObjectToRdfMessageConverter;
     }
 
     @Override
@@ -30,6 +30,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         WebMvcConfigurer.super.configureMessageConverters(converters);
-        converters.add(logigisticsObjectToRdfMessageConverter);
+        converters.add(logisticsObjectToRdfMessageConverter);
     }
 }

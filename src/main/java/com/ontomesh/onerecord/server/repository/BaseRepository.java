@@ -1,6 +1,5 @@
 package com.ontomesh.onerecord.server.repository;
 
-import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -33,16 +32,14 @@ public abstract class BaseRepository {
 
     /**
      * @param iri
-     * @param isInternalIri
+     * @param continueRecursionIf
      * @return
      */
-    public Optional<Model> findByIRI(IRI iri, Predicate<IRI> isInternalIri) {
-        Predicate<IRI> continueRecursionIf = isInternalIri;
-        log.info("continueRecursionIf: {}", continueRecursionIf);
+    public Optional<Model> findByIRI(IRI iri, Predicate<IRI> continueRecursionIf) {
         RepositoryResult<Statement> statements = connection.getStatements(iri, null, null);
         List<Statement> baseStatements = statements.stream().toList();
         if (baseStatements.isEmpty()) {
-            throw new SubjectNotFoundException();
+            return Optional.empty();
         }
         return findRecursively(continueRecursionIf, baseStatements);
     }

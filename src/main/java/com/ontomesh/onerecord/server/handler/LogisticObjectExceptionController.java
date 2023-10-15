@@ -1,6 +1,6 @@
 package com.ontomesh.onerecord.server.handler;
 
-import com.ontomesh.onerecord.server.api.SemanticWebMediaType;
+import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.exception.AlreadyExistsException;
 import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import com.ontomesh.onerecord.server.exception.InvalidChangeOperationException;

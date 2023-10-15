@@ -1,11 +1,12 @@
 package com.ontomesh.onerecord.server.converter;
 
-import com.ontomesh.onerecord.server.api.BlankNodeReplacingStatementHandler;
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
-import com.ontomesh.onerecord.server.api.SemanticWebMediaType;
+import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
+import com.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
+import com.ontomesh.onerecord.server.util.JsonldUtil;
 import com.ontomesh.onerecord.server.util.ModelToStringConverter;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class LogigisticsObjectToRDFMessageConverter extends AbstractHttpMessageConverter<LogisticsObject> {
+public class LogisticsObjectToRDFMessageConverter extends AbstractHttpMessageConverter<LogisticsObject> {
 
     private final IdProvider idProvider;
     private final BlankNodeReplacingStatementHandler statementHandler;
@@ -53,7 +54,7 @@ public class LogigisticsObjectToRDFMessageConverter extends AbstractHttpMessageC
     private final IRI hasPredefinedIri = SimpleValueFactory.getInstance().createIRI("https://www.ontomesh.com/onerecord#", "hasId");
 
 
-    public LogigisticsObjectToRDFMessageConverter(IdProvider idProvider, BlankNodeReplacingStatementHandler statementHandler, HttpServletRequest httpServletRequest) {
+    public LogisticsObjectToRDFMessageConverter(IdProvider idProvider, BlankNodeReplacingStatementHandler statementHandler, HttpServletRequest httpServletRequest) {
         this.idProvider = idProvider;
         this.statementHandler = statementHandler;
         this.httpServletRequest = httpServletRequest;
@@ -95,8 +96,18 @@ public class LogigisticsObjectToRDFMessageConverter extends AbstractHttpMessageC
         if (StringUtils.hasText(acceptHeader)) {
             selectedContentType = MediaType.valueOf(acceptHeader);
         }
-        String rdfString = new ModelToStringConverter(RDFUtil.getFormat(selectedContentType)).convert(logisticsObject.model());
+        ModelToStringConverter modelToStringConverter = getModelToStringConverter(selectedContentType);
+        String rdfString = modelToStringConverter.convert(logisticsObject.model());
+        if (selectedContentType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
+            IRI type = RDFUtil.getType(logisticsObject.model(), logisticsObject.iri());
+            rdfString = JsonldUtil.jsonLdToString(rdfString, true, type);
+        }
         StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
+    }
+
+    private static ModelToStringConverter getModelToStringConverter(MediaType selectedContentType) {
+        RDFFormat format = RDFUtil.getFormat(selectedContentType);
+        return new ModelToStringConverter(format);
     }
 
 

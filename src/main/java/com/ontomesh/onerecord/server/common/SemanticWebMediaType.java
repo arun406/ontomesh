@@ -1,4 +1,4 @@
-package com.ontomesh.onerecord.server.api;
+package com.ontomesh.onerecord.server.common;
 
 import org.springframework.http.MediaType;
 

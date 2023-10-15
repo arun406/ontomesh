@@ -4,6 +4,7 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
 import com.google.common.base.Charsets;
+import org.eclipse.rdf4j.model.IRI;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,9 +30,9 @@ public class JsonldUtil {
      * @return
      * @throws IOException
      */
-    public static String jsonLdToString(String jsonString, boolean pretty, String type) throws IOException {
+    public static String jsonLdToString(String jsonString, boolean pretty, IRI type) throws IOException {
         Object jsonObject = createJsonObject(jsonString);
-        Map<String, Object> framedJson = getFramedJson(jsonObject, context);
+        Map<String, Object> framedJson = getFramedJson(jsonObject, new HashMap<>());
         framedJson = removeGraphArray(framedJson, type);
         if (pretty) {
             return JsonUtils.toPrettyString(framedJson);
@@ -45,12 +46,12 @@ public class JsonldUtil {
      * @param type
      * @return
      */
-    public static Map<String, Object> removeGraphArray(Map<String, Object> framedJson, String type) {
+    public static Map<String, Object> removeGraphArray(Map<String, Object> framedJson, IRI type) {
         List<Map<String, Object>> graph = (List<Map<String, Object>>) framedJson.get("@graph");
         Map<String, Object> result = new HashMap<>();
         for (Map<String, Object> objectMap : graph) {
             Object o = objectMap.get("@type");
-            if (((String) o).equals(type)) {
+            if (((String) o).equals(type.toString())) {
                 result = objectMap;
                 break;
             }

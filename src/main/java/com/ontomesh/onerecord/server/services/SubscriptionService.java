@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 
-import static com.ontomesh.onerecord.server.api.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
-import static com.ontomesh.onerecord.server.api.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
-import static com.ontomesh.onerecord.server.api.SemanticWebMediaType.TEXT_TURTLE_VALUE;
+import static com.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
+import static com.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
+import static com.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
 
 @Service
 public class SubscriptionService {

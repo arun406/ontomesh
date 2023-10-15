@@ -1,6 +1,6 @@
 package com.ontomesh.onerecord.server.util;
 
-import com.ontomesh.onerecord.server.api.SemanticWebMediaType;
+import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -108,7 +108,7 @@ public class RDFUtil {
         Collection<Statement> statements = RDFUtil.readRdfToGraph(inputStream, inputRDFFormat, baseUrl);
         Model model = new ModelBuilder().build();
         model.addAll(statements);
-        
+
         return new ModelToStringConverter(outputRDFFormat).convert(model);
     }
 

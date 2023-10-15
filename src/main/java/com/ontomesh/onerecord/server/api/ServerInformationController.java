@@ -1,5 +1,6 @@
 package com.ontomesh.onerecord.server.api;
 
+import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.ServerInfoNotFoundException;
 import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;

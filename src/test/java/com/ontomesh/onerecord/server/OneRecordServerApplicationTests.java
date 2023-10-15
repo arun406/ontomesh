@@ -4,7 +4,7 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
 import com.google.common.base.Charsets;
-import com.ontomesh.onerecord.server.api.BlankNodeReplacingStatementHandler;
+import com.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
 import com.ontomesh.onerecord.server.api.IdProvider;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;

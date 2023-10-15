@@ -3,6 +3,7 @@ package com.ontomesh.onerecord.server.services;
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
+import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import com.ontomesh.onerecord.server.util.URIUtil;
@@ -17,11 +18,11 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.iata.onerecord.api.API;
 import org.iata.onerecord.cargo.CARGO;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 import java.sql.Date;
 import java.time.Instant;
-import java.util.function.Predicate;
 
 import static org.iata.onerecord.api.API.REQUEST_ACCEPTED;
 import static org.iata.onerecord.api.API.REQUEST_PENDING;
@@ -39,40 +40,38 @@ public class AuditTrailService {
     }
 
 
-    public IRI createAuditTrail(LogisticsObject logisticsObject, URI loId) {
-        IRI changeId = logisticsObject.iri();
-        log.debug("change changeId :{}, lo id :{}", changeId, loId);
+    /**
+     * Saves and Update the Audit trail =
+     *
+     * @param changeRequestIRI
+     * @param logisticsObjectIRI
+     * @return
+     */
+    @Transactional
+    public IRI saveOrUpdate(IRI changeRequestIRI, IRI logisticsObjectIRI) {
 
-        IRI changeRequestId = idProvider.createInternalIri().iri();
-        log.debug("change request id : {}", changeRequestId);
+        IRI auditTrailId = getAuditIri(URI.create(logisticsObjectIRI.toString()));
 
-        Model changeRequest = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
-                .setNamespace(API.PREFIX, API.NAMESPACE)
-                .subject(changeRequestId)
-                .add(RDF.TYPE, API.ChangeRequest)
-                .add(API.hasChange, logisticsObject.iri())
-//                .add(API.hasError, null)
-                .add(API.isRequestedAt, Date.from(Instant.now()))
-                .add(API.isRequestedBy, Values.literal("Arun Kumar"))
-                .add(API.hasRequestStatus, REQUEST_PENDING)
-                .build();
+        LogisticsObject auditTrail = this.repository.findLoById(auditTrailId, iri -> false)
+                .orElseGet(() -> this.create(auditTrailId, changeRequestIRI));
+        auditTrail.model().add(auditTrail.iri(), API.hasChangeRequest, changeRequestIRI);
+        save(auditTrail);
+        updateLatestRevision(auditTrailId);
+        return auditTrailId;
+    }
 
-        boolean b1 = changeRequest.addAll(logisticsObject.model());
+    private void save(LogisticsObject auditTrail) {
+        this.repository.persist(auditTrail.iri(), auditTrail.model());
+    }
 
-        IRI auditTrailId = getAuditIri(loId);
-
+    private LogisticsObject create(IRI auditTrailId, IRI changeRequestIRI) {
         Model auditTrail = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
                 .subject(auditTrailId)
                 .add(RDF.TYPE, API.AuditTrail)
-                .add(API.hasChangeRequest, changeRequestId)
-                .add(API.hasLatestRevision, Values.literal(1)).build();
-
-        boolean b = auditTrail.addAll(changeRequest);
-
-        this.repository.persist(auditTrailId, auditTrail);
-
-        return auditTrailId;
+                .add(API.hasChangeRequest, changeRequestIRI)
+                .add(API.hasLatestRevision, Values.literal(0)).build();
+        return new LogisticsObject(auditTrailId, API.AuditTrail, auditTrail);
     }
 
     /**
@@ -94,64 +93,83 @@ public class AuditTrailService {
                 || iri.getNamespace().equals(idProvider.getLogisticsObjectBaseIRI().stringValue());
     }
 
+    private boolean recursive(IRI iri) {
+        return false;
+    }
+
     /**
      * Updates the Status
      *
      * @param changeRequestId
      */
+    @Transactional
     public void updateChangeRequestStatus(IRI changeRequestId) {
         RepositoryResult<Statement> statements = this.repository.getStatements(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
         if (statements == null) {
             return;
         }
         Statement next = statements.next();
-        if (next.getObject().isLiteral()) {
-            String status = next.getObject().stringValue();
+        if (next.getObject().isIRI()) {
             // First Remove the existing statement.
-            this.repository.delete(changeRequestId, API.hasRequestStatus, Values.literal(status));
+            this.repository.delete(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
             //Add New statement
-            this.repository.add(changeRequestId, API.hasRequestStatus, Values.literal(REQUEST_ACCEPTED));
+            this.repository.add(changeRequestId, API.hasRequestStatus, REQUEST_ACCEPTED);
+        }
+    }
+
+    /**
+     * @param auditTrailId
+     */
+    private void updateLatestRevision(IRI auditTrailId) {
+        RepositoryResult<Statement> statements = this.repository.getStatements(auditTrailId, API.hasLatestRevision, null);
+        if (statements == null) {
+            return;
+        }
+        Statement next = statements.next();
+        if (next.getObject().isLiteral()) {
+            int revision = Integer.parseInt(next.getObject().stringValue());
+            // First Remove the existing statement.
+            this.repository.delete(auditTrailId, API.hasLatestRevision, Values.literal(revision));
+            //Add New statement
+            this.repository.add(auditTrailId, API.hasLatestRevision, Values.literal(revision + 1));
         }
     }
 
     /**
      * Saves the change request
      *
-     * @param logisticsObject
+     * @param change
      * @return
      */
-    public IRI saveChangeRequest(LogisticsObject logisticsObject) {
+    public IRI saveChangeRequest(LogisticsObject change) {
 
-        IRI changeId = logisticsObject.iri();
-        log.debug("change changeId :{}", changeId);
-
-        IRI changeRequestId = idProvider.createInternalIri().iri();
+        IRI changeRequestId = idProvider.createUniqueLoUri().iri();
         log.debug("change request id : {}", changeRequestId);
+
+        this.repository.persist(change.iri(), change.model());
 
         Model changeRequest = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
                 .subject(changeRequestId)
                 .add(RDF.TYPE, API.ChangeRequest)
-                .add(API.hasChange, logisticsObject.iri())
+                .add(API.hasChange, change.iri())
                 .add(API.isRequestedAt, Date.from(Instant.now()))
                 .add(API.isRequestedBy, Values.literal("Arun Kumar"))
                 .add(API.hasRequestStatus, REQUEST_PENDING)
                 .build();
 
-        boolean result = changeRequest.addAll(logisticsObject.model());
-
         this.repository.persist(changeRequestId, changeRequest);
-
         return changeRequestId;
     }
 
     /**
-     * @param changeRequestId change request id
-     * @return logistics Object of type api:ChangeRequest
+     * returns the complete Audit Trail of an Logistics Object
+     *
+     * @param auditTrailId
+     * @return
      */
-    public LogisticsObject getChangeRequestById(IRI changeRequestId) {
-        log.debug("Finding Change request by Id {}", changeRequestId);
-        Predicate<IRI> isValidIri = this::isValidIri;
-        return this.repository.findLoById(changeRequestId, isValidIri).orElseThrow();
+    public LogisticsObject getAuditTrail(URI auditTrailId) {
+        return this.repository.findLoById(Values.iri(auditTrailId.toString()), this::isValidIri)
+                .orElseThrow(SubjectNotFoundException::new);
     }
 }

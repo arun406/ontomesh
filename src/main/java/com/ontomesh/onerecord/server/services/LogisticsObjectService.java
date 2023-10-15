@@ -68,7 +68,7 @@ public class LogisticsObjectService {
     @Transactional
     public LogisticsObject findLogisticsObject(URI uri) {
         IRI iri = Values.iri(uri.toString());
-        log.info("IRI To Search: {}", iri.toString());
+        log.info("Searching for Logistics Object of IRI {}", iri.toString());
         return repository.findLoById(iri)
                 .orElseThrow(SubjectNotFoundException::new);
     }
@@ -112,12 +112,11 @@ public class LogisticsObjectService {
             }
         });
         // increase the Logistics Object revision after successful change
-        updateLogisticObjectRevision(logisticsObject);
+        updateLogisticObjectRevision(logisticsObject.iri());
         return changedProperties;
     }
 
-    private void updateLogisticObjectRevision(LogisticsObject logisticsObject) {
-        IRI loId = logisticsObject.iri();
+    private void updateLogisticObjectRevision(IRI loId) {
         RepositoryResult<Statement> statements = this.repository.getStatements(loId, API.hasRevision, null);
         if (statements != null) {
             Statement next = statements.next();

@@ -6,7 +6,6 @@ import com.ontomesh.onerecord.server.services.AuditTrailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.util.Values;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -29,10 +28,7 @@ public class OneRecordResponseBodyAdviceAdapter implements ResponseBodyAdvice<Ob
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        if (returnType.getContainingClass() == LogisticsObjectController.class) {
-            return true;
-        }
-        return false;
+        return returnType.getContainingClass() == LogisticsObjectController.class;
     }
 
     @Override
@@ -43,9 +39,10 @@ public class OneRecordResponseBodyAdviceAdapter implements ResponseBodyAdvice<Ob
 
         if (httpServletRequest.getMethod().equals("PATCH")) {
             log.debug("Change Request IRI: {}", httpServletRequest.getAttribute("changeRequestIRI"));
-            IRI changeRequestIRI = Values.iri((String) httpServletRequest.getAttribute("changeRequestIRI"));
-            auditTrailService.updateChangeRequestStatus(changeRequestIRI);
+            IRI changeRequestIRI = (IRI) httpServletRequest.getAttribute("changeRequestIRI");
+            this.auditTrailService.updateChangeRequestStatus(changeRequestIRI);
         }
+
         if (body instanceof LogisticsObject logisticsObject) {
             log.debug("response iri {}, content type {}", logisticsObject.iri(), selectedContentType);
             return logisticsObject;
