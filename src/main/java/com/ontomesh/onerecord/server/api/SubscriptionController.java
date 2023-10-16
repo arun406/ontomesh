@@ -6,7 +6,6 @@ import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import com.ontomesh.onerecord.server.exception.LogisticsObjectNotSupportedException;
 import com.ontomesh.onerecord.server.services.ServerInformationService;
 import com.ontomesh.onerecord.server.services.SubscriptionService;
-import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -20,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Set;
@@ -42,15 +39,12 @@ public class SubscriptionController extends BaseController {
     }
 
     /**
-     * @param contentType
-     * @param input
+     * @param logisticsObject
      * @return
-     * @throws IOException
      */
     @PostMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE}, consumes = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<String> subscribe(LogisticsObject logisticsObject, @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType,
-                                            @RequestBody String input) throws IOException {
+    public ResponseEntity<Void> subscribe(@RequestBody LogisticsObject logisticsObject) {
 
         String loType = getLoType(logisticsObject);
         log.info("lo type :{}", loType);
@@ -82,10 +76,10 @@ public class SubscriptionController extends BaseController {
     @GetMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
             SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<String> handleProposal(@RequestParam("topic") String topic,
-                                                 @RequestParam("topicType") String topicType,
-                                                 @RequestHeader(HttpHeaders.ACCEPT) MediaType accept,
-                                                 @RequestHeader(HttpHeaders.CONTENT_TYPE) MediaType contentType) {
+    public ResponseEntity<LogisticsObject> handleProposal(@RequestParam("topic") String topic,
+                                                          @RequestParam("topicType") String topicType,
+                                                          @RequestHeader(HttpHeaders.ACCEPT) MediaType accept,
+                                                          @RequestHeader(HttpHeaders.CONTENT_TYPE) MediaType contentType) {
         if (topicType == null || topicType.isBlank() ||
                 topic == null || topic.isBlank()) {
             throw new InvalidApiRequestException("Missing query parameter 'topicType' or 'topic'.");
@@ -104,11 +98,11 @@ public class SubscriptionController extends BaseController {
         LogisticsObject subscriptionProposal = this.subscriptionService
                 .createSubscriptionProposalResponse(topic, topicType);
 
-        OutputStream stream = RDFUtil.getRDFByteStream(subscriptionProposal.model(), accept);
+//        OutputStream stream = RDFUtil.getRDFByteStream(subscriptionProposal.model(), accept);
         HttpHeaders headers = getResponseHeaders(contentType);
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(stream.toString());
+                .body(subscriptionProposal);
     }
 }
 

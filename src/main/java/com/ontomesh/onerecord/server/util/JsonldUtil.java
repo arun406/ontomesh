@@ -23,6 +23,10 @@ public class JsonldUtil {
         context.get("@context").put("api", "https://onerecord.iata.org/ns/api#");
     }
 
+    public static Map<String, Map<String, String>> getContext() {
+        return context;
+    }
+
     /**
      * @param jsonString
      * @param pretty
@@ -65,12 +69,16 @@ public class JsonldUtil {
      * @return
      */
     public static Map<String, Object> getFramedJson(Object json, Map<String, Map<String, String>> context) {
-        JsonLdOptions opts = new JsonLdOptions();
-        opts.setCompactArrays(false);
-        opts.setOmitGraph(true);
-        opts.setEmbed(true);
-        opts.setFrameExpansion(true);
+        JsonLdOptions opts = getJsonLdOptions();
         return JsonLdProcessor.frame(json, context, opts);
+    }
+
+    private static JsonLdOptions getJsonLdOptions() {
+        JsonLdOptions opts = new JsonLdOptions();
+        opts.setCompactArrays(true);
+        opts.setOmitGraph(false);
+        opts.setEmbed(true);
+        return opts;
     }
 
     public static Object createJsonObject(String jsonLd) {

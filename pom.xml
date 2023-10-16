@@ -78,6 +78,11 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.jsonld-java</groupId>
+            <artifactId>jsonld-java</artifactId>
+            <version>0.13.4</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>

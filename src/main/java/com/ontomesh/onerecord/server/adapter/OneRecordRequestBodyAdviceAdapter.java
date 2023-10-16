@@ -48,18 +48,4 @@ public class OneRecordRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter 
         }
         return body;
     }
-
-    @Override
-    public Object handleEmptyBody(Object body, HttpInputMessage inputMessage, MethodParameter parameter, Type targetType,
-                                  Class<? extends HttpMessageConverter<?>> converterType) {
-        log.debug("In handleEmptyBody() method of {}", getClass().getSimpleName());
-        return body;
-    }
-
-    @Override
-    public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage, MethodParameter parameter, Type targetType,
-                                           Class<? extends HttpMessageConverter<?>> converterType) {
-        log.debug("In beforeBodyRead() method of {}", getClass().getSimpleName());
-        return inputMessage;
-    }
 }

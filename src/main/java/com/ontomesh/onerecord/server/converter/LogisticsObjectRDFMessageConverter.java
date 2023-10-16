@@ -1,5 +1,8 @@
 package com.ontomesh.onerecord.server.converter;
 
+import com.github.jsonldjava.core.JsonLdOptions;
+import com.github.jsonldjava.core.JsonLdProcessor;
+import com.github.jsonldjava.utils.JsonUtils;
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
@@ -41,7 +44,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class LogisticsObjectToRDFMessageConverter extends AbstractHttpMessageConverter<LogisticsObject> {
+public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConverter<LogisticsObject> {
 
     private final IdProvider idProvider;
     private final BlankNodeReplacingStatementHandler statementHandler;
@@ -54,7 +57,7 @@ public class LogisticsObjectToRDFMessageConverter extends AbstractHttpMessageCon
     private final IRI hasPredefinedIri = SimpleValueFactory.getInstance().createIRI("https://www.ontomesh.com/onerecord#", "hasId");
 
 
-    public LogisticsObjectToRDFMessageConverter(IdProvider idProvider, BlankNodeReplacingStatementHandler statementHandler, HttpServletRequest httpServletRequest) {
+    public LogisticsObjectRDFMessageConverter(IdProvider idProvider, BlankNodeReplacingStatementHandler statementHandler, HttpServletRequest httpServletRequest) {
         this.idProvider = idProvider;
         this.statementHandler = statementHandler;
         this.httpServletRequest = httpServletRequest;
@@ -82,7 +85,6 @@ public class LogisticsObjectToRDFMessageConverter extends AbstractHttpMessageCon
 
     protected LogisticsObject readInternal(Class<? extends LogisticsObject> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
         InputStream inputStream = inputMessage.getBody();
-
         RDFFormat rdfFormat = getRDFFormat(inputMessage.getHeaders().getContentType());
         return getLogisticObject(inputStream, rdfFormat);
     }
@@ -101,6 +103,8 @@ public class LogisticsObjectToRDFMessageConverter extends AbstractHttpMessageCon
         if (selectedContentType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
             IRI type = RDFUtil.getType(logisticsObject.model(), logisticsObject.iri());
             rdfString = JsonldUtil.jsonLdToString(rdfString, true, type);
+            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), JsonldUtil.getContext(), new JsonLdOptions());
+            rdfString = JsonUtils.toPrettyString(compact);
         }
         StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
     }
@@ -155,16 +159,6 @@ public class LogisticsObjectToRDFMessageConverter extends AbstractHttpMessageCon
             return RDFFormat.TURTLE;
         }
         throw new RuntimeException("Unsupported media type [" + contentType + "]");
-    }
-
-    private RDFFormat getRdfFormat(String contentType) {
-        String[] split = contentType.split(";");
-        return switch (split[0]) {
-            case SemanticWebMediaType.APPLICATION_JSON_LD_VALUE -> RDFFormat.JSONLD;
-            case SemanticWebMediaType.TEXT_TURTLE_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE ->
-                    RDFFormat.TURTLE;
-            default -> throw new RuntimeException("Unsupported media type [" + contentType + "]");
-        };
     }
 
     /**
