@@ -2,6 +2,7 @@ package com.ontomesh.onerecord.server.services;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
+import com.ontomesh.onerecord.server.domain.ErrorObject;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
@@ -24,7 +25,6 @@ import java.net.URI;
 import java.sql.Date;
 import java.time.Instant;
 
-import static org.iata.onerecord.api.API.REQUEST_ACCEPTED;
 import static org.iata.onerecord.api.API.REQUEST_PENDING;
 
 @Slf4j
@@ -101,9 +101,10 @@ public class AuditTrailService {
      * Updates the Status
      *
      * @param changeRequestId
+     * @param requestStatus
      */
     @Transactional
-    public void updateChangeRequestStatus(IRI changeRequestId) {
+    public void updateChangeRequestStatus(IRI changeRequestId, IRI requestStatus) {
         RepositoryResult<Statement> statements = this.repository.getStatements(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
         if (statements == null) {
             return;
@@ -113,7 +114,7 @@ public class AuditTrailService {
             // First Remove the existing statement.
             this.repository.delete(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
             //Add New statement
-            this.repository.add(changeRequestId, API.hasRequestStatus, REQUEST_ACCEPTED);
+            this.repository.add(changeRequestId, API.hasRequestStatus, requestStatus);
         }
     }
 
@@ -163,6 +164,17 @@ public class AuditTrailService {
     }
 
     /**
+     * Saves the error
+     *
+     * @param errorObject
+     * @return
+     */
+    public IRI saveError(ErrorObject errorObject) {
+        this.repository.persist(errorObject.iri(), errorObject.errorModel());
+        return errorObject.iri();
+    }
+
+    /**
      * returns the complete Audit Trail of an Logistics Object
      *
      * @param auditTrailId
@@ -171,5 +183,11 @@ public class AuditTrailService {
     public LogisticsObject getAuditTrail(URI auditTrailId) {
         return this.repository.findLoById(Values.iri(auditTrailId.toString()), this::isValidIri)
                 .orElseThrow(SubjectNotFoundException::new);
+    }
+
+    public void addError(IRI changeRequestIRI, ErrorObject errorObject) {
+        IRI iri = this.saveError(errorObject);
+
+        this.repository.add(changeRequestIRI, API.hasError, errorObject.iri());
     }
 }

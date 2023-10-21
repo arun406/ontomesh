@@ -7,7 +7,6 @@ import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
-import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import com.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
 import com.ontomesh.onerecord.server.util.JsonldUtil;
 import com.ontomesh.onerecord.server.util.ModelToStringConverter;
@@ -19,7 +18,6 @@ import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.ModelCollector;
-import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Statements;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -39,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -92,14 +88,8 @@ public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConve
     @Override
     protected void writeInternal(LogisticsObject logisticsObject, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         log.debug("logistics object iri {}", logisticsObject.iri());
-        String acceptHeader = httpServletRequest.getHeader(HttpHeaders.ACCEPT);
-        MediaType selectedContentType = SemanticWebMediaType.APPLICATION_JSON_LD;
-        // override the default with requested content type
-        if (StringUtils.hasText(acceptHeader)) {
-            selectedContentType = MediaType.valueOf(acceptHeader);
-        }
-        ModelToStringConverter modelToStringConverter = getModelToStringConverter(selectedContentType);
-        String rdfString = modelToStringConverter.convert(logisticsObject.model());
+        MediaType selectedContentType = getAcceptMediaType();
+        String rdfString = getString(logisticsObject, selectedContentType);
         if (selectedContentType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
             IRI type = RDFUtil.getType(logisticsObject.model(), logisticsObject.iri());
             rdfString = JsonldUtil.jsonLdToString(rdfString, true, type);
@@ -107,6 +97,29 @@ public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConve
             rdfString = JsonUtils.toPrettyString(compact);
         }
         StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
+    }
+
+    /**
+     * @param logisticsObject
+     * @param selectedContentType
+     * @return
+     */
+    private static String getString(LogisticsObject logisticsObject, MediaType selectedContentType) {
+        ModelToStringConverter modelToStringConverter = getModelToStringConverter(selectedContentType);
+        return modelToStringConverter.convert(logisticsObject.model());
+    }
+
+    /**
+     * @return
+     */
+    private MediaType getAcceptMediaType() {
+        String acceptHeader = httpServletRequest.getHeader(HttpHeaders.ACCEPT);
+        MediaType selectedContentType = SemanticWebMediaType.APPLICATION_JSON_LD;
+        // override the default with requested content type
+        if (StringUtils.hasText(acceptHeader)) {
+            selectedContentType = MediaType.valueOf(acceptHeader);
+        }
+        return selectedContentType;
     }
 
     private static ModelToStringConverter getModelToStringConverter(MediaType selectedContentType) {
@@ -126,7 +139,7 @@ public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConve
     protected LogisticsObject getLogisticObject(InputStream inputStream, RDFFormat rdfFormat) throws IOException {
 
         Model model = getModel(inputStream, rdfFormat);
-        IRI loIri = getRootIri(model);
+        IRI loIri = RDFUtil.getRootIri(model);
         log.info("root iri: {}", loIri);
 
 
@@ -176,25 +189,6 @@ public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConve
         return RDFUtil.getParser(rdfFormat, statementHandler);
     }
 
-    public IRI getRootIri(Model model) {
-        // set of all subject IRIs
-        Set<IRI> subjectIris = Models.subjectIRIs(model);
-        // set of all object IRIs
-        Set<IRI> objectIris = Models.objectIRIs(model);
-
-        // subtract set of objects from set of subjects
-        subjectIris.removeAll(objectIris);
-
-        // if more
-        if (subjectIris.size() != 1) {
-            throw new InvalidApiRequestException("Invalid number of IRIs found, expected 1 got: " + subjectIris.stream()
-                    .map(IRI::stringValue)
-                    .collect(Collectors.joining(",", "[", "]"))
-            );
-        }
-
-        return subjectIris.iterator().next();
-    }
 
     private Model replaceRootIri(Model model, IRI oldRootIri, IRI newLoIri) {
         return model.stream().map(statement -> {

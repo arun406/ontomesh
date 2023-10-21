@@ -2,6 +2,7 @@ package com.ontomesh.onerecord.server.util;
 
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
+import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
@@ -211,5 +212,25 @@ public class RDFUtil {
         RDFParser parser = Rio.createParser(rdfFormat);
         parser.setRDFHandler(rdfHandler);
         return parser;
+    }
+
+    public static IRI getRootIri(Model model) {
+        // set of all subject IRIs
+        Set<IRI> subjectIris = Models.subjectIRIs(model);
+        // set of all object IRIs
+        Set<IRI> objectIris = Models.objectIRIs(model);
+
+        // subtract set of objects from set of subjects
+        subjectIris.removeAll(objectIris);
+
+        // if more
+        if (subjectIris.size() != 1) {
+            throw new InvalidApiRequestException("Invalid number of IRIs found, expected 1 got: " + subjectIris.stream()
+                    .map(IRI::stringValue)
+                    .collect(Collectors.joining(",", "[", "]"))
+            );
+        }
+
+        return subjectIris.iterator().next();
     }
 }

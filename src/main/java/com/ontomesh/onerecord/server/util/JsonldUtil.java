@@ -55,7 +55,7 @@ public class JsonldUtil {
         Map<String, Object> result = new HashMap<>();
         for (Map<String, Object> objectMap : graph) {
             Object o = objectMap.get("@type");
-            if (((String) o).equals(type.toString())) {
+            if (o != null && ((String) o).equals(type.toString())) {
                 result = objectMap;
                 break;
             }
@@ -73,7 +73,7 @@ public class JsonldUtil {
         return JsonLdProcessor.frame(json, context, opts);
     }
 
-    private static JsonLdOptions getJsonLdOptions() {
+    public static JsonLdOptions getJsonLdOptions() {
         JsonLdOptions opts = new JsonLdOptions();
         opts.setCompactArrays(true);
         opts.setOmitGraph(false);
