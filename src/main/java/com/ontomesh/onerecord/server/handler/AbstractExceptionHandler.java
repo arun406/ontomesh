@@ -2,7 +2,6 @@ package com.ontomesh.onerecord.server.handler;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.domain.ErrorObject;
-import com.ontomesh.onerecord.server.model.ErrorModelsRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.rdf4j.model.IRI;
@@ -14,8 +13,6 @@ public abstract class AbstractExceptionHandler<T> {
 
     @Autowired
     public IdProvider idProvider;
-    @Autowired
-    public ErrorModelsRepo errorModelsRepo;
 
     @Autowired
     public HttpServletRequest httpServletRequest;

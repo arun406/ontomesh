@@ -10,12 +10,7 @@ import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.util.ModelCollector;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
@@ -81,13 +76,11 @@ public class LogisticsObjectService {
 
 
     @Transactional
-    public Set<IRI> updateLogisticObject(OntoMeshId loId, LogisticsObject change) {
+    public Set<IRI> updateLogisticObject(OntoMeshId loId, LogisticsObject change, LogisticsObject logisticsObject) {
         log.debug("Updating Logistics Object [{}]", loId.iri());
 
-        URI loIdUri = loId.uri();
         Model changeModel = change.model();
 
-        LogisticsObject logisticsObject = findLogisticsObject(loIdUri);
         validateRevision(change, logisticsObject);
 
         Set<IRI> changedProperties = new HashSet<>();
@@ -112,22 +105,38 @@ public class LogisticsObjectService {
             }
         });
         // increase the Logistics Object revision after successful change
-        updateLogisticObjectRevision(logisticsObject.iri());
+        updateLogisticObjectRevision(logisticsObject);
+        Model revisionModel = logisticsObject.model().filter(logisticsObject.iri(), API.hasRevision, null);
+        String revision = Models.objectString(revisionModel).orElse("unknown");
+        log.debug("latest revision {}", revision);
         return changedProperties;
     }
 
-    private void updateLogisticObjectRevision(IRI loId) {
-        RepositoryResult<Statement> statements = this.repository.getStatements(loId, API.hasRevision, null);
-        if (statements != null) {
-            Statement next = statements.next();
-            if (next.getObject().isLiteral()) {
-                int revision = Integer.parseInt(next.getObject().stringValue());
-                // First Remove the existing statement.
-                this.repository.delete(loId, API.hasRevision, Values.literal(revision));
-                //Add New statement
-                this.repository.add(loId, API.hasRevision, Values.literal(revision + 1));
-            }
+    /**
+     * Updates the logistics object revision.
+     *
+     * @param logisticsObject logistics object id
+     */
+    private void updateLogisticObjectRevision(LogisticsObject logisticsObject) {
+
+        RepositoryResult<Statement> statements = this.repository
+                .getStatements(logisticsObject.iri(), API.hasRevision, null);
+        if (statements == null) {
+            return;
         }
+        Statement next = statements.next();
+        if (!next.getObject().isLiteral()) {
+            return;
+        }
+        int revision = Integer.parseInt(next.getObject().stringValue());
+        // First Remove the existing statement.
+        this.repository.delete(logisticsObject.iri(), API.hasRevision, Values.literal(revision));
+        //Add New statement
+        Literal newRevision = Values.literal(revision + 1);
+        this.repository.add(logisticsObject.iri(), API.hasRevision, newRevision);
+        // update the local object.
+        logisticsObject.model().remove(logisticsObject.iri(), API.hasRevision, null);
+        logisticsObject.model().add(logisticsObject.iri(), API.hasRevision, newRevision);
     }
 
     private void validateRevision(LogisticsObject change, LogisticsObject logisticsObject) {
@@ -260,4 +269,6 @@ public class LogisticsObjectService {
         }
         return iri;
     }
+
+
 }

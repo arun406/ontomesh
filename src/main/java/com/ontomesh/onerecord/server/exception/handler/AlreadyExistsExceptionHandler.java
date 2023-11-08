@@ -13,8 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import static com.ontomesh.onerecord.server.model.ErrorModelsRepo.hasAttribute;
-import static com.ontomesh.onerecord.server.model.ErrorModelsRepo.hasDetails;
+import static com.ontomesh.onerecord.server.common.CommonConstants.hasAttribute;
+import static com.ontomesh.onerecord.server.common.CommonConstants.hasDetails;
+
 
 @RestControllerAdvice
 public class AlreadyExistsExceptionHandler extends AbstractExceptionHandler<AlreadyExistsException> {
