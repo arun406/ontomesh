@@ -7,15 +7,22 @@ import com.ontomesh.onerecord.server.services.LogisticsObjectConverterService;
 import com.ontomesh.onerecord.server.services.SnapshotService;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.iata.onerecord.api.API;
 import org.iata.onerecord.cargo.CARGO;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.util.ResourceUtils;
 
@@ -32,15 +39,15 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class SnapshotTest {
 
-    @Autowired
-    private IdProvider idProvider;
+    private final IdProvider idProvider;
+    private final SnapshotService snapshotService;
+    private final LogisticsObjectConverterService converterService;
 
-
-    @Autowired
-    private SnapshotService snapshotService;
-
-    @Autowired
-    private LogisticsObjectConverterService converterService;
+    public SnapshotTest(IdProvider idProvider, SnapshotService snapshotService, LogisticsObjectConverterService converterService) {
+        this.idProvider = idProvider;
+        this.snapshotService = snapshotService;
+        this.converterService = converterService;
+    }
 
     @BeforeAll
     static void setup() {
@@ -93,11 +100,11 @@ public class SnapshotTest {
 
         for (Statement statement : logisticsObject.model()) {
             if (statement.getPredicate().isIRI() &&
-                    isEqual(statement.getPredicate(), RDF.TYPE) == 0) {
+                    isEqual(statement.getPredicate()) == 0) {
                 continue;
             }
 
-            Resource subject = statement.getSubject();
+//            Resource subject = statement.getSubject();
             IRI predicate = statement.getPredicate();
 //            Object object = statement.getObject();
             // Create a new statement with the same subject, predicate, and object.
@@ -121,8 +128,7 @@ public class SnapshotTest {
 
     }
 
-    private int isEqual(IRI iri1, IRI iri2) {
-        int comparisonResult = iri1.toString().compareTo(iri2.toString());
-        return comparisonResult;
+    private int isEqual(IRI iri1) {
+        return iri1.toString().compareTo(RDF.TYPE.toString());
     }
 }

@@ -10,15 +10,17 @@ import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.util.ModelCollector;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
-import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.iata.onerecord.api.API;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,18 +37,14 @@ import static com.ontomesh.onerecord.server.util.RDFUtil.getObjectLiteral;
 
 @Slf4j
 @Service
-public class LogisticsObjectService {
+public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
     public static final String DELETE = "https://onerecord.iata.org/ns/api#DELETE";
     public static final String ADD = "https://onerecord.iata.org/ns/api#ADD";
-    public final LogisticsObjectRepository repository;
 
-    @Autowired
-    private final IdProvider idProvider;
 
     public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider) {
-        this.repository = repository;
-        this.idProvider = idProvider;
+        super(repository, idProvider);
     }
 
     @Transactional
@@ -68,11 +66,11 @@ public class LogisticsObjectService {
                 .orElseThrow(SubjectNotFoundException::new);
     }
 
-    @Transactional
-    public LogisticsObject findLogisticsObject(IRI iri) {
-        return repository.findLoById(iri)
-                .orElseThrow(SubjectNotFoundException::new);
-    }
+//    @Transactional
+//    public LogisticsObject findLogisticsObject(IRI iri) {
+//        return repository.findLoById(iri)
+//                .orElseThrow(SubjectNotFoundException::new);
+//    }
 
 
     @Transactional
@@ -119,16 +117,8 @@ public class LogisticsObjectService {
      */
     private void updateLogisticObjectRevision(LogisticsObject logisticsObject) {
 
-        RepositoryResult<Statement> statements = this.repository
-                .getStatements(logisticsObject.iri(), API.hasRevision, null);
-        if (statements == null) {
-            return;
-        }
-        Statement next = statements.next();
-        if (!next.getObject().isLiteral()) {
-            return;
-        }
-        int revision = Integer.parseInt(next.getObject().stringValue());
+        Integer revision = getRevision(logisticsObject.iri());
+        if (revision == null) return;
         // First Remove the existing statement.
         this.repository.delete(logisticsObject.iri(), API.hasRevision, Values.literal(revision));
         //Add New statement
@@ -139,6 +129,13 @@ public class LogisticsObjectService {
         logisticsObject.model().add(logisticsObject.iri(), API.hasRevision, newRevision);
     }
 
+
+    /**
+     * validates the latest logistics object revision with the change request revision.
+     *
+     * @param change          change request.
+     * @param logisticsObject logistics object.
+     */
     private void validateRevision(LogisticsObject change, LogisticsObject logisticsObject) {
 
         log.debug("logistics object iri :{}", logisticsObject.iri());
@@ -150,7 +147,13 @@ public class LogisticsObjectService {
         }
     }
 
-    private int getRevision(LogisticsObject logisticsObject) {
+    /**
+     * returns the logistics object revision from the model.
+     *
+     * @param logisticsObject logistics object model.
+     * @return revision.
+     */
+    public int getRevision(LogisticsObject logisticsObject) {
         Optional<Literal> optionalLiteral = Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), API.hasRevision, null));
         return optionalLiteral.orElseThrow(() -> new RevisionMissingException(logisticsObject.iri())).intValue();
     }
@@ -158,7 +161,7 @@ public class LogisticsObjectService {
     private void processAddOperations(LogisticsObject logisticsObject, Set<IRI> changedProperties, Set<IRI> operationObjects) {
         log.debug("Applying Add operations...");
         Model changeModel = logisticsObject.model();
-        Map<String, IRI> bnodeToIri = getBnodeToIri(changeModel, operationObjects, ADD);
+        Map<String, IRI> blankNodeToIri = getBlankNodeToIri(changeModel, operationObjects, ADD);
 
         for (IRI opSubject : operationObjects) {
             IRI patchOperation = getObject(opSubject, API.op, changeModel);
@@ -175,7 +178,7 @@ public class LogisticsObjectService {
             String subjectAsString = getObjectLiteral(opSubject, API.s, changeModel).stringValue();
             changedProperties.add(predicate);
             // either the opSubject is an IRI or a blank node that is mapped to an internal IRI
-            IRI subject = bnodeToIri.containsKey(subjectAsString) ? bnodeToIri.get(subjectAsString) : Values.iri(subjectAsString);
+            IRI subject = blankNodeToIri.containsKey(subjectAsString) ? blankNodeToIri.get(subjectAsString) : Values.iri(subjectAsString);
 
             IRI operationObjectSubject = getObject(opSubject, API.o, changeModel);
             String datatype = getObjectLiteral(operationObjectSubject, API.hasDatatype, changeModel).stringValue();
@@ -189,8 +192,8 @@ public class LogisticsObjectService {
                 object = Values.literal(value, literalDatatype.get().getCoreDatatype());
             } else {
                 // an "embedded" object is to be added
-                IRI objectIri = bnodeToIri.containsKey(value)
-                        ? bnodeToIri.get(value)
+                IRI objectIri = blankNodeToIri.containsKey(value)
+                        ? blankNodeToIri.get(value)
                         : Values.iri(value);
                 //  - add type statement using operations datatype value
                 repository.add(objectIri, RDF.TYPE, Values.iri(datatype));
@@ -204,7 +207,7 @@ public class LogisticsObjectService {
     private void processDeleteOperations(LogisticsObject change, Set<IRI> changedProperties, Set<Resource> affectedSubjects, Set<IRI> operationObjects) {
         log.debug("Applying delete operations...");
         Model changeModel = change.model();
-        Map<String, IRI> bnodeToIri = getBnodeToIri(changeModel, operationObjects, DELETE);
+        Map<String, IRI> blankNodeToIri = getBlankNodeToIri(changeModel, operationObjects, DELETE);
 
         for (IRI operationObject : operationObjects) {
             IRI patchOperation = getObject(operationObject, API.op, changeModel);
@@ -220,7 +223,7 @@ public class LogisticsObjectService {
             String subjectAsString = getObjectLiteral(operationObject, API.s, changeModel).stringValue();
 //            IRI s = Values.iri(subjectAsString);
             // either the opSubject is an IRI or a blank node that is mapped to an internal IRI
-            IRI subject = bnodeToIri.containsKey(subjectAsString) ? bnodeToIri.get(subjectAsString) : Values.iri(subjectAsString);
+            IRI subject = blankNodeToIri.containsKey(subjectAsString) ? blankNodeToIri.get(subjectAsString) : Values.iri(subjectAsString);
             log.debug("subject: {}", subject);
             // get the subject
             affectedSubjects.add(subject);
@@ -244,8 +247,8 @@ public class LogisticsObjectService {
         }
     }
 
-    private Map<String, IRI> getBnodeToIri(Model changeModel, Set<IRI> operationObjects, String operation) {
-        Map<String, IRI> bnodeToIri = operationObjects.stream()
+    private Map<String, IRI> getBlankNodeToIri(Model changeModel, Set<IRI> operationObjects, String operation) {
+        return operationObjects.stream()
                 .filter(iri -> {
                     IRI object = getObject(iri, API.op, changeModel);
                     return object.toString().equalsIgnoreCase(operation);
@@ -257,7 +260,6 @@ public class LogisticsObjectService {
                         this::resolveAddOperationIri,
                         (iri, iri2) -> iri
                 ));
-        return bnodeToIri;
     }
 
     private IRI resolveAddOperationIri(String value) {

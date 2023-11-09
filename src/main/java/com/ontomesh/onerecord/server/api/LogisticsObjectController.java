@@ -12,7 +12,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.Set;
@@ -51,6 +58,16 @@ public class LogisticsObjectController extends BaseController {
         if (at != null) {
             log.debug("finding the snapshot for the lo id {} at {}", loId.uri(), at);
             logisticsObject = this.snapshotService.findSnapshot(loId.iri(), at);
+
+            headers.add("Type", logisticsObject.type().stringValue());
+            headers.remove("Location");
+            headers.add("Location", logisticsObject.iri().stringValue());
+            int snapshotVersion = snapshotService.getRevision(logisticsObject);
+            headers.add("Revision", String.valueOf(snapshotVersion));
+            Integer latestRevision = logisticsObjectService.getRevision(loId.iri());
+            headers.add("Latest-Revision", latestRevision.toString());
+            headers.remove("LO-type");
+            headers.remove("Revision-Header");
         } else {
             URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
             logisticsObject = logisticsObjectService.findLogisticsObject(requestURI);

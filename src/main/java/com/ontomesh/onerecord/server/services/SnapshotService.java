@@ -7,7 +7,11 @@ import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.SnapshotNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.util.Values;
@@ -23,13 +27,14 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Service
-public class SnapshotService {
+public class SnapshotService extends AbstractLogisticsObjectService {
 
     private final LogisticsObjectRepository repository;
     private final IdProvider idProvider;
     ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
     public SnapshotService(LogisticsObjectRepository repository, IdProvider idProvider) {
+        super(repository, idProvider);
         this.repository = repository;
         this.idProvider = idProvider;
     }
@@ -72,13 +77,12 @@ public class SnapshotService {
     public LogisticsObject findSnapshot(IRI loIRI, String at) {
         IRI snapshotIRI = valueFactory.createIRI(loIRI.stringValue(), "?at=" + at);
         return this.repository.findLoById(snapshotIRI, this::isValidIri)
-                .orElseThrow(() -> new SnapshotNotFoundException("Snapshot exists."));
+                .orElseThrow(() -> new SnapshotNotFoundException("Snapshot not exists."));
     }
 
     private int isTypePredicate(IRI iri1) {
         return iri1.toString().compareTo(RDF.TYPE.toString());
     }
-
 
     /**
      * @param iri iri
