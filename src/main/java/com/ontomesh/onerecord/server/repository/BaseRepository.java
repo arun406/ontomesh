@@ -29,6 +29,9 @@ public abstract class BaseRepository {
         this.connection.add(model);
     }
 
+    public void persist(Model model) {
+        this.connection.add(model);
+    }
 
     /**
      * @param iri

@@ -1,6 +1,7 @@
 package com.ontomesh.onerecord.server.exception.handler;
 
 import com.ontomesh.onerecord.server.domain.ErrorObject;
+import com.ontomesh.onerecord.server.exception.LogisticsEventNotFoundException;
 import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import static com.ontomesh.onerecord.server.common.OntoMesh.hasDetails;
+
 @RestControllerAdvice
 public class SubjectNotFoundExceptionHandler extends AbstractBadRequestExceptionHandler<SubjectNotFoundException> {
 
@@ -20,11 +23,17 @@ public class SubjectNotFoundExceptionHandler extends AbstractBadRequestException
         return new ModelBuilder().setNamespace(API.PREFIX, API.NAMESPACE)
                 .subject(errorIRI)
                 .add(RDF.TYPE, API.Error)
-                .add(API.hasTitle, Values.literal("Subject not found"))
+                .add(API.hasTitle, Values.literal("Logistics Object not found"))
+                .add(hasDetails, errorDetailsIRI)
+                .subject(errorDetailsIRI)
+                .add(RDF.TYPE, API.ErrorDetail)
+                .add(API.hasCode, httpStatus.value())
+                .add(API.hasMessage, exception.getMessage())
+                .add(API.hasResource, exception.getIri().stringValue())
                 .build();
     }
 
-    @ExceptionHandler(value = SubjectNotFoundException.class)
+    @ExceptionHandler(value = {SubjectNotFoundException.class, LogisticsEventNotFoundException.class})
     public ErrorObject handle(SubjectNotFoundException exception) {
         return super.handle(exception);
     }

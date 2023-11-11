@@ -2,6 +2,7 @@ package com.ontomesh.onerecord.server.services;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
+import com.ontomesh.onerecord.server.common.OntoMesh;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidChangeOperationException;
 import com.ontomesh.onerecord.server.exception.InvalidRevisionException;
@@ -43,7 +44,8 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     public static final String ADD = "https://onerecord.iata.org/ns/api#ADD";
 
 
-    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider) {
+    public LogisticsObjectService(LogisticsObjectRepository repository,
+                                  IdProvider idProvider) {
         super(repository, idProvider);
     }
 
@@ -273,4 +275,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     }
 
 
+    public void addEvent(IRI logisticsObjectIRI, LogisticsObject event) {
+        this.repository.add(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, event.iri());
+    }
 }

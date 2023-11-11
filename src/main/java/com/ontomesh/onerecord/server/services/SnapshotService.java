@@ -2,7 +2,7 @@ package com.ontomesh.onerecord.server.services;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
-import com.ontomesh.onerecord.server.common.CommonConstants;
+import com.ontomesh.onerecord.server.common.OntoMesh;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.SnapshotNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
@@ -29,14 +29,11 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class SnapshotService extends AbstractLogisticsObjectService {
 
-    private final LogisticsObjectRepository repository;
-    private final IdProvider idProvider;
     ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
-    public SnapshotService(LogisticsObjectRepository repository, IdProvider idProvider) {
+    public SnapshotService(LogisticsObjectRepository repository, LogisticsObjectService logisticsObjectService,
+                           IdProvider idProvider) {
         super(repository, idProvider);
-        this.repository = repository;
-        this.idProvider = idProvider;
     }
 
     /**
@@ -54,7 +51,7 @@ public class SnapshotService extends AbstractLogisticsObjectService {
         Model newModel = new ModelBuilder().setNamespace(API.PREFIX, API.NAMESPACE)
                 .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .subject(snapshotId)
-                .add(CommonConstants.hasSnapshotDate, at)
+                .add(OntoMesh.hasSnapshotDate, at)
                 .add(RDF.TYPE, logisticsObject.type())
                 .build();
 
@@ -63,7 +60,8 @@ public class SnapshotService extends AbstractLogisticsObjectService {
                     isTypePredicate(statement.getPredicate()) == 0) {
                 continue;
             }
-            Statement newStatement = Values.getValueFactory().createStatement(snapshotId, statement.getPredicate(), statement.getObject());
+            Statement newStatement = Values.getValueFactory()
+                    .createStatement(snapshotId, statement.getPredicate(), statement.getObject());
             newModel.add(newStatement);
         }
         newModel.add(snapshotId, API.hasLogisticsObject, valueFactory.createLiteral(logisticsObject.iri().stringValue()));
@@ -76,7 +74,8 @@ public class SnapshotService extends AbstractLogisticsObjectService {
 
     public LogisticsObject findSnapshot(IRI loIRI, String at) {
         IRI snapshotIRI = valueFactory.createIRI(loIRI.stringValue(), "?at=" + at);
-        return this.repository.findLoById(snapshotIRI, this::isValidIri)
+        return this.repository.findLoById(snapshotIRI,
+                        (iri) -> OntoMeshId.isValidIri(iri, idProvider.getLogisticsObjectBaseIRI()))
                 .orElseThrow(() -> new SnapshotNotFoundException("Snapshot not exists."));
     }
 
@@ -84,12 +83,4 @@ public class SnapshotService extends AbstractLogisticsObjectService {
         return iri1.toString().compareTo(RDF.TYPE.toString());
     }
 
-    /**
-     * @param iri iri
-     * @return boolean
-     */
-    private boolean isValidIri(IRI iri) {
-        return (OntoMeshId.isInternalIri(iri)) || OntoMeshId.isOneRecordIri(iri)
-                || iri.getNamespace().equals(idProvider.getLogisticsObjectBaseIRI().stringValue());
-    }
 }

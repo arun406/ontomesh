@@ -52,7 +52,7 @@ public class AuditTrailService {
 
         IRI auditTrailId = getAuditIri(URI.create(logisticsObjectIRI.toString()));
 
-        LogisticsObject auditTrail = this.repository.findLoById(auditTrailId, iri -> false)
+        LogisticsObject auditTrail = this.repository.findLoById(auditTrailId, OntoMeshId::findParentOnly)
                 .orElseGet(() -> this.create(auditTrailId, changeRequestIRI));
         auditTrail.model().add(auditTrail.iri(), API.hasChangeRequest, changeRequestIRI);
         save(auditTrail);
@@ -83,15 +83,6 @@ public class AuditTrailService {
         return RDFUtil.createIRI(auditTrailUri);
     }
 
-
-    /**
-     * @param iri
-     * @return
-     */
-    private boolean isValidIri(IRI iri) {
-        return (OntoMeshId.isInternalIri(iri)) || OntoMeshId.isOneRecordIri(iri)
-                || iri.getNamespace().equals(idProvider.getLogisticsObjectBaseIRI().stringValue());
-    }
 
     private boolean recursive(IRI iri) {
         return false;
@@ -181,7 +172,8 @@ public class AuditTrailService {
      * @return
      */
     public LogisticsObject getAuditTrail(URI auditTrailId) {
-        return this.repository.findLoById(Values.iri(auditTrailId.toString()), this::isValidIri)
+        return this.repository.findLoById(Values.iri(auditTrailId.toString()),
+                        (iri) -> OntoMeshId.isValidIri(iri, idProvider.getLogisticsObjectBaseIRI()))
                 .orElseThrow(SubjectNotFoundException::new);
     }
 

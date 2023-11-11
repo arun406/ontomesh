@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import static com.ontomesh.onerecord.server.common.CommonConstants.hasAttribute;
-import static com.ontomesh.onerecord.server.common.CommonConstants.hasDetails;
+import static com.ontomesh.onerecord.server.common.OntoMesh.hasAttribute;
+import static com.ontomesh.onerecord.server.common.OntoMesh.hasDetails;
 
 @RestControllerAdvice
 public class HttpMediaTypeNotSupportedExceptionHandler extends AbstractExceptionHandler<HttpMediaTypeNotSupportedException> {

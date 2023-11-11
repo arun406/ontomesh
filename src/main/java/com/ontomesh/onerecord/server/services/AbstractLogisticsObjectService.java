@@ -6,6 +6,7 @@ import com.ontomesh.onerecord.server.exception.RevisionMissingException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.repository.RepositoryResult;
@@ -17,7 +18,8 @@ public abstract class AbstractLogisticsObjectService {
     public final LogisticsObjectRepository repository;
     public final IdProvider idProvider;
 
-    protected AbstractLogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider) {
+    protected AbstractLogisticsObjectService(LogisticsObjectRepository repository,
+                                             IdProvider idProvider) {
         this.repository = repository;
         this.idProvider = idProvider;
     }
@@ -29,8 +31,10 @@ public abstract class AbstractLogisticsObjectService {
      * @return logistics object revision
      */
     public int getRevision(LogisticsObject logisticsObject) {
-        Optional<Literal> optionalLiteral = Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), API.hasRevision, null));
-        return optionalLiteral.orElseThrow(() -> new RevisionMissingException(logisticsObject.iri())).intValue();
+        Model model = logisticsObject.model();
+        IRI iri = logisticsObject.iri();
+        Optional<Literal> optionalLiteral = Models.objectLiteral(model.filter(iri, API.hasRevision, null));
+        return optionalLiteral.orElseThrow(() -> new RevisionMissingException(iri)).intValue();
     }
 
     /**

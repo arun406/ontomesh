@@ -34,4 +34,18 @@ public record OntoMeshId(IRI iri, URI uri) {
         return iri.getNamespace().startsWith(CARGO.NAMESPACE)
                 || iri.getNamespace().startsWith(API.NAMESPACE);
     }
+
+    /**
+     * @param iri
+     * @return
+     */
+    public static boolean isValidIri(IRI iri, IRI logisticsObjectBaseIRI) {
+        return (OntoMeshId.isInternalIri(iri)) || OntoMeshId.isOneRecordIri(iri)
+                || iri.getNamespace().equals(logisticsObjectBaseIRI.stringValue());
+    }
+
+
+    public static boolean findParentOnly(IRI iri) {
+        return false;
+    }
 }

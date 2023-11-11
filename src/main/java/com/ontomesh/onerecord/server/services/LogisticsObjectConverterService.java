@@ -5,6 +5,8 @@ import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
 import com.ontomesh.onerecord.server.util.RDFUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -16,23 +18,22 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class LogisticsObjectConverterService {
 
     private final IRI hasPredefinedIri = SimpleValueFactory.getInstance().createIRI("https://www.ontomesh.com/onerecord#", "hasId");
 
     private final IdProvider idProvider;
     private final BlankNodeReplacingStatementHandler statementHandler;
-
-    public LogisticsObjectConverterService(IdProvider idProvider, BlankNodeReplacingStatementHandler statementHandler) {
-        this.idProvider = idProvider;
-        this.statementHandler = statementHandler;
-    }
+    private final HttpServletRequest httpServletRequest;
 
     /**
      * @param inputStream
@@ -46,23 +47,41 @@ public class LogisticsObjectConverterService {
         IRI loIri = RDFUtil.getRootIri(model);
         log.info("root iri: {}", loIri);
 
-
         boolean isInternal = OntoMeshId.isInternalIri(loIri);
         log.info("is internal IRI? ,{}", isInternal);
-        IRI newLoIri = loIri;
+        IRI newLoIRI = loIri;
         if (isInternal) {
-            newLoIri = idProvider.createUniqueLoUri().iri();
-            log.info("new LO iri: {}", newLoIri);
-            model = replaceRootIri(model, loIri, newLoIri);
+            URI path = URI.create(getURL());
+//                    .getPath();
+            boolean isLogisticsEvent = getURL().contains("/logistics-events");
+            newLoIRI = getLogisticsObjectIRI(isLogisticsEvent, path);
+            log.info("new LO iri: {}", newLoIRI);
+            model = replaceRootIri(model, loIri, newLoIRI);
         } else {
             // Adding marker
             model.add(loIri, hasPredefinedIri, Values.literal(true));
         }
 
-        IRI type = RDFUtil.getType(model, newLoIri);
-        LogisticsObject logisticsObject = new LogisticsObject(newLoIri, type, model);
+        IRI type = RDFUtil.getType(model, newLoIRI);
+        LogisticsObject logisticsObject = new LogisticsObject(newLoIRI, type, model);
         log.info("LO iri: {} ", logisticsObject.iri());
         return logisticsObject;
+    }
+
+    private IRI getLogisticsObjectIRI(boolean isLogisticsEvent, URI path) {
+        IRI newLoIri;
+        if (isLogisticsEvent) {
+            log.debug("is logistics-events request.");
+            UriComponentsBuilder builder = UriComponentsBuilder.newInstance().uri(path).path("/");
+            newLoIri = idProvider.createUniqueLoUriForLogisticsEvent(builder).iri();
+        } else {
+            newLoIri = idProvider.createUniqueLoUri().iri();
+        }
+        return newLoIri;
+    }
+
+    private String getURL() {
+        return httpServletRequest.getRequestURL().toString();
     }
 
     private Model replaceRootIri(Model model, IRI oldRootIri, IRI newLoIri) {

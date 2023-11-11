@@ -1,6 +1,6 @@
 package com.ontomesh.onerecord.server.api;
 
-import com.ontomesh.onerecord.server.common.CommonConstants;
+import com.ontomesh.onerecord.server.common.OntoMesh;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.AlreadyExistsException;
 import com.ontomesh.onerecord.server.exception.InvalidAddressException;
@@ -28,9 +28,9 @@ import java.util.UUID;
 public class BaseController {
 
     @Autowired
-    protected IdProvider idProvider;
+    public IdProvider idProvider;
     @Autowired
-    private LogisticsObjectService logisticsObjectService;
+    public LogisticsObjectService logisticsObjectService;
     private final SimpleValueFactory instance = SimpleValueFactory.getInstance();
 
     private final IRI hasPredefinedIri = instance.createIRI("https://www.ontomesh.com/onerecord#", "hasId");
@@ -45,8 +45,8 @@ public class BaseController {
         return RDFUtil.getType(model, iri).stringValue();
     }
 
-    protected OntoMeshId getLoId(String uri) {
-        return idProvider.getUriForLoId(uri);
+    protected OntoMeshId getLoId(String uuid) {
+        return idProvider.getUriForLoId(uuid);
     }
 
     protected void checkForDuplicateIRI(LogisticsObject logisticsObject) {
@@ -74,7 +74,7 @@ public class BaseController {
 
     protected HttpHeaders getResponseHeaders(URI loURI, String loType, MediaType contentType) {
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add(CommonConstants.LO_TYPE_HEADER, CommonConstants.LO_TYPE_COMPANY_INFORMATION);
+        responseHeaders.add(OntoMesh.LO_TYPE_HEADER, OntoMesh.LO_TYPE_COMPANY_INFORMATION);
         responseHeaders.setContentType(contentType);
         responseHeaders.add("Type", loType);
         responseHeaders.setLocation(loURI);
@@ -101,7 +101,7 @@ public class BaseController {
         headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
         headers.setLocation(URI.create(httpServletRequest.getRequestURL().toString()));
         headers.add("Revision-Header", UUID.randomUUID().toString());
-        headers.add(CommonConstants.LO_TYPE_HEADER, CommonConstants.LO_TYPE_COMPANY_INFORMATION);
+        headers.add(OntoMesh.LO_TYPE_HEADER, OntoMesh.LO_TYPE_COMPANY_INFORMATION);
         return headers;
     }
 

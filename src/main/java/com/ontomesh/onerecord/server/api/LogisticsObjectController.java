@@ -39,7 +39,7 @@ public class LogisticsObjectController extends BaseController {
      * returns the Logistics object
      *
      * @param httpServletRequest http servlet request
-     * @param uri                logistics object id
+     * @param loReferenceId      logistics object id
      * @param at                 snapshot at
      * @return Logistics Object
      */
@@ -47,9 +47,9 @@ public class LogisticsObjectController extends BaseController {
             SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
     private ResponseEntity<LogisticsObject> findLogisticsObject(HttpServletRequest httpServletRequest,
-                                                                @PathVariable("id") String uri,
+                                                                @PathVariable("id") String loReferenceId,
                                                                 @RequestParam(required = false, name = "at") String at) {
-        OntoMeshId loId = getLoId(uri);
+        OntoMeshId loId = getLoId(loReferenceId);
         log.info("Searching the logistics objects with IRI of : {}", loId.uri());
 
         HttpHeaders headers = getResponseHeaders(httpServletRequest);

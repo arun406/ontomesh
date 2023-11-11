@@ -1,7 +1,7 @@
 package com.ontomesh.onerecord.server;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
-import com.ontomesh.onerecord.server.common.CommonConstants;
+import com.ontomesh.onerecord.server.common.OntoMesh;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.services.LogisticsObjectConverterService;
 import com.ontomesh.onerecord.server.services.SnapshotService;
@@ -118,7 +118,7 @@ public class SnapshotTest {
         String dateTime = dateTimeFormatter.format(Instant.now());
         log.debug("snapshot datetime : {}", dateTime);
         Literal at = Values.literal(dateTime);
-        newModel.add(snapshotId, CommonConstants.hasSnapshotDate, at);
+        newModel.add(snapshotId, OntoMesh.hasSnapshotDate, at);
         RDFUtil.print(logisticsObject.model(), RDFFormat.TURTLE);
 //        RDFUtil.print(logisticsObject.model(), RDFFormat.JSONLD);
         System.out.println("--------");
