@@ -4,6 +4,7 @@ import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import com.ontomesh.onerecord.server.util.RDFUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.base.CoreDatatype;
@@ -18,9 +19,8 @@ import java.time.Instant;
 import java.util.List;
 
 import static com.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
-import static com.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
-import static com.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
 
+@Slf4j
 @Service
 public class SubscriptionService {
     private final LogisticsObjectRepository repository;
@@ -28,6 +28,15 @@ public class SubscriptionService {
 
     @Value("${company.identifier:MyAirline}")
     String companyIdentifier;
+
+    @Value("${subscriptions.sendLogisticsObjectBody:false}")
+    private boolean sendLogisticsObjectBody;
+
+    @Value("${subscriptions.subscribeToLogisticsEvents:true}")
+    private boolean subscribeToLogisticsEvents;
+    @Value("${subscriptions.notifyRequestStatusChange:true}")
+    private boolean notifyRequestStatusChange;
+
 
     public SubscriptionService(LogisticsObjectRepository repository, IdProvider idProvider) {
         this.repository = repository;
@@ -40,9 +49,12 @@ public class SubscriptionService {
     public void createSubscriptionRequest(LogisticsObject logisticsObject) {
         Model model = logisticsObject.model();
         // override the type to SubscriptionRequest
+        model.remove(logisticsObject.iri(), RDF.TYPE, null);
         model.add(logisticsObject.iri(), RDF.TYPE, API.SubscriptionRequest);
         model.add(logisticsObject.iri(), API.isRequestedAt,
                 Values.literal(Instant.now().toString(), CoreDatatype.XSD.DATETIME));
+
+//        RDFUtil.print(logisticsObject.model(), RDFFormat.JSONLD);
         this.repository.persist(logisticsObject.iri(), model);
     }
 
@@ -52,28 +64,39 @@ public class SubscriptionService {
      * @param topicType
      * @return
      */
-    public LogisticsObject createSubscriptionProposalResponse(String topic, String topicType) {
+    public LogisticsObject createSubscriptionProposalResponse(IRI topic, IRI topicType) {
 
         IRI subscriber = Values.iri(companyIdentifier);
-        IRI iri = idProvider.createUniqueLoUri().iri();
+        IRI subscriptionIRI = idProvider.createUniqueLoUri().iri();
         ModelBuilder modelBuilder = new ModelBuilder()
-                .subject(iri)
+                .subject(subscriptionIRI)
                 .add(RDF.TYPE, API.Subscription)
                 .add(API.hasSubscriber, subscriber)
                 .add(API.hasTopic, topic)
                 .add(API.hasTopicType, topicType)
-                .add(API.subscribeToLogisticsEvents, Values.literal(true)) //TODO: remove the hard coding.
+                .add(API.subscribeToLogisticsEvents, Values.literal(subscribeToLogisticsEvents))
+                .add(API.notifyRequestStatusChange, Values.literal(notifyRequestStatusChange))
                 .add(API.expiresAt, Values.literal(Instant.now().toString(), CoreDatatype.XSD.DATETIME))
-                .add(API.sendLogisticsObjectBody, Values.literal(true));//TODO: remove the hard coding.
-        contentTypes().forEach(contentType -> modelBuilder.add(API.hasSupportedContentType, Values.literal(contentType)));
-
+                .add(API.sendLogisticsObjectBody, Values.literal(sendLogisticsObjectBody));
+        contentTypes()
+                .forEach(contentType -> modelBuilder.add(API.hasContentType, Values.literal(contentType)));
+        includeSubscriptionEventType()
+                .forEach(type -> modelBuilder.add("api:includeSubscriptionEventType", type));
         Model model = modelBuilder.build();
-        return new LogisticsObject(iri, RDFUtil.getType(model, iri), model);
+        return new LogisticsObject(subscriptionIRI, RDFUtil.getType(model, subscriptionIRI), model);
+    }
+
+    public static List<IRI> includeSubscriptionEventType() {
+        return List.of(API.LOGISTICS_EVENT_RECEIVED,
+                API.LOGISTICS_OBJECT_UPDATED,
+                API.LOGISTICS_OBJECT_CREATED);
     }
 
     public static List<String> contentTypes() {
-        return List.of(APPLICATION_JSON_LD_VALUE,
-                APPLICATION_TURTLE_VALUE,
-                TEXT_TURTLE_VALUE);
+        return List.of(APPLICATION_JSON_LD_VALUE
+//                ,
+//                APPLICATION_TURTLE_VALUE,
+//                TEXT_TURTLE_VALUE
+        );
     }
 }

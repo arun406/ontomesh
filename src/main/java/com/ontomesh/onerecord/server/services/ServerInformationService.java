@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
+import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.iata.onerecord.api.API;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -47,16 +49,15 @@ public class ServerInformationService {
         repository.persist(dataOwnerIri, serverInfoModel);
     }
 
-    @Transactional
     public LogisticsObject getServerInformation() {
         log.debug("Getting Server Information...");
         return logisticsObjectService.findLogisticsObject(URI.create("https://onerecord.ontomesh.com/"));
     }
 
-    @Transactional
-    public Set<String> getSupportedLogisticTypes() {
+    public Set<IRI> getSupportedLogisticTypes() {
         LogisticsObject logisticsObject = getServerInformation();
         return Models.objectStrings(logisticsObject.model()
-                .filter(logisticsObject.iri(), API.hasSupportedLogisticsObjectType, null));
+                        .filter(logisticsObject.iri(), API.hasSupportedLogisticsObjectType, null))
+                .stream().map(Values::iri).collect(Collectors.toSet());
     }
 }

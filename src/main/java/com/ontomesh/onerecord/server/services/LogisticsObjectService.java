@@ -64,8 +64,10 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     public LogisticsObject findLogisticsObject(URI uri) {
         IRI iri = Values.iri(uri.toString());
         log.info("Searching for Logistics Object of IRI {}", iri.toString());
-        return repository.findLoById(iri)
+        LogisticsObject logisticsObject = repository.findLoById(iri)
                 .orElseThrow(SubjectNotFoundException::new);
+        log.debug("Server information  {} ", logisticsObject.iri());
+        return logisticsObject;
     }
 
 //    @Transactional
