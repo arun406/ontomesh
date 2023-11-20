@@ -1,6 +1,7 @@
 package com.ontomesh.onerecord.server.exception.handler;
 
 import com.ontomesh.onerecord.server.domain.ErrorObject;
+import com.ontomesh.onerecord.server.exception.LogisticsEventNotFoundException;
 import com.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -9,6 +10,7 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.iata.onerecord.api.API;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -27,12 +29,12 @@ public class LogisticsEventNotFoundExceptionHandler extends AbstractBadRequestEx
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())
-                .add(API.hasMessage, exception.getMessage())
+                .add(API.hasMessage, !StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "Logistics Event not found")
                 .add(API.hasResource, exception.getIri().stringValue())
                 .build();
     }
 
-    @ExceptionHandler(value = LogisticsObjectNotFoundException.class)
+    @ExceptionHandler(value = LogisticsEventNotFoundException.class)
     public ErrorObject handle(LogisticsObjectNotFoundException exception) {
         return super.handle(exception);
     }

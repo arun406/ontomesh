@@ -14,4 +14,13 @@ public class LogisticsObjectNotFoundException extends RuntimeException {
     public LogisticsObjectNotFoundException(String s) {
         super(s);
     }
+
+    public LogisticsObjectNotFoundException(IRI iri) {
+        this.iri = iri;
+    }
+
+    public LogisticsObjectNotFoundException(IRI iri, String message) {
+        super(message);
+        this.iri = iri;
+    }
 }

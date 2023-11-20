@@ -172,7 +172,7 @@ public class AuditTrailService {
     public LogisticsObject getAuditTrail(URI auditTrailId) {
         return this.repository.findLoById(Values.iri(auditTrailId.toString()),
                         (iri) -> OntoMeshId.isValidIri(iri, idProvider.getLogisticsObjectBaseIRI()))
-                .orElseThrow(LogisticsObjectNotFoundException::new);
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(Values.iri(auditTrailId.toString()), "Audit Train not found."));
     }
 
     public void addError(IRI changeRequestIRI, ErrorObject errorObject) {

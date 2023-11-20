@@ -124,7 +124,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     private void validateLogisticsObject(IRI logisticsObjectIRI) {
         boolean exists = this.logisticsObjectService.isExists(logisticsObjectIRI);
         if (!exists) {
-            throw new LogisticsObjectNotFoundException("Logistics Object with the specified URI could not be found in the database.");
+            throw new LogisticsObjectNotFoundException(logisticsObjectIRI, "Logistics Object with the specified URI could not be found in the database.");
         }
     }
 }

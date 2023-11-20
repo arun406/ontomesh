@@ -10,6 +10,7 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.iata.onerecord.api.API;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -28,8 +29,8 @@ public class LogisticsObjectNotFoundExceptionHandler extends AbstractBadRequestE
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())
-                .add(API.hasMessage, exception.getMessage())
-                .add(API.hasResource, exception.getIri().stringValue())
+                .add(API.hasMessage, !StringUtils.hasText(exception.getMessage()) ? exception.getMessage() : "Logistics Object not found")
+                .add(API.hasResource, exception.getIri() != null ? exception.getIri().stringValue() : "")
                 .build();
     }
 

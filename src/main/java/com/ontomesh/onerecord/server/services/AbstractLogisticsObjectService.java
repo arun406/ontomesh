@@ -86,6 +86,6 @@ public abstract class AbstractLogisticsObjectService {
     public LogisticsObject findLogisticsObject(IRI iri) {
         log.info("Searching for Logistics Object of IRI {}", iri.toString());
         return repository.findLoById(iri)
-                .orElseThrow(LogisticsObjectNotFoundException::new);
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "logistics object not found."));
     }
 }

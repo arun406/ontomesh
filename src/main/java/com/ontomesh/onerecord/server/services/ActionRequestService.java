@@ -97,7 +97,7 @@ public class ActionRequestService {
 
     public LogisticsObject get(IRI iri) {
         return this.repository.findLoById(iri)
-                .orElseThrow(() -> new LogisticsObjectNotFoundException("action request with iri " + iri + " not found."));
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "action request with iri " + iri + " not found."));
     }
 
 
