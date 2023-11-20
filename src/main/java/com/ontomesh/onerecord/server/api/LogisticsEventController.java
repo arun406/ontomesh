@@ -4,7 +4,6 @@ import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.services.LogisticsEventService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
@@ -22,14 +21,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Locale;
 
 @Slf4j
 @RestController
 @RequestMapping("/logistics-objects/{loId}/logistics-events")
-@RequiredArgsConstructor
 public class LogisticsEventController extends BaseController {
 
-    private final LogisticsEventService eventService;
+
+    /**
+     * constructor.
+     *
+     * @param eventService
+     */
+    public LogisticsEventController(LogisticsEventService eventService) {
+        super(eventService);
+    }
 
     /**
      * Saves the logistics event.
@@ -56,12 +63,9 @@ public class LogisticsEventController extends BaseController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Type", CARGO.LogisticsEvent.stringValue());
-        headers.setLocation(URI.create(logisticsEventIRI.stringValue()));
         headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
 
-        return ResponseEntity.created(URI.create(logisticsEventIRI.stringValue()))
-                .headers(headers)
-                .build();
+        return ResponseEntity.created(URI.create(logisticsEventIRI.stringValue())).headers(headers).build();
     }
 
     /**
@@ -82,7 +86,7 @@ public class LogisticsEventController extends BaseController {
         //Last-Modified, Type, Location, Content-Type, Content-Language
         HttpHeaders headers = new HttpHeaders();
         headers.add("Type", CARGO.LogisticsEvent.stringValue());
-        headers.add("Content-Language", "en-US");
+        headers.setContentLanguage(Locale.US);
         headers.setLocation(URI.create(logisticsEvent.iri().stringValue()));
         headers.setLastModified(Instant.now()); //TODO check this value.
         headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
@@ -113,8 +117,9 @@ public class LogisticsEventController extends BaseController {
 
         //Last-Modified, Type, Location, Content-Type, Content-Language
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Language", "en-US");
+        headers.setContentLanguage(Locale.US);
         headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
+        headers.setLastModified(Instant.now());
 
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }

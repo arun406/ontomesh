@@ -2,14 +2,15 @@ package com.ontomesh.onerecord.server.api;
 
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
+import com.ontomesh.onerecord.server.services.ActionRequestService;
 import com.ontomesh.onerecord.server.services.AuditTrailService;
 import com.ontomesh.onerecord.server.services.LogisticsObjectService;
 import com.ontomesh.onerecord.server.services.LogisticsObjectValidationService;
 import com.ontomesh.onerecord.server.services.SnapshotService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.IRI;
+import org.iata.onerecord.api.API;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,18 +23,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.util.Set;
 
 @Slf4j
-@RequiredArgsConstructor
 @RestController
 @RequestMapping("/logistics-objects")
 public class LogisticsObjectController extends BaseController {
 
-    private final LogisticsObjectService logisticsObjectService;
-    private final LogisticsObjectValidationService validationService;
-    private final AuditTrailService auditTrailService;
-    private final SnapshotService snapshotService;
+    @Autowired
+    private LogisticsObjectValidationService validationService;
+
+    public LogisticsObjectController(LogisticsObjectService logisticsObjectService,
+                                     SnapshotService snapshotService, AuditTrailService auditTrailService,
+                                     ActionRequestService actionRequestService) {
+        super(logisticsObjectService, snapshotService, actionRequestService, auditTrailService);
+    }
 
     /**
      * returns the Logistics object
@@ -52,29 +55,14 @@ public class LogisticsObjectController extends BaseController {
         OntoMeshId loId = getLoId(loReferenceId);
         log.info("Searching the logistics objects with IRI of : {}", loId.uri());
 
-        HttpHeaders headers = getResponseHeaders(httpServletRequest);
-        LogisticsObject logisticsObject;
-
+        HttpHeaders headers = new HttpHeaders();
         if (at != null) {
-            log.debug("finding the snapshot for the lo id {} at {}", loId.uri(), at);
-            logisticsObject = this.snapshotService.findSnapshot(loId.iri(), at);
-
-            headers.add("Type", logisticsObject.type().stringValue());
-            headers.remove("Location");
-            headers.add("Location", logisticsObject.iri().stringValue());
-            int snapshotVersion = snapshotService.getRevision(logisticsObject);
-            headers.add("Revision", String.valueOf(snapshotVersion));
-            Integer latestRevision = logisticsObjectService.getRevision(loId.iri());
-            headers.add("Latest-Revision", latestRevision.toString());
-            headers.remove("LO-type");
-            headers.remove("Revision-Header");
+            return getLogisticsObjectSnapshot(httpServletRequest, at, loId, headers);
         } else {
-            URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
-            logisticsObject = logisticsObjectService.findLogisticsObject(requestURI);
+            return getLogisticsObject(httpServletRequest, headers);
         }
-
-        return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
+
 
     /**
      * Returns the audit trail.
@@ -88,7 +76,7 @@ public class LogisticsObjectController extends BaseController {
     private ResponseEntity<LogisticsObject> findLogisticsObjectAudit(HttpServletRequest httpServletRequest) {
         log.info("Finding the audit trail of logistics objects with IRI of : {}", httpServletRequest.getRequestURL());
         URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
-        LogisticsObject logisticsObject = this.auditTrailService.getAuditTrail(requestURI);
+        LogisticsObject logisticsObject = auditTrailService.getAuditTrail(requestURI);
 
         HttpHeaders headers = getResponseHeaders(httpServletRequest);
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
@@ -136,11 +124,11 @@ public class LogisticsObjectController extends BaseController {
 
         log.debug("updating the {} logistics object ", id);
         OntoMeshId loId = getLoId(id);
-        this.validationService.validate(change, loId.iri());
+        this.validationService.validate(loId.iri(), change.model(), change.iri());
 
         LogisticsObject logisticsObject = this.logisticsObjectService.findLogisticsObject(loId.uri());
-        OntoMeshId uriForLoId = idProvider.getUriForLoId(id);
-        Set<IRI> iris = this.logisticsObjectService.updateLogisticObject(uriForLoId, change, logisticsObject);
+//        OntoMeshId uriForLoId = idProvider.getUriForLoId(id);
+        this.actionRequestService.createActionRequest(change, API.ChangeRequest);
 
         LogisticsObject snapshot = this.snapshotService.createSnapshot(logisticsObject);
         log.debug("snapshot with {} is created.", snapshot.iri());

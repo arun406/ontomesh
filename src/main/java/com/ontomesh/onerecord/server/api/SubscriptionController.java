@@ -6,7 +6,6 @@ import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import com.ontomesh.onerecord.server.exception.LogisticsObjectNotSupportedException;
 import com.ontomesh.onerecord.server.services.ServerInformationService;
 import com.ontomesh.onerecord.server.services.SubscriptionService;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
@@ -28,43 +27,63 @@ import java.util.Locale;
 import java.util.Set;
 
 @Slf4j
-@AllArgsConstructor
 @RestController
 @RequestMapping("/subscriptions")
 public class SubscriptionController extends BaseController {
 
-    private final SubscriptionService subscriptionService;
-    private final ServerInformationService serverInformationService;
+    private SubscriptionService subscriptionService;
+    private ServerInformationService serverInformationService;
+
+    public SubscriptionController(
+            SubscriptionService subscriptionService,
+            ServerInformationService serverInformationService) {
+        super();
+        this.subscriptionService = subscriptionService;
+        this.serverInformationService = serverInformationService;
+    }
 
     /**
-     * @param logisticsObject
+     * the subscriber initiates the subscription process by actively sending subscription information to the publisher.
+     * The subscription information can either specify a type of Logistics Object or a specific Logistics Object.
+     * The publisher creates a SubscriptionRequest from the submitted Subscription.
+     *
+     * @param subscription
      * @return
      */
-    @PostMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE}, consumes = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-            SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<Void> subscribe(@RequestBody LogisticsObject logisticsObject) {
+    @PostMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE},
+            consumes = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
+                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    public ResponseEntity<LogisticsObject> subscribe(@RequestBody LogisticsObject subscription) {
 
-        String loType = getLoType(logisticsObject);
+        String loType = getLoType(subscription);
         log.info("lo type :{}", loType);
-        boolean hasId = isIdPresent(logisticsObject);
+        boolean hasId = isIdPresent(subscription);
         if (hasId) {
-            checkForDuplicateIRI(logisticsObject);
+            checkForDuplicateIRI(subscription);
         }
-        removeMarkerPredicate(logisticsObject);
+        removeMarkerPredicate(subscription);
         //validate
 
         // save
-        this.subscriptionService.createSubscriptionRequest(logisticsObject);
+        LogisticsObject subscriptionRequest = this.actionRequestService
+                .createActionRequest(subscription, API.SubscriptionRequest);
+        // update location.
+//        String location = subscription.iri().stringValue()
+//                .replace("logistics-objects", "action-requests");
+//        URI locationURI = URI.create(location);
+        HttpHeaders headers = new HttpHeaders();
+//        headers.setLocation(URI.create(subscriptionRequest.iri().stringValue()));
+        headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
+        headers.add("Type", API.SubscriptionRequest.stringValue());
 
-        URI loURI = URI.create(logisticsObject.iri().toString());
-        HttpHeaders headers = getResponseHeaders(loURI, loType, SemanticWebMediaType.APPLICATION_JSON_LD);
-        return ResponseEntity.created(loURI)
-                .headers(headers)
-                .build();
+        return ResponseEntity.created(URI.create(subscriptionRequest.iri().stringValue())).headers(headers).body(subscriptionRequest);
     }
 
 
     /**
+     * The publisher wants to notify the subscriber about changes to Logistics Objects of a certain type
+     * (e.g. Waybill or Piece)
+     *
      * @param topic
      * @param topicType
      * @return
@@ -104,9 +123,7 @@ public class SubscriptionController extends BaseController {
         headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
         headers.setContentLanguage(Locale.US);
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(subscriptionProposal);
+        return ResponseEntity.ok().headers(headers).body(subscriptionProposal);
     }
-}
 
+}

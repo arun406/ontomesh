@@ -31,7 +31,7 @@ public class SnapshotService extends AbstractLogisticsObjectService {
 
     ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
-    public SnapshotService(LogisticsObjectRepository repository, LogisticsObjectService logisticsObjectService,
+    public SnapshotService(LogisticsObjectRepository repository,
                            IdProvider idProvider) {
         super(repository, idProvider);
     }
@@ -78,9 +78,4 @@ public class SnapshotService extends AbstractLogisticsObjectService {
                         (iri) -> OntoMeshId.isValidIri(iri, idProvider.getLogisticsObjectBaseIRI()))
                 .orElseThrow(() -> new SnapshotNotFoundException("Snapshot not exists."));
     }
-
-    private int isTypePredicate(IRI iri1) {
-        return iri1.toString().compareTo(RDF.TYPE.toString());
-    }
-
 }

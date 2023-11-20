@@ -4,7 +4,11 @@ import com.ontomesh.onerecord.server.common.OntoMesh;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.AlreadyExistsException;
 import com.ontomesh.onerecord.server.exception.InvalidAddressException;
+import com.ontomesh.onerecord.server.services.ActionRequestService;
+import com.ontomesh.onerecord.server.services.AuditTrailService;
+import com.ontomesh.onerecord.server.services.LogisticsEventService;
 import com.ontomesh.onerecord.server.services.LogisticsObjectService;
+import com.ontomesh.onerecord.server.services.SnapshotService;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +22,7 @@ import org.iata.onerecord.api.API;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
 import java.util.Locale;
@@ -25,16 +30,69 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
-public class BaseController {
+public abstract class BaseController {
 
     @Autowired
     public IdProvider idProvider;
-    @Autowired
     public LogisticsObjectService logisticsObjectService;
+    public SnapshotService snapshotService;
+    public ActionRequestService actionRequestService;
+    public LogisticsEventService eventService;
+    public AuditTrailService auditTrailService;
+
     private final SimpleValueFactory instance = SimpleValueFactory.getInstance();
 
     private final IRI hasPredefinedIri = instance.createIRI("https://www.ontomesh.com/onerecord#", "hasId");
 
+    public BaseController() {
+
+    }
+
+    public BaseController(LogisticsObjectService logisticsObjectService,
+                          SnapshotService snapshotService, ActionRequestService actionRequestService,
+                          LogisticsEventService eventService, AuditTrailService auditTrailService) {
+        this.logisticsObjectService = logisticsObjectService;
+        this.snapshotService = snapshotService;
+        this.actionRequestService = actionRequestService;
+        this.eventService = eventService;
+        this.auditTrailService = auditTrailService;
+    }
+
+    /**
+     * @param logisticsObjectService
+     * @param snapshotService
+     * @param auditTrailService
+     */
+    public BaseController(LogisticsObjectService logisticsObjectService,
+                          SnapshotService snapshotService, AuditTrailService auditTrailService) {
+        this.logisticsObjectService = logisticsObjectService;
+        this.snapshotService = snapshotService;
+        this.auditTrailService = auditTrailService;
+    }
+
+    /**
+     * @param eventService
+     */
+    public BaseController(LogisticsEventService eventService) {
+        this.eventService = eventService;
+    }
+
+    /**
+     * @param actionRequestService
+     */
+    public BaseController(ActionRequestService actionRequestService) {
+        this.actionRequestService = actionRequestService;
+    }
+
+    public BaseController(LogisticsObjectService logisticsObjectService, SnapshotService snapshotService,
+                          ActionRequestService actionRequestService, AuditTrailService auditTrailService) {
+        this(logisticsObjectService, snapshotService, auditTrailService);
+        this.actionRequestService = actionRequestService;
+    }
+
+    /**
+     * @param logisticsObject
+     */
     public void removeMarkerPredicate(LogisticsObject logisticsObject) {
         logisticsObject.model().remove(logisticsObject.iri(), hasPredefinedIri, null);
     }
@@ -47,6 +105,10 @@ public class BaseController {
 
     protected OntoMeshId getLoId(String uuid) {
         return idProvider.getUriForLoId(uuid);
+    }
+
+    protected OntoMeshId getActionRequestId(String uuid) {
+        return idProvider.getUriForActionRequestId(uuid);
     }
 
     protected void checkForDuplicateIRI(LogisticsObject logisticsObject) {
@@ -110,5 +172,30 @@ public class BaseController {
      */
     public void addRevisionToLO(LogisticsObject logisticsObject) {
         logisticsObject.model().add(logisticsObject.iri(), API.hasRevision, Values.literal(1));
+    }
+
+
+    protected ResponseEntity<LogisticsObject> getLogisticsObject(HttpServletRequest httpServletRequest, HttpHeaders headers) {
+        URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
+        LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(requestURI);
+        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
+        headers.setLocation(URI.create(httpServletRequest.getRequestURL().toString()));
+        headers.add("Revision-Header", UUID.randomUUID().toString());
+        headers.add(OntoMesh.LO_TYPE_HEADER, OntoMesh.LO_TYPE_COMPANY_INFORMATION);
+        return ResponseEntity.ok().headers(headers).body(logisticsObject);
+    }
+
+    protected ResponseEntity<LogisticsObject> getLogisticsObjectSnapshot(HttpServletRequest httpServletRequest, String at, OntoMeshId loId, HttpHeaders headers) {
+        log.debug("finding the snapshot for the lo id {} at {}", loId.uri(), at);
+        LogisticsObject logisticsObject = this.snapshotService.findSnapshot(loId.iri(), at);
+
+        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
+        headers.add("Type", logisticsObject.type().stringValue());
+        headers.setLocation(URI.create(logisticsObject.iri().stringValue()));
+        int snapshotVersion = snapshotService.getRevision(logisticsObject);
+        headers.add("Revision", String.valueOf(snapshotVersion));
+        Integer latestRevision = logisticsObjectService.getRevision(loId.iri());
+        headers.add("Latest-Revision", latestRevision.toString());
+        return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
 }

@@ -22,11 +22,9 @@ import static com.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICAT
 
 @Slf4j
 @Service
-public class SubscriptionService {
-    private final LogisticsObjectRepository repository;
-    private final IdProvider idProvider;
+public class SubscriptionService extends AbstractLogisticsObjectService {
 
-    @Value("${company.identifier:MyAirline}")
+    @Value("${organizations.company:MyAirline}")
     String companyIdentifier;
 
     @Value("${subscriptions.sendLogisticsObjectBody:false}")
@@ -37,27 +35,9 @@ public class SubscriptionService {
     @Value("${subscriptions.notifyRequestStatusChange:true}")
     private boolean notifyRequestStatusChange;
 
-
     public SubscriptionService(LogisticsObjectRepository repository, IdProvider idProvider) {
-        this.repository = repository;
-        this.idProvider = idProvider;
+        super(repository, idProvider);
     }
-
-    /**
-     * @param logisticsObject
-     */
-    public void createSubscriptionRequest(LogisticsObject logisticsObject) {
-        Model model = logisticsObject.model();
-        // override the type to SubscriptionRequest
-        model.remove(logisticsObject.iri(), RDF.TYPE, null);
-        model.add(logisticsObject.iri(), RDF.TYPE, API.SubscriptionRequest);
-        model.add(logisticsObject.iri(), API.isRequestedAt,
-                Values.literal(Instant.now().toString(), CoreDatatype.XSD.DATETIME));
-
-//        RDFUtil.print(logisticsObject.model(), RDFFormat.JSONLD);
-        this.repository.persist(logisticsObject.iri(), model);
-    }
-
 
     /**
      * @param topic

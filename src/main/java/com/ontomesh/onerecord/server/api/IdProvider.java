@@ -38,9 +38,27 @@ public class IdProvider {
         return OntoMeshId.fromUri(getLoUriBase().path(uuid).build().toUri());
     }
 
+    public OntoMeshId getUriForActionRequestId(String uuid) {
+        return OntoMeshId.fromUri(getActionRequestUriBase().path(uuid).build().toUri());
+    }
+
+    public OntoMeshId getUriForLogisticsEventId(String uuid1, String uuid2) {
+        return OntoMeshId.fromUri(getEventRequestUriBase(uuid1).path(uuid2).build().toUri());
+    }
+
     private UriComponentsBuilder getLoUriBase() {
         return baseUri()
                 .path("/logistics-objects/");
+    }
+
+    private UriComponentsBuilder getActionRequestUriBase() {
+        return baseUri()
+                .path("/action-requests/");
+    }
+
+    private UriComponentsBuilder getEventRequestUriBase(String uuid) {
+        return getLoUriBase().path(uuid)
+                .path("/logistics-events/");
     }
 
     private UriComponentsBuilder baseUri() {

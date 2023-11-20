@@ -1,13 +1,11 @@
 package com.ontomesh.onerecord.server.services;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
-import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.common.OntoMesh;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidChangeOperationException;
 import com.ontomesh.onerecord.server.exception.InvalidRevisionException;
 import com.ontomesh.onerecord.server.exception.RevisionMissingException;
-import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -60,26 +58,10 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         return optionalModel.isPresent();
     }
 
-    @Transactional
-    public LogisticsObject findLogisticsObject(URI uri) {
-        IRI iri = Values.iri(uri.toString());
-        log.info("Searching for Logistics Object of IRI {}", iri.toString());
-        LogisticsObject logisticsObject = repository.findLoById(iri)
-                .orElseThrow(SubjectNotFoundException::new);
-        log.debug("Server information  {} ", logisticsObject.iri());
-        return logisticsObject;
-    }
-
-//    @Transactional
-//    public LogisticsObject findLogisticsObject(IRI iri) {
-//        return repository.findLoById(iri)
-//                .orElseThrow(SubjectNotFoundException::new);
-//    }
-
 
     @Transactional
-    public Set<IRI> updateLogisticObject(OntoMeshId loId, LogisticsObject change, LogisticsObject logisticsObject) {
-        log.debug("Updating Logistics Object [{}]", loId.iri());
+    public Set<IRI> processActionRequest(LogisticsObject change, LogisticsObject logisticsObject) {
+        log.debug("Updating Logistics Object [{}]", logisticsObject.iri());
 
         Model changeModel = change.model();
 
@@ -108,7 +90,9 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         });
         // increase the Logistics Object revision after successful change
         updateLogisticObjectRevision(logisticsObject);
-        Model revisionModel = logisticsObject.model().filter(logisticsObject.iri(), API.hasRevision, null);
+        Model model = logisticsObject.model();
+        IRI iri = logisticsObject.iri();
+        Model revisionModel = model.filter(iri, API.hasRevision, null);
         String revision = Models.objectString(revisionModel).orElse("unknown");
         log.debug("latest revision {}", revision);
         return changedProperties;
@@ -121,16 +105,18 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
      */
     private void updateLogisticObjectRevision(LogisticsObject logisticsObject) {
 
-        Integer revision = getRevision(logisticsObject.iri());
+        Model model = logisticsObject.model();
+        IRI iri = logisticsObject.iri();
+        Integer revision = getRevision(iri);
         if (revision == null) return;
         // First Remove the existing statement.
-        this.repository.delete(logisticsObject.iri(), API.hasRevision, Values.literal(revision));
+        this.repository.delete(iri, API.hasRevision, Values.literal(revision));
         //Add New statement
         Literal newRevision = Values.literal(revision + 1);
-        this.repository.add(logisticsObject.iri(), API.hasRevision, newRevision);
+        this.repository.add(iri, API.hasRevision, newRevision);
         // update the local object.
-        logisticsObject.model().remove(logisticsObject.iri(), API.hasRevision, null);
-        logisticsObject.model().add(logisticsObject.iri(), API.hasRevision, newRevision);
+        model.remove(iri, API.hasRevision, null);
+        model.add(iri, API.hasRevision, newRevision);
     }
 
 
@@ -276,8 +262,8 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         return iri;
     }
 
-
     public void addEvent(IRI logisticsObjectIRI, LogisticsObject event) {
         this.repository.add(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, event.iri());
     }
+
 }

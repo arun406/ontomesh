@@ -4,7 +4,7 @@ import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
 import com.ontomesh.onerecord.server.domain.ErrorObject;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
-import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
+import com.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import com.ontomesh.onerecord.server.util.URIUtil;
@@ -43,9 +43,9 @@ public class AuditTrailService {
     /**
      * Saves and Update the Audit trail =
      *
-     * @param changeRequestIRI
-     * @param logisticsObjectIRI
-     * @return
+     * @param changeRequestIRI   request IRI.
+     * @param logisticsObjectIRI logistics object ID.
+     * @return audit trail Id.
      */
     @Transactional
     public IRI saveOrUpdate(IRI changeRequestIRI, IRI logisticsObjectIRI) {
@@ -110,7 +110,7 @@ public class AuditTrailService {
     }
 
     /**
-     * @param auditTrailId
+     * @param auditTrailId audit trail id.
      */
     private void updateLatestRevision(IRI auditTrailId) {
         RepositoryResult<Statement> statements = this.repository.getStatements(auditTrailId, API.hasLatestRevision, null);
@@ -130,16 +130,14 @@ public class AuditTrailService {
     /**
      * Saves the change request
      *
-     * @param change
+     * @param change change to be applied.
      * @return
      */
     public IRI saveChangeRequest(LogisticsObject change) {
 
         IRI changeRequestId = idProvider.createUniqueLoUri().iri();
         log.debug("change request id : {}", changeRequestId);
-
         this.repository.persist(change.iri(), change.model());
-
         Model changeRequest = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
                 .subject(changeRequestId)
@@ -174,7 +172,7 @@ public class AuditTrailService {
     public LogisticsObject getAuditTrail(URI auditTrailId) {
         return this.repository.findLoById(Values.iri(auditTrailId.toString()),
                         (iri) -> OntoMeshId.isValidIri(iri, idProvider.getLogisticsObjectBaseIRI()))
-                .orElseThrow(SubjectNotFoundException::new);
+                .orElseThrow(LogisticsObjectNotFoundException::new);
     }
 
     public void addError(IRI changeRequestIRI, ErrorObject errorObject) {

@@ -42,7 +42,7 @@ public class OneRecordRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter 
             log.debug("IRI of the change request : {}", changeObject.iri());
             IRI changeRequestIRI = this.auditTrailService.saveChangeRequest(changeObject);
 
-            this.auditTrailService.saveOrUpdate(changeRequestIRI, Values.iri(httpServletRequest.getRequestURL().toString()));
+            IRI iri = this.auditTrailService.saveOrUpdate(changeRequestIRI, Values.iri(httpServletRequest.getRequestURL().toString()));
             log.debug("Audit IRI :{}", changeRequestIRI);
             httpServletRequest.setAttribute("changeRequestIRI", changeRequestIRI);
         }

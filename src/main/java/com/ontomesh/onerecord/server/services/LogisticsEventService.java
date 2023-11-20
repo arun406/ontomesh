@@ -7,7 +7,7 @@ import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.LinkedObjectNotMatchException;
 import com.ontomesh.onerecord.server.exception.LinkedObjectReferenceMissingException;
 import com.ontomesh.onerecord.server.exception.LogisticsEventNotFoundException;
-import com.ontomesh.onerecord.server.exception.SubjectNotFoundException;
+import com.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -124,7 +124,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     private void validateLogisticsObject(IRI logisticsObjectIRI) {
         boolean exists = this.logisticsObjectService.isExists(logisticsObjectIRI);
         if (!exists) {
-            throw new SubjectNotFoundException("Logistics Object with the specified URI could not be found in the database.");
+            throw new LogisticsObjectNotFoundException("Logistics Object with the specified URI could not be found in the database.");
         }
     }
 }

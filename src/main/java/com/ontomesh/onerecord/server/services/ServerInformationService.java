@@ -3,6 +3,7 @@ package com.ontomesh.onerecord.server.services;
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ServerInformationService {
     private final LogisticsObjectRepository repository;
     private final IdProvider idProvider;
@@ -32,12 +34,11 @@ public class ServerInformationService {
     @Value("classpath:serverinfo/serverinfo.json")
     Resource serverInfo;
 
-    public ServerInformationService(LogisticsObjectRepository repository, IdProvider idProvider, LogisticsObjectService logisticsObjectService) {
-        this.repository = repository;
-        this.idProvider = idProvider;
-        this.logisticsObjectService = logisticsObjectService;
-    }
-
+    /**
+     * creates the server information.
+     *
+     * @throws IOException
+     */
     @Transactional
     public void createServerInformation() throws IOException {
 
@@ -54,6 +55,11 @@ public class ServerInformationService {
         return logisticsObjectService.findLogisticsObject(URI.create("https://onerecord.ontomesh.com/"));
     }
 
+    /**
+     * returns the supported logistics type IRIs.
+     *
+     * @return
+     */
     public Set<IRI> getSupportedLogisticTypes() {
         LogisticsObject logisticsObject = getServerInformation();
         return Models.objectStrings(logisticsObject.model()
