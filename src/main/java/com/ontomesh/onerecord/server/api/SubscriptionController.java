@@ -4,6 +4,7 @@ import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import com.ontomesh.onerecord.server.exception.LogisticsObjectNotSupportedException;
+import com.ontomesh.onerecord.server.services.ActionRequestService;
 import com.ontomesh.onerecord.server.services.ServerInformationService;
 import com.ontomesh.onerecord.server.services.SubscriptionService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,13 +34,15 @@ public class SubscriptionController extends BaseController {
 
     private SubscriptionService subscriptionService;
     private ServerInformationService serverInformationService;
+    private ActionRequestService actionRequestService;
 
     public SubscriptionController(
             SubscriptionService subscriptionService,
-            ServerInformationService serverInformationService) {
+            ServerInformationService serverInformationService, ActionRequestService actionRequestService) {
         super();
         this.subscriptionService = subscriptionService;
         this.serverInformationService = serverInformationService;
+        this.actionRequestService = actionRequestService;
     }
 
     /**
@@ -53,7 +56,7 @@ public class SubscriptionController extends BaseController {
     @PostMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE},
             consumes = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
                     SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<LogisticsObject> subscribe(@RequestBody LogisticsObject subscription) {
+    public ResponseEntity<Void> subscribe(@RequestBody LogisticsObject subscription) {
 
         String loType = getLoType(subscription);
         log.info("lo type :{}", loType);
@@ -65,7 +68,7 @@ public class SubscriptionController extends BaseController {
         //validate
 
         // save
-        LogisticsObject subscriptionRequest = this.actionRequestService
+        IRI actionRequestID = this.actionRequestService
                 .createActionRequest(subscription, API.SubscriptionRequest);
         // update location.
 //        String location = subscription.iri().stringValue()
@@ -76,7 +79,7 @@ public class SubscriptionController extends BaseController {
         headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
         headers.add("Type", API.SubscriptionRequest.stringValue());
 
-        return ResponseEntity.created(URI.create(subscriptionRequest.iri().stringValue())).headers(headers).body(subscriptionRequest);
+        return ResponseEntity.created(URI.create(actionRequestID.stringValue())).headers(headers).build();
     }
 
 

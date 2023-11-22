@@ -37,18 +37,11 @@ public class ActionRequestService {
      * @param type    action request type.
      */
     @Transactional
-    public LogisticsObject createActionRequest(LogisticsObject request, IRI type) {
+    public IRI createActionRequest(LogisticsObject request, IRI type) {
 
-  /*      // override the type to SubscriptionRequest
-        model.remove(request.iri(), RDF.TYPE, null);
-        model.add(request.iri(), RDF.TYPE, API.SubscriptionRequest);
-        model.add(request.iri(), API.isRequestedAt,
-                Values.literal(Instant.now().toString(), CoreDatatype.XSD.DATETIME));
-
-//        RDFUtil.print(request.model(), RDFFormat.JSONLD);*/
         validateActionRequestType(type);
         Model requestModel = request.model();
-        IRI actionRequestID = idProvider.createUniqueLoUri().iri();
+        IRI actionRequestID = idProvider.createUniqueActionRequestUri().iri();
         IRI requestedBy = idProvider.createUniqueLoUri().iri();
         Model actionRequestModel = new ModelBuilder()
                 .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
@@ -58,19 +51,9 @@ public class ActionRequestService {
                 .add(API.isRequestedAt, Date.from(Instant.now()))
                 .add(API.hasRequestStatus, API.REQUEST_PENDING)
                 .add(API.isRequestedBy, requestedBy)
-//                .add(API.hasSubscription, request.iri())
                 .subject(request.iri())
                 .build();
 
-//        for (Statement statement : requestModel) {
-//            if (statement.getPredicate().isIRI() &&
-//                    isTypePredicate(statement.getPredicate()) == 0) {
-//                continue;
-//            }
-//            Statement newStatement = Values.getValueFactory()
-//                    .createStatement(request.iri(), statement.getPredicate(), statement.getObject());
-//            actionRequestModel.add(newStatement);
-//        }
         if (API.SubscriptionRequest.stringValue().equals(type.stringValue())) {
             actionRequestModel.add(actionRequestID, API.hasSubscription, request.iri());
         } else if (API.ChangeRequest.stringValue().equals(type.stringValue())) {
@@ -79,12 +62,8 @@ public class ActionRequestService {
             actionRequestModel.add(actionRequestID, API.hasAccessDelegation, request.iri());
         }
         actionRequestModel.addAll(requestModel);
-        LogisticsObject actionRequest = new LogisticsObject(actionRequestID, API.ActionRequest, actionRequestModel);
-
-//        RDFUtil.print(request, RDFFormat.JSONLD);
-        this.repository.persist(actionRequest.model());
-
-        return actionRequest;
+        this.repository.persist(actionRequestModel);
+        return actionRequestID;
     }
 
     private void validateActionRequestType(IRI type) {
@@ -96,7 +75,7 @@ public class ActionRequestService {
     }
 
     public LogisticsObject get(IRI iri) {
-        return this.repository.findLoById(iri)
+        return this.repository.findLoById(iri, (iri1) -> true)
                 .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "action request with iri " + iri + " not found."));
     }
 

@@ -56,7 +56,7 @@ public class ActionRequestController extends BaseController {
         headers.add("Type", actionRequest.type().stringValue());
         headers.setLastModified(Instant.now()); //TODO
 
-        return ResponseEntity.ok().headers(headers).body(null);
+        return ResponseEntity.ok().headers(headers).body(actionRequest);
     }
 
     /**

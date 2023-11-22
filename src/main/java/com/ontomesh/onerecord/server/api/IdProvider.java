@@ -30,6 +30,10 @@ public class IdProvider {
         return OntoMeshId.fromUri(getLoUriBase().path(UUID.randomUUID().toString()).build().toUri());
     }
 
+    public OntoMeshId createUniqueActionRequestUri() {
+        return OntoMeshId.fromUri(getActionRequestUriBase().path(UUID.randomUUID().toString()).build().toUri());
+    }
+
     public OntoMeshId createUniqueLoUriForLogisticsEvent(UriComponentsBuilder builder) {
         return OntoMeshId.fromUri(builder.path(UUID.randomUUID().toString()).build().toUri());
     }

@@ -45,12 +45,12 @@ public class AccessDelegationController extends BaseController {
         if (!type.stringValue().equals(API.AccessDelegation.stringValue())) {
             throw new RuntimeException(String.format("Invalid request type %s", type));
         }
-        LogisticsObject actionRequest = actionRequestService.createActionRequest(accessDelegation, API.AccessDelegation);
-        log.debug("action request with IRI {} created successfully.", actionRequest.iri());
+        IRI actionRequestID = actionRequestService.createActionRequest(accessDelegation, API.AccessDelegation);
+        log.debug("action request with IRI {} created successfully.", actionRequestID);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
         headers.add("Type", API.AccessDelegation.stringValue());
-        return ResponseEntity.created(URI.create(actionRequest.iri().stringValue())).headers(headers).build();
+        return ResponseEntity.created(URI.create(actionRequestID.stringValue())).headers(headers).build();
     }
 }
