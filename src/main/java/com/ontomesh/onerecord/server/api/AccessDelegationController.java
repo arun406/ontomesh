@@ -45,7 +45,7 @@ public class AccessDelegationController extends BaseController {
         if (!type.stringValue().equals(API.AccessDelegation.stringValue())) {
             throw new RuntimeException(String.format("Invalid request type %s", type));
         }
-        IRI actionRequestID = actionRequestService.createActionRequest(accessDelegation, API.AccessDelegation);
+        IRI actionRequestID = actionRequestService.createActionRequest(accessDelegation, API.AccessDelegationRequest);
         log.debug("action request with IRI {} created successfully.", actionRequestID);
 
         HttpHeaders headers = new HttpHeaders();

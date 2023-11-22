@@ -81,8 +81,10 @@ public class ActionRequestService {
 
 
     /**
-     * @param iri
-     * @param revokedBy
+     * revokes the action request.
+     *
+     * @param iri       action request iri.
+     * @param revokedBy action request revoked by.
      */
     @Transactional
     public void revokeActionRequest(IRI iri, IRI revokedBy) {
@@ -91,7 +93,7 @@ public class ActionRequestService {
         Model model = actionRequest.model();
         IRI status = Models.objectIRI(model.getStatements(iri, API.hasRequestStatus, null))
                 .orElse(null);
-        if (status == null || status.stringValue().equals(API.REQUEST_PENDING.stringValue())) {
+        if (status == null || !status.stringValue().equals(API.REQUEST_PENDING.stringValue())) {
             throw new RuntimeException("Cannot revoke the action request as currentStatus is not pending.");
         }
         model.add(iri, API.isRevokedBy, revokedBy);
@@ -103,9 +105,9 @@ public class ActionRequestService {
     /**
      * update the status of the action request.
      *
-     * @param iri
-     * @param currentStatus
-     * @param newStatus
+     * @param iri           action request iri.
+     * @param currentStatus current status iri.
+     * @param newStatus     new status iri.
      */
     private void updateStatus(IRI iri, IRI currentStatus, IRI newStatus) {
         this.repository.delete(iri, API.hasRequestStatus, currentStatus);
@@ -119,17 +121,16 @@ public class ActionRequestService {
             return API.CHANGE_REQUEST_REVOKED;
         } else if (actionRequestType.stringValue().equals(API.SubscriptionRequest.stringValue())) {
             return API.SUBSCRIPTION_REQUEST_REVOKED;
-        } else if (actionRequestType.stringValue().equals(API.AccessDelegationRequest.stringValue())) {
+        } else if (actionRequestType.stringValue().equals(API.AccessDelegationRequest.stringValue()))
             return API.ACCESS_DELEGATION_REQUEST_REVOKED;
-        }
         return API.REQUEST_PENDING;
     }
 
     /**
      * update the status to new value.
      *
-     * @param iri
-     * @param newStatus
+     * @param iri       action request iri.
+     * @param newStatus new action request status.
      */
     @Transactional
     public void updateStatus(IRI iri, IRI newStatus) {
@@ -137,9 +138,9 @@ public class ActionRequestService {
         LogisticsObject actionRequest = this.get(iri);
         Model model = actionRequest.model();
         IRI status = Models.objectIRI(model.getStatements(iri, API.hasRequestStatus, null))
-                .orElse(Values.iri(""));
+                .orElse(null);
         log.debug("current action request status {}", status);
-        if (newStatus.stringValue().equals(status.stringValue())) {
+        if (status == null || newStatus.stringValue().equals(status.stringValue())) {
             throw new RuntimeException(String.format("Cannot update status. Action Request status is already %s)", newStatus));
         }
         updateStatus(iri, status, newStatus);
