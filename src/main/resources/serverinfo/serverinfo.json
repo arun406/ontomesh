@@ -1,0 +1,33 @@
+{
+  "@context": {
+    "cargo": "https://onerecord.iata.org/ns/cargo#",
+    "api": "https://onerecord.iata.org/ns/api#"
+  },
+  "@id": "https://onerecord.ontomesh.com/",
+  "@type": "api:ServerInformation",
+  "api:hasDataHolder": {
+    "@type": "cargo:Company",
+    "@id": "https://onerecord.ontomesh.com/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda"
+  },
+  "api:hasServerEndpoint": "http://onerecord.ontomesh.com",
+  "api:hasSupportedApiVersion": [
+    "2.0.0-dev"
+  ],
+  "api:hasSupportedContentType": [
+    "application/ld+json",
+    "application/x-turtle",
+    "text/turtle"
+  ],
+  "api:hasSupportedLanguage": [
+    "en-US"
+  ],
+  "api:hasSupportedLogisticsObjectType": [
+    "https://onerecord.iata.org/ns/cargo#Waybill",
+    "https://onerecord.iata.org/ns/cargo#Shipment",
+    "https://onerecord.iata.org/ns/cargo#Piece"
+  ],
+  "api:hasSupportedOntology": [
+    "https://onerecord.iata.org/ns/cargo/3.0.0",
+    "https://onerecord.iata.org/ns/api/2.0.0-dev"
+  ]
+}
