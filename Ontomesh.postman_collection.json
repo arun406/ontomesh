@@ -1,522 +1,1287 @@
 {
-  "info": {
-    "_postman_id": "8f19d0c0-6550-4597-a6a3-06f76cf83693",
-    "name": "Ontomesh",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "endpoint-1",
-      "protocolProfileBehavior": {
-        "disabledSystemHeaders": {
-          "content-type": true,
-          "accept": true
-        }
-      },
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@type\": [\n        \"https://onerecord.iata.org/api/CompanyInformation\"\n    ],\n    \"https://onerecord.iata.org/api/CompanyInformation#companyId\": \"iata\",\n    \"https://onerecord.iata.org/api/CompanyInformation#company\": {\n        \"@type\": [\n            \"https://onerecord.iata.org/Company\"\n        ],\n        \"https://onerecord.iata.org/Company#airlineCode\": \"XB\",\n        \"https://onerecord.iata.org/Company#airlinePrefix\": 123,\n        \"https://onerecord.iata.org/Company#branch\": {\n            \"@type\": [\n                \"https://onerecord.iata.org/CompanyBranch\"\n            ],\n            \"https://onerecord.iata.org/CompanyBranch#branchName\": \"IATA Geneva\",\n            \"https://onerecord.iata.org/CompanyBranch#contactPersons\": [\n                {\n                    \"@type\": [\n                        \"https://onerecord.iata.org/Person\"\n                    ],\n                    \"https://onerecord.iata.org/Person#contact\": [\n                        {\n                            \"@type\": [\n                                \"https://onerecord.iata.org/Contact\"\n                            ],\n                            \"https://onerecord.iata.org/Contact#emailAddress\": \"onerecord@iata.org\",\n                            \"https://onerecord.iata.org/Contact#other\": {\n                                \"@type\": [\n                                    \"https://onerecord.iata.org/ContactOther\"\n                                ],\n                                \"https://onerecord.iata.org/ContactOther#detail\": \"ONE Record email\",\n                                \"https://onerecord.iata.org/ContactOther#otherType\": \"Phone\"\n                            },\n                            \"https://onerecord.iata.org/Contact#phoneNumber\": \"123456789\"\n                        }\n                    ],\n                    \"https://onerecord.iata.org/Person#department\": \"Digital Cargo\"\n                }\n            ],\n            \"https://onerecord.iata.org/CompanyBranch#iataCargoAgentLocationIdentifier\": 0,\n            \"https://onerecord.iata.org/CompanyBranch#location\": {\n                \"@type\": [\n                    \"https://onerecord.iata.org/Location\"\n                ],\n                \"https://onerecord.iata.org/Location#address\": {\n                    \"@type\": [\n                        \"https://onerecord.iata.org/Address\"\n                    ],\n                    \"https://onerecord.iata.org/Address#addressCode\": [\n                        \"GVA\"\n                    ],\n                    \"https://onerecord.iata.org/Address#cityCode\": \"GVA\",\n                    \"https://onerecord.iata.org/Address#cityName\": \"Geneva\",\n                    \"https://onerecord.iata.org/Address#country\": {\n                        \"@type\": [\n                            \"https://onerecord.iata.org/Country\"\n                        ],\n                        \"https://onerecord.iata.org/Country#countryCode\": \"CH\",\n                        \"https://onerecord.iata.org/Country#countryName\": \"Switzerland\"\n                    },\n                    \"https://onerecord.iata.org/Address#postalCode\": \"1212\",\n                    \"https://onerecord.iata.org/Address#regionCode\": \"GVA\",\n                    \"https://onerecord.iata.org/Address#regionName\": \"Geneva\",\n                    \"https://onerecord.iata.org/Address#street\": [\n                        \"Av Aeroport\"\n                    ]\n                },\n                \"https://onerecord.iata.org/Location#locationName\": \"IATA Office\",\n                \"https://onerecord.iata.org/Location#locationType\": \"Office\"\n            },\n            \"https://onerecord.iata.org/Company#companyName\": \"iata\",\n            \"https://onerecord.iata.org/Company#iataCargoAgentCode\": 1234567\n        }\n    },\n    \"https://onerecord.iata.org/api/CompanyInformation#serverEndpoint\": \"http://localhost:8080/companies/iata\",\n    \"https://onerecord.iata.org/api/CompanyInformation#supportedContentTypes\": [\n        \"application/ld+json\"\n    ],\n    \"https://onerecord.iata.org/api/CompanyInformation#supportedLogisticsObjects\": [\n        \"https://onerecord.iata.org/Waybill\",\n        \"https://onerecord.iata.org/Shipment\",\n        \"https://onerecord.iata.org/Booking\",\n        \"https://onerecord.iata.org/Piece\",\n        \"https://onerecord.iata.org/Item\",\n        \"https://onerecord.iata.org/Product\",\n        \"https://onerecord.iata.org/ServiceRequest\"\n    ]\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8080/logistics-objects/56f03047-6c24-40d6-83ac-2fb698cb8eea",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "logistics-objects",
-            "56f03047-6c24-40d6-83ac-2fb698cb8eea"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Save Custom Information 1",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
-              "console.log(JSON.parse(location));",
-              "pm.environment.set(\"lo\",JSON.parse(location));",
-              "console.log(pm.environment.get(\"lo\"));"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "protocolProfileBehavior": {
-        "disabledSystemHeaders": {
-          "content-type": true,
-          "accept": true
-        }
-      },
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": false,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",            \n            \"cargo:serviceType\": \"SPH\",\n            \"cargo:serviceDescription\": \"Valuable Cargo\",\n            \"cargo:serviceTypeCode\": \"VAL\"\n        }\n    ]\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8080/logistics-objects",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "logistics-objects"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Save Custom Information 2",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
-              "console.log(JSON.parse(location));",
-              "pm.environment.set(\"lo\",JSON.parse(location));",
-              "console.log(pm.environment.get(\"lo\"));"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "protocolProfileBehavior": {
-        "disabledSystemHeaders": {
-          "content-type": true,
-          "accept": true
-        }
-      },
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": false,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",            \n            \"cargo:serviceType\": \"SPH\",\n            \"cargo:serviceDescription\": \"Valuable Cargo\",\n            \"cargo:serviceTypeCode\": \"VAL\"\n        }\n    ]\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8080/logistics-objects",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "logistics-objects"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Save Piece LO",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
-              "console.log(JSON.parse(location));",
-              "pm.environment.set(\"lo\",JSON.parse(location));",
-              "console.log(pm.environment.get(\"lo\"));"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "protocolProfileBehavior": {
-        "disabledSystemHeaders": {
-          "content-type": true,
-          "accept": true
-        }
-      },
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": false,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",            \n            \"cargo:serviceType\": \"SPH\",\n            \"cargo:serviceDescription\": \"Valuable Cargo\",\n            \"cargo:serviceTypeCode\": \"VAL\"\n        }\n    ]\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8080/logistics-objects",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "logistics-objects"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Get Piece LO",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "url": {
-          "raw": "http://localhost:8080/logistics-objects/1c725ce2-23ff-4524-ba4f-0a7d62bd2aed",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "logistics-objects",
-            "1c725ce2-23ff-4524-ba4f-0a7d62bd2aed"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Server Information",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "url": {
-          "raw": "http://localhost:8080/logistics-objects/1c725ce2-23ff-4524-ba4f-0a7d62bd2aed",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "logistics-objects",
-            "1c725ce2-23ff-4524-ba4f-0a7d62bd2aed"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Example C1 : Update Piece LO - Add Goods Description, Update coload",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"Update goods description and coload\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#goodsDescription\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"ONE Record Advertisement Materials\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                    \"api:hasValue\": \"false\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                    \"api:hasValue\": \"true\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"1\"\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{lo}}",
-          "host": [
-            "{{lo}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Example C2 : Update Piece LO - Piece#grossWeight is added",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"Add grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#Value\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": 20.0\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"2\"\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{lo}}",
-          "host": [
-            "{{lo}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Example C3 : Update Piece LO - Piece#grossWeight is updated",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"Change grossWeight\",\n    \"api:hasOperation\": [{\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"ontomesh:3bb52a32-2a52-4d7a-85cf-552dcf02b2a7\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                \"api:hasValue\": \"20.0\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"f\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                \"api:hasValue\": \"25.0\"\n            }]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"2\"\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{lo}}",
-          "host": [
-            "{{lo}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Example C4 : Update Piece LO - Piece#grossWeight is deleted",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"delete grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"3\"\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{lo}}",
-          "host": [
-            "{{lo}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Example C5 : Add the URI of the newly created CustomsInformation objects to the property Piece#customsInfos",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"delete grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"3\"\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{lo}}",
-          "host": [
-            "{{lo}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Example C6: The referencesLogisticsObject in the Change object differs from the Logistics URI that is used as the endpoint for the PATCH request",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"delete grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"3\"\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{lo}}",
-          "host": [
-            "{{lo}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Example C7 : The Change object contains an illegal operation, i.e. an ADD operation that affects the disallowed property hasLogisticsEvent.",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/ld+json",
-            "type": "default"
-          },
-          {
-            "key": "Accept",
-            "value": "application/ld+json",
-            "type": "default"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": [\n        {\n            \"@type\": \"cargo:LogisticsObject\",\n            \"@id\": \"{{lo}}\"\n        }\n    ],\n    \"api:hasDescription\": \"add LogisticsEvent\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"https://1r.example.com/logistics-objects/1a8ded38-1804-467c-a369-81a411416b7c\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#hasLogisticsEvent\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#LogisticsEvent\",\n                    \"api:hasValue\": \"https://1r.example.com/logistics-objects/1a8ded38-1804-467c-a369-81a411416b7c/logistics-events/c9ab534e-3246-48d3-b34d-bb380bd98af7\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"4\"\n    }\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{lo}}",
-          "host": [
-            "{{lo}}"
-          ]
-        }
-      },
-      "response": []
-    }
-  ]
+	"info": {
+		"_postman_id": "1652f936-e56e-49ee-99d8-c9f4f4dc3b57",
+		"name": "Ontomesh",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "592976",
+		"_collection_link": "https://ontomesh.postman.co/workspace/My-Workspace~379a045e-6984-47d5-85e3-87d079ff2329/collection/592976-1652f936-e56e-49ee-99d8-c9f4f4dc3b57?action=share&source=collection_link&creator=592976"
+	},
+	"item": [
+		{
+			"name": "Action Requests",
+			"item": [
+				{
+					"name": "Get Action Request Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{ActionRequestId}}",
+							"host": [
+								"{{ActionRequestId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update an Action Request",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{actionRequestId}}?status=https%3A%2F%2Fonerecord.iata.org%2Fns%2Fapi%23REQUEST_ACCEPTED",
+							"host": [
+								"{{actionRequestId}}"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "https%3A%2F%2Fonerecord.iata.org%2Fns%2Fapi%23REQUEST_ACCEPTED"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Action Request",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{actionRequestId}}",
+							"host": [
+								"{{actionRequestId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Subscriptions",
+			"item": [
+				{
+					"name": "Request subscription for a specific Logistics Object URI.",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"actionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"actionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Subscription\",\n    \"api:hasContentType\": \"application/ld+json\",\n    \"api:hasSubscriber\": {\n        \"@id\": \"http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda\"\n    },\n    \"api:hasTopicType\": {\n        \"@id\": \"api:LOGISTICS_OBJECT_IDENTIFIER\"\n    },\n    \"api:includeSubscriptionEventType\": [\n        {\n            \"@id\": \"api:LOGISTICS_OBJECT_UPDATED\"\n        },\n        {\n            \"@id\": \"api:LOGISTICS_OBJECT_CREATED\"\n        },\n        {\n            \"@id\": \"api:LOGISTICS_EVENT_RECEIVED\"\n        }\n    ],\n    \"api:hasTopic\": {\n        \"@id\": \"{{lo}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/subscriptions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"subscriptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request subscription information for specific Logistics Object URI.",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_IDENTIFIER&topic={{lo}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"subscriptions"
+							],
+							"query": [
+								{
+									"key": "topicType",
+									"value": "https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_IDENTIFIER"
+								},
+								{
+									"key": "topic",
+									"value": "{{lo}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request subscription information for a Logistics Object type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE&topic=https://onerecord.iata.org/ns/cargo%23Shipment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"subscriptions"
+							],
+							"query": [
+								{
+									"key": "topicType",
+									"value": "https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE"
+								},
+								{
+									"key": "topic",
+									"value": "https://onerecord.iata.org/ns/cargo%23Shipment"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request subscription information for a not supported Logistics Object type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE&topic=https://onerecord.iata.org/ns/cargo%23Shipment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"subscriptions"
+							],
+							"query": [
+								{
+									"key": "topicType",
+									"value": "https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE"
+								},
+								{
+									"key": "topic",
+									"value": "https://onerecord.iata.org/ns/cargo%23Shipment"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Required parameter topic= is missing in the HTTP query parameters.",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"subscriptions"
+							],
+							"query": [
+								{
+									"key": "topicType",
+									"value": "https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE"
+								},
+								{
+									"key": "topic",
+									"value": "https://onerecord.iata.org/ns/cargo%23ForkLift",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Logistics Events",
+			"item": [
+				{
+					"name": "Get Piece LO Event by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{LogisticsEventId}}",
+							"host": [
+								"{{LogisticsEventId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Piece LO Events by Logistics ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{lo}}/logistics-events",
+							"host": [
+								"{{lo}}"
+							],
+							"path": [
+								"logistics-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Piece LO Events by Logistics ID filter by eventType",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{lo}}/logistics-events?eventCode=DEP",
+							"host": [
+								"{{lo}}"
+							],
+							"path": [
+								"logistics-events"
+							],
+							"query": [
+								{
+									"key": "eventCode",
+									"value": "DEP"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DEP Logistics Event",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"LogisticsEventId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"LogisticsEventId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:LogisticsEvent\",\n    \"cargo:creationDate\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\n    },\n    \"cargo:eventDate\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\n    },\n    \"cargo:eventCode\": \"DEP\",\n    \"cargo:eventName\": \"Consignment departed on a specific flight\",\n    \"cargo:eventTimeType\": \"Actual\",\n    \"cargo:linkedObject\": {\n        \"@type\": \"cargo:Piece\",\n        \"@id\": \"{{lo}}\"\n    },\n    \"cargo:recordedBy\": {\n        \"@type\": \"cargo:Company\",\n        \"@id\": \"http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}/logistics-events",
+							"host": [
+								"{{lo}}"
+							],
+							"path": [
+								"logistics-events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ARR Logistics Event",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"LogisticsEventId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"LogisticsEventId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:LogisticsEvent\",\n    \"cargo:creationDate\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\n    },\n    \"cargo:eventDate\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\n    },\n    \"cargo:eventCode\": \"ARR\",\n    \"cargo:eventName\": \"Consignment arrived on a specific flight\",\n    \"cargo:eventTimeType\": \"Actual\",\n    \"cargo:linkedObject\": {\n        \"@type\": \"cargo:Piece\",\n        \"@id\": \"{{lo}}\"\n    },\n    \"cargo:recordedBy\": {\n        \"@type\": \"cargo:Company\",\n        \"@id\": \"http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}/logistics-events",
+							"host": [
+								"{{lo}}"
+							],
+							"path": [
+								"logistics-events"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Request shows a LOGISTICS_OBJECT_CREATED Notification without the content of the object, because sendLogisticsObjectBody in Subscription is set to False",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {        \n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Notification\",    \n    \"api:hasEventType\": {\n        \"@id\": \"api:LOGISTICS_OBJECT_CREATED\"\n    },\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasLogisticsObjectType\": {\n        \"@id\": \"https://onerecord.iata.org/ns/cargo#Piece\"\n    },\n    \"api:isTriggeredBy\": {\n        \"@id\": \"http://localhost:8080/action-requests/599fea49-7287-42af-b441-1fa618d2aaed\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request shows a LOGISTICS_OBJECT_CREATED Notification with the content of the object, because sendLogisticsObjectBody in Subscription is set to True",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Notification\",\n    \"api:hasEventType\": {\n        \"@id\": \"api:LOGISTICS_OBJECT_CREATED\"\n    },\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\",\n        \"@type\": \"cargo:Shipment\",\n        \"cargo:goodsDescription\": \"Lots of awesome ONE Record information materials\",\n        \"cargo:shipmentOfPieces\": [\n            {\n                \"@type\": \"cargo:Piece\",\n                \"@id\": \"{{lo}}\"\n            }\n        ]\n    },\n    \"api:hasLogisticsObjectType\": {\n        \"@id\": \"https://onerecord.iata.org/ns/cargo#Shipment\"\n    },\n    \"api:isTriggeredBy\": {\n        \"@id\": \"http://localhost:8080/action-requests/599fea49-7287-42af-b441-1fa618d2aaed\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request shows a LOGISTICS_OBJECT_CREATED Notification with the content of the object, because sendLogisticsObjectBody in Subscription is set to True Copy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Notification\",\n    \"api:hasChangedProperty\": [\n        \"https://onerecord.iata.org/ns/cargo#grossWeight\"\n    ],\n    \"api:hasEventType\": {\n        \"@id\": \"api:LOGISTICS_OBJECT_UPDATED\"\n    },\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasLogisticsObjectType\": {\n        \"@id\": \"https://onerecord.iata.org/ns/cargo#Piece\"\n    },\n    \"api:isTriggeredBy\": {\n        \"@id\": \"http://localhost:8080/action-requests/599fea49-7287-42af-b441-1fa618d2aaed\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request shows a LOGISTICS_EVENT_RECEIVED Notification after a LogisticsEvent is submitted.",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Notification\",\n    \"api:hasEventType\": {\n        \"@id\": \"api:LOGISTICS_EVENT_RECEIVED\"\n    },\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasLogisticsObjectType\": {\n        \"@id\": \"https://onerecord.iata.org/ns/cargo#Shipment\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request shows a CHANGE_REQUEST_ACCEPTED Notification after the ChangeRequest is accepted by the holder of the logistics object.",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Notification\",\n    \"api:hasEventType\": {\n        \"@id\": \"api:CHANGE_REQUEST_ACCEPTED\"\n    },\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasLogisticsObjectType\": {\n        \"@id\": \"https://onerecord.iata.org/ns/cargo#Piece\"\n    },\n    \"api:isTriggeredBy\": {\n        \"@id\": \"http://localhost:8080/action-requests/6b948f9b-b812-46ed-be39-4501453da99b\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Logistics Object",
+			"item": [
+				{
+					"name": "Save Custom Information 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"lo\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"lo\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": false,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",            \n            \"cargo:serviceType\": \"SPH\",\n            \"cargo:serviceDescription\": \"Valuable Cargo\",\n            \"cargo:serviceTypeCode\": \"VAL\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/logistics-objects",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"logistics-objects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Custom Information 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"lo\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"lo\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": false,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",            \n            \"cargo:serviceType\": \"SPH\",\n            \"cargo:serviceDescription\": \"Valuable Cargo\",\n            \"cargo:serviceTypeCode\": \"VAL\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/logistics-objects",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"logistics-objects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Piece LO",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"lo\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"lo\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": false,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",            \n            \"cargo:serviceType\": \"SPH\",\n            \"cargo:serviceDescription\": \"Valuable Cargo\",\n            \"cargo:serviceTypeCode\": \"VAL\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/logistics-objects",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"logistics-objects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Piece LO",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Piece LO Snapshot",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/logistics-objects/1c725ce2-23ff-4524-ba4f-0a7d62bd2aed",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"logistics-objects",
+								"1c725ce2-23ff-4524-ba4f-0a7d62bd2aed"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Piece LO Audit Trail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{lo}}/audit-trail",
+							"host": [
+								"{{lo}}"
+							],
+							"path": [
+								"audit-trail"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example C1 : Update Piece LO - Add Goods Description, Update coload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"ActionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"ActionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"Update goods description and coload\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#goodsDescription\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"ONE Record Advertisement Materials\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                    \"api:hasValue\": \"false\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                    \"api:hasValue\": \"true\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"1\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example C2 : Update Piece LO - Piece#grossWeight is added",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"ActionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"ActionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"Add grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#Value\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": 20.0\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"2\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example C3 : Update Piece LO - Piece#grossWeight is updated",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"ActionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"ActionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"Change grossWeight\",\n    \"api:hasOperation\": [{\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"ontomesh:3bb52a32-2a52-4d7a-85cf-552dcf02b2a7\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                \"api:hasValue\": \"20.0\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"f\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                \"api:hasValue\": \"25.0\"\n            }]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"2\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example C4 : Update Piece LO - Piece#grossWeight is deleted",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"ActionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"ActionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"delete grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"3\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example C5 : Add the URI of the newly created CustomsInformation objects to the property Piece#customsInfos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"ActionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"ActionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"delete grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"3\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example C6: The referencesLogisticsObject in the Change object differs from the Logistics URI that is used as the endpoint for the PATCH request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"ActionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"ActionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{lo}}\"\n    },\n    \"api:hasDescription\": \"delete grossWeight\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"{{lo}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:DELETE\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#value\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"3\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Example C7 : The Change object contains an illegal operation, i.e. an ADD operation that affects the disallowed property hasLogisticsEvent.",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"ActionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"ActionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "default"
+							},
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": [\n        {\n            \"@type\": \"cargo:LogisticsObject\",\n            \"@id\": \"{{lo}}\"\n        }\n    ],\n    \"api:hasDescription\": \"add LogisticsEvent\",\n    \"api:hasOperation\": [\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"https://1r.example.com/logistics-objects/1a8ded38-1804-467c-a369-81a411416b7c\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#hasLogisticsEvent\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#LogisticsEvent\",\n                    \"api:hasValue\": \"https://1r.example.com/logistics-objects/1a8ded38-1804-467c-a369-81a411416b7c/logistics-events/c9ab534e-3246-48d3-b34d-bb380bd98af7\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"4\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{lo}}",
+							"host": [
+								"{{lo}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Server Information",
+			"item": [
+				{
+					"name": "Server Information",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Access Delegations",
+			"item": [
+				{
+					"name": "Request Access Delegation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var location = JSON.stringify(pm.response.headers.get(\"Location\"));",
+									"console.log(JSON.parse(location));",
+									"pm.environment.set(\"actionRequestId\",JSON.parse(location));",
+									"console.log(pm.environment.get(\"actionRequestId\"));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:AccessDelegation\",\n    \"api:hasDescription\": \"Require access to Piece for handling\",\n    \"api:hasPermission\": [\n        {\n            \"@id\": \"api:GET_LOGISTICS_OBJECT\"\n        }\n    ],\n    \"api:isRequestedFor\": [\n        {\n            \"@id\": \"http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda\"\n        }\n    ],\n    \"api:notifyRequestStatusChange\": false,\n    \"api:hasLogisticsObject\": [\n        {\n            \"@id\": \"{{lo}}\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/access-delegations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"access-delegations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
 }
