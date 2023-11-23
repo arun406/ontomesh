@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class SnapshotService extends AbstractLogisticsObjectService {
 
-    ValueFactory valueFactory = SimpleValueFactory.getInstance();
+    private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
     public SnapshotService(LogisticsObjectRepository repository,
                            IdProvider idProvider) {

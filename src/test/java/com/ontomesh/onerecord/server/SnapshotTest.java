@@ -74,7 +74,7 @@ public class SnapshotTest {
         File file = ResourceUtils.getFile("classpath:piecelo.jsonld");
         InputStream stream = new FileInputStream(file);
 
-        LogisticsObject logisticsObject = converterService.getLogisticObject(stream, RDFFormat.JSONLD);
+        LogisticsObject logisticsObject = converterService.getLogisticsObject(stream, RDFFormat.JSONLD);
         LogisticsObject snapshot = snapshotService.createSnapshot(logisticsObject);
 
         RDFUtil.print(snapshot.model(), RDFFormat.TURTLE);
@@ -86,7 +86,7 @@ public class SnapshotTest {
         File file = ResourceUtils.getFile("classpath:piecelo.jsonld");
         InputStream stream = new FileInputStream(file);
 
-        LogisticsObject logisticsObject = converterService.getLogisticObject(stream, RDFFormat.JSONLD);
+        LogisticsObject logisticsObject = converterService.getLogisticsObject(stream, RDFFormat.JSONLD);
 
         IRI snapshotId = idProvider.createUniqueLoUri().iri();
         log.debug("snapshot id {}", snapshotId);

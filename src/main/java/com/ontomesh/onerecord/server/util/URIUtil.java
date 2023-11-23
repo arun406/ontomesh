@@ -13,7 +13,7 @@ public class URIUtil extends org.eclipse.rdf4j.model.util.URIUtil {
         return uri.resolve(newPath).normalize();
     }
 
-    public static URI getURI(String requestURL) {
-        return URI.create(requestURL);
+    public static URI getURI(String uri) {
+        return URI.create(uri);
     }
 }

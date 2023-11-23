@@ -25,7 +25,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,6 +47,15 @@ public abstract class BaseController {
 
     }
 
+    /**
+     * constructor.
+     *
+     * @param logisticsObjectService logistics object service.
+     * @param snapshotService        snapshot service.
+     * @param actionRequestService   action request service.
+     * @param eventService           event service.
+     * @param auditTrailService      audit trail service.
+     */
     public BaseController(LogisticsObjectService logisticsObjectService,
                           SnapshotService snapshotService, ActionRequestService actionRequestService,
                           LogisticsEventService eventService, AuditTrailService auditTrailService) {
@@ -59,9 +67,11 @@ public abstract class BaseController {
     }
 
     /**
-     * @param logisticsObjectService
-     * @param snapshotService
-     * @param auditTrailService
+     * Constructor.
+     *
+     * @param logisticsObjectService logistics object service.
+     * @param snapshotService        snapshot service.
+     * @param auditTrailService      audit trail service.
      */
     public BaseController(LogisticsObjectService logisticsObjectService,
                           SnapshotService snapshotService, AuditTrailService auditTrailService) {
@@ -71,14 +81,16 @@ public abstract class BaseController {
     }
 
     /**
-     * @param eventService
+     * Controller.
+     *
+     * @param eventService event service.
      */
     public BaseController(LogisticsEventService eventService) {
         this.eventService = eventService;
     }
 
     /**
-     * @param actionRequestService
+     * @param actionRequestService action service
      */
     public BaseController(ActionRequestService actionRequestService) {
         this.actionRequestService = actionRequestService;
@@ -91,7 +103,9 @@ public abstract class BaseController {
     }
 
     /**
-     * @param logisticsObject
+     * remove hasPredefinedIri IRI.
+     *
+     * @param logisticsObject logistics object.
      */
     public void removeMarkerPredicate(LogisticsObject logisticsObject) {
         logisticsObject.model().remove(logisticsObject.iri(), hasPredefinedIri, null);
@@ -150,14 +164,6 @@ public abstract class BaseController {
         return getResponseHeaders(loURI, loType, contentType);
     }
 
-    protected HttpHeaders getResponseHeaders(MediaType contentType) {
-
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.setContentType(contentType);
-        responseHeaders.setContentLanguage(Locale.ENGLISH);
-        return responseHeaders;
-    }
-
     protected HttpHeaders getResponseHeaders(HttpServletRequest httpServletRequest) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
@@ -168,7 +174,9 @@ public abstract class BaseController {
     }
 
     /**
-     * @param logisticsObject
+     * Add revision statement logistics object.
+     *
+     * @param logisticsObject logistics object.
      */
     public void addRevisionToLO(LogisticsObject logisticsObject) {
         logisticsObject.model().add(logisticsObject.iri(), API.hasRevision, Values.literal(1));

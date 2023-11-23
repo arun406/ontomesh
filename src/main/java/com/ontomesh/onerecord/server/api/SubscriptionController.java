@@ -32,9 +32,9 @@ import java.util.Set;
 @RequestMapping("/subscriptions")
 public class SubscriptionController extends BaseController {
 
-    private SubscriptionService subscriptionService;
-    private ServerInformationService serverInformationService;
-    private ActionRequestService actionRequestService;
+    private final SubscriptionService subscriptionService;
+    private final ServerInformationService serverInformationService;
+    private final ActionRequestService actionRequestService;
 
     public SubscriptionController(
             SubscriptionService subscriptionService,

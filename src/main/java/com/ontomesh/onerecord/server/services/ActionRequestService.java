@@ -29,6 +29,7 @@ public class ActionRequestService {
 
     private final IdProvider idProvider;
     private final LogisticsObjectRepository repository;
+    private final ActionRequestProcessor actionRequestProcessor;
 
     /**
      * create action request
@@ -144,5 +145,8 @@ public class ActionRequestService {
             throw new RuntimeException(String.format("Cannot update status. Action Request status is already %s)", newStatus));
         }
         updateStatus(iri, status, newStatus);
+
+        actionRequestProcessor.process(actionRequest);
+
     }
 }

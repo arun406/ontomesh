@@ -1,6 +1,7 @@
 package com.ontomesh.onerecord.server.api;
 
 import com.ontomesh.onerecord.server.config.LoIdConfig;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.UUID;
 
 @Slf4j
@@ -17,9 +19,11 @@ public class IdProvider {
     private final String rootPath;
     private final LoIdConfig loIdConfig;
 
-    public IdProvider(@Value("${server.servlet.context-path:/}") String rootPath, LoIdConfig loIdConfig) {
+    public IdProvider(@Value("${server.servlet.context-path:/}") String rootPath, LoIdConfig loIdConfig,
+                      HttpServletRequest httpServletRequest) {
         this.rootPath = rootPath;
         this.loIdConfig = loIdConfig;
+        this.httpServletRequest = httpServletRequest;
     }
 
     public OntoMeshId createInternalIri() {
@@ -34,7 +38,8 @@ public class IdProvider {
         return OntoMeshId.fromUri(getActionRequestUriBase().path(UUID.randomUUID().toString()).build().toUri());
     }
 
-    public OntoMeshId createUniqueLoUriForLogisticsEvent(UriComponentsBuilder builder) {
+    public OntoMeshId createUniqueLogisticsEventUri(URI path) {
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance().uri(path).path("/");
         return OntoMeshId.fromUri(builder.path(UUID.randomUUID().toString()).build().toUri());
     }
 
@@ -73,5 +78,23 @@ public class IdProvider {
 
     public IRI getLogisticsObjectBaseIRI() {
         return Values.iri(this.getLoUriBase().build().toString());
+    }
+
+    private final HttpServletRequest httpServletRequest;
+
+
+    private String getURL() {
+        return httpServletRequest.getRequestURL().toString();
+    }
+
+    public OntoMeshId createUniqueUri() {
+        String url = getURL();
+        log.debug("URL : {} ", url);
+        boolean isLogisticsEvent = url.contains("/logistics-events");
+        if (isLogisticsEvent) {
+            return createUniqueLogisticsEventUri(URI.create(url));
+        } else {
+            return createUniqueLoUri();
+        }
     }
 }

@@ -25,7 +25,7 @@ import java.io.OutputStream;
 public class ServerInformationController extends BaseController {
 
     @Autowired
-    private ServerInformationService serverInformationService;
+    private final ServerInformationService serverInformationService;
 
     public ServerInformationController(ServerInformationService serverInformationService) {
         super();

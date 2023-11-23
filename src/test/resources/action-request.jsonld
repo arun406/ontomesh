@@ -1,0 +1,93 @@
+{
+    "@id": "http://localhost:8080/action-requests/e4797d2d-2243-437a-ad1b-4ab61653ac66",
+    "@type": "api:ChangeRequest",
+    "api:hasChange": {
+        "@id": "http://localhost:8080/logistics-objects/9cb7a3c1-afec-472f-bd1e-49849e41e6d6",
+        "@type": "api:Change",
+        "api:hasDescription": "Update goods description and coload",
+        "api:hasLogisticsObject": {
+            "@id": "http://localhost:8080/logistics-objects/01c78a0e-02ea-42e0-9bc6-c8cf0e22f670",
+            "@type": "cargo:Piece",
+            "api:hasRevision": {
+                "@type": "http://www.w3.org/2001/XMLSchema#int",
+                "@value": "1"
+            },
+            "cargo:coload": {
+                "@type": "http://www.w3.org/2001/XMLSchema#boolean",
+                "@value": "false"
+            },
+            "cargo:handlingInstructions": {
+                "@id": "ontomesh:9cba77b4-277e-48d0-b58f-e8586e7fda6c",
+                "@type": "cargo:HandlingInstructions",
+                "cargo:serviceDescription": "Valuable Cargo",
+                "cargo:serviceType": "SPH",
+                "cargo:serviceTypeCode": "VAL"
+            }
+        },
+        "api:hasOperation": [
+            {
+                "@id": "ontomesh:5f54b093-8b93-4fbb-9b14-55cca0559d8a",
+                "@type": "api:Operation",
+                "api:o": {
+                    "@id": "ontomesh:fe629473-4aba-4ff4-ae00-5ddde6bca282",
+                    "@type": "api:OperationObject",
+                    "api:hasDatatype": "http://www.w3.org/2001/XMLSchema#string",
+                    "api:hasValue": "ONE Record Advertisement Materials"
+                },
+                "api:op": {
+                    "@id": "api:ADD"
+                },
+                "api:p": "https://onerecord.iata.org/ns/cargo#goodsDescription",
+                "api:s": "http://localhost:8080/logistics-objects/01c78a0e-02ea-42e0-9bc6-c8cf0e22f670"
+            },
+            {
+                "@id": "ontomesh:76b8022b-19af-419c-be97-7fced3e86d04",
+                "@type": "api:Operation",
+                "api:o": {
+                    "@id": "ontomesh:da0efe1a-eaf4-430d-bd53-452dc9c54b51",
+                    "@type": "api:OperationObject",
+                    "api:hasDatatype": "http://www.w3.org/2001/XMLSchema#boolean",
+                    "api:hasValue": "false"
+                },
+                "api:op": {
+                    "@id": "api:DELETE"
+                },
+                "api:p": "https://onerecord.iata.org/ns/cargo#coload",
+                "api:s": "http://localhost:8080/logistics-objects/01c78a0e-02ea-42e0-9bc6-c8cf0e22f670"
+            },
+            {
+                "@id": "ontomesh:ed584aae-c14e-4034-a742-4326fd747c56",
+                "@type": "api:Operation",
+                "api:o": {
+                    "@id": "ontomesh:565ba490-fd06-41ee-a098-fc82c35dd132",
+                    "@type": "api:OperationObject",
+                    "api:hasDatatype": "http://www.w3.org/2001/XMLSchema#boolean",
+                    "api:hasValue": "true"
+                },
+                "api:op": {
+                    "@id": "api:ADD"
+                },
+                "api:p": "https://onerecord.iata.org/ns/cargo#coload",
+                "api:s": "http://localhost:8080/logistics-objects/01c78a0e-02ea-42e0-9bc6-c8cf0e22f670"
+            }
+        ],
+        "api:hasRevision": {
+            "@type": "http://www.w3.org/2001/XMLSchema#positiveInteger",
+            "@value": "1"
+        }
+    },
+    "api:hasRequestStatus": {
+        "@id": "api:REQUEST_ACCEPTED"
+    },
+    "api:isRequestedAt": {
+        "@type": "http://www.w3.org/2001/XMLSchema#dateTime",
+        "@value": "2023-11-22T12:41:22.756+05:30"
+    },
+    "api:isRequestedBy": {
+        "@id": "http://localhost:8080/logistics-objects/c5bd6637-9168-4e2c-8cdb-86c5340f91c9"
+    },
+    "@context": {
+        "api": "https://onerecord.iata.org/ns/api#",
+        "cargo": "https://onerecord.iata.org/ns/cargo#"
+    }
+}

@@ -9,6 +9,7 @@ import com.ontomesh.onerecord.server.services.LogisticsObjectValidationService;
 import com.ontomesh.onerecord.server.services.SnapshotService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.rdf4j.model.IRI;
 import org.iata.onerecord.api.API;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -128,11 +129,12 @@ public class LogisticsObjectController extends BaseController {
 
         LogisticsObject logisticsObject = this.logisticsObjectService.findLogisticsObject(loId.uri());
 //        OntoMeshId uriForLoId = idProvider.getUriForLoId(id);
-        this.actionRequestService.createActionRequest(change, API.ChangeRequest);
-
-        LogisticsObject snapshot = this.snapshotService.createSnapshot(logisticsObject);
-        log.debug("snapshot with {} is created.", snapshot.iri());
-        HttpHeaders responseHeaders = getResponseHeaders(change, SemanticWebMediaType.APPLICATION_JSON_LD);
-        return ResponseEntity.noContent().headers(responseHeaders).build();
+        IRI actionRequest = this.actionRequestService.createActionRequest(change, API.ChangeRequest);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
+        headers.setLocation(URI.create(actionRequest.stringValue()));
+        headers.add("Type", API.hasChangeRequest.stringValue());
+//        HttpHeaders responseHeaders = getResponseHeaders(change, SemanticWebMediaType.APPLICATION_JSON_LD);
+        return ResponseEntity.noContent().headers(headers).build();
     }
 }

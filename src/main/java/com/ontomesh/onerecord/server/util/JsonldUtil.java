@@ -4,7 +4,10 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
 import com.google.common.base.Charsets;
+import lombok.Getter;
 import org.eclipse.rdf4j.model.IRI;
+import org.iata.onerecord.api.API;
+import org.iata.onerecord.cargo.CARGO;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,24 +18,23 @@ import java.util.Map;
 
 public class JsonldUtil {
 
-    public static Map<String, Map<String, String>> context = new HashMap<>();
+    @Getter
+    public final static Map<String, Map<String, String>> context = new HashMap<>();
 
     static {
         context.put("@context", new HashMap<>());
-        context.get("@context").put("cargo", "https://onerecord.iata.org/ns/cargo#");
-        context.get("@context").put("api", "https://onerecord.iata.org/ns/api#");
-    }
-
-    public static Map<String, Map<String, String>> getContext() {
-        return context;
+        context.get("@context").put(CARGO.PREFIX, CARGO.NAMESPACE);
+        context.get("@context").put(API.PREFIX, API.NAMESPACE);
     }
 
     /**
-     * @param jsonString
-     * @param pretty
-     * @param type
-     * @return
-     * @throws IOException
+     * JSON LD to String.
+     *
+     * @param jsonString Json LD as String
+     * @param pretty     pretty print the json.
+     * @param type       RDF Type.
+     * @return json ld string.
+     * @throws IOException exception
      */
     public static String jsonLdToString(String jsonString, boolean pretty, IRI type) throws IOException {
         Object jsonObject = createJsonObject(jsonString);
@@ -46,9 +48,9 @@ public class JsonldUtil {
     }
 
     /**
-     * @param framedJson
-     * @param type
-     * @return
+     * @param framedJson Framed Json.
+     * @param type       RDF Type.
+     * @return Graph Array.
      */
     public static Map<String, Object> removeGraphArray(Map<String, Object> framedJson, IRI type) {
         List<Map<String, Object>> graph = (List<Map<String, Object>>) framedJson.get("@graph");
@@ -64,11 +66,13 @@ public class JsonldUtil {
     }
 
     /**
-     * @param json
-     * @param context
-     * @return
+     * Get Framed Json.
+     *
+     * @param json    Json Object.
+     * @param context RDF Context Map
+     * @return Framed Json Map.
      */
-    public static Map<String, Object> getFramedJson(Object json, Map<String, Map<String, String>> context) {
+    private static Map<String, Object> getFramedJson(Object json, Map<String, Map<String, String>> context) {
         JsonLdOptions opts = getJsonLdOptions();
         return JsonLdProcessor.frame(json, context, opts);
     }
@@ -81,17 +85,21 @@ public class JsonldUtil {
         return opts;
     }
 
-    public static Object createJsonObject(String jsonLd) {
-        Object o = null;
+    /**
+     * Creates Json Object from Json String.
+     *
+     * @param jsonLd json ld string
+     * @return JSON object.
+     */
+    private static Object createJsonObject(String jsonLd) {
 
         try {
             InputStream inputStream =
                     new ByteArrayInputStream(jsonLd.getBytes(Charsets.UTF_8));
-            o = JsonUtils.fromInputStream(inputStream);
+            return JsonUtils.fromInputStream(inputStream);
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to create object from json ld");
         }
-        return o;
     }
 }

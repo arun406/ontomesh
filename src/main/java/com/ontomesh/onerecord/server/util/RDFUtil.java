@@ -3,13 +3,15 @@ package com.ontomesh.onerecord.server.util;
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
+import org.apache.commons.collections4.IterableUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.DynamicModel;
+import org.eclipse.rdf4j.model.impl.DynamicModelFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -25,18 +27,28 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * Utility class for performing RDF operations on a Model.
+ *
  * @author arun
  */
 public class RDFUtil {
 
-
+    /**
+     * Create IRI.
+     *
+     * @param iriString iri
+     * @return IRI
+     */
     public static IRI createIRI(String iriString) {
         ValueFactory vf = SimpleValueFactory.getInstance();
         try {
@@ -57,6 +69,12 @@ public class RDFUtil {
         }
     }
 
+    /**
+     * create IRI.
+     *
+     * @param uri uri
+     * @return IRI
+     */
     public static IRI createIRI(URI uri) {
         ValueFactory vf = SimpleValueFactory.getInstance();
         // Try to convert the string to a URI first.
@@ -71,11 +89,27 @@ public class RDFUtil {
         }
     }
 
+    /**
+     * Returns the type.
+     *
+     * @param model   Model.
+     * @param subject subject.
+     * @return IRI.
+     */
     public static IRI getType(Model model, IRI subject) {
         return Models.objectIRI(model.filter(subject, RDF.TYPE, null))
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Type is not available in the model."));
     }
 
+    /**
+     * readRdfToGraph.
+     *
+     * @param inputStream inputStream
+     * @param rdfFormat   RDF Format.
+     * @param baseUrl     Base Url.
+     * @return collections.
+     * @throws IOException
+     */
     public static Collection<Statement> readRdfToGraph(final InputStream inputStream, final RDFFormat rdfFormat,
                                                        final String baseUrl) throws IOException {
         final RDFParser rdfParser = Rio.createParser(rdfFormat);
@@ -89,33 +123,41 @@ public class RDFUtil {
     /**
      * Converts the Model to Collection of Statements
      *
-     * @param model
-     * @return
+     * @param model model
+     * @return collection.
      */
     public static Collection<Statement> modelToCollection(Model model) {
-        return model.stream().collect(Collectors.toSet());
+        return new HashSet<>(model);
+    }
+
+    public static Model collectionToModel(Collection<Statement> statements) {
+        DynamicModel model = new DynamicModelFactory().createEmptyModel();
+        model.addAll(statements);
+        return model;
     }
 
     /**
-     * @param inputStream
-     * @param inputRDFFormat
-     * @param outputRDFFormat
-     * @param baseUrl
-     * @return
-     * @throws IOException
+     * @param inputStream     rdf input stream.
+     * @param inputRDFFormat  rdf format
+     * @param outputRDFFormat rdf format
+     * @param baseUrl         base url of the server.
+     * @return rdf string
+     * @throws IOException exception
      */
     public static String readRdfToString(InputStream inputStream, RDFFormat inputRDFFormat,
                                          RDFFormat outputRDFFormat, String baseUrl) throws IOException {
+
         Collection<Statement> statements = RDFUtil.readRdfToGraph(inputStream, inputRDFFormat, baseUrl);
-        Model model = new ModelBuilder().build();
-        model.addAll(statements);
+        Model model = collectionToModel(statements);
 
         return new ModelToStringConverter(outputRDFFormat).convert(model);
     }
 
     /**
-     * @param mediaType
-     * @return
+     * Returns RDF Type using Media type.
+     *
+     * @param mediaType Media Type
+     * @return RDF Type
      */
     public static RDFFormat getFormat(MediaType mediaType) {
 
@@ -133,25 +175,29 @@ public class RDFUtil {
     }
 
     /**
-     * @param model
-     * @param accept
-     * @return
+     * Convert model to Byte Stream
+     *
+     * @param model     model.
+     * @param mediaType media type
+     * @return Byte Array Stream.
      */
-    public static OutputStream getRDFByteStream(Model model, MediaType accept) {
+    public static OutputStream getRDFByteStream(Model model, MediaType mediaType) {
         OutputStream outputStream = new ByteArrayOutputStream();
-        RDFFormat format = RDFUtil.getFormat(accept);
+        RDFFormat format = RDFUtil.getFormat(mediaType);
         Rio.write(model, outputStream, format);
         return outputStream;
     }
 
     /**
-     * @param model
-     * @return
+     * Convert model to Byte Stream
+     *
+     * @param model model.
+     * @return stream.
      */
 
     public static OutputStream getRDFByteStream(Model model) {
         OutputStream outputStream = new ByteArrayOutputStream();
-        RDFFormat format = RDFFormat.JSONLD;
+        RDFFormat format = getDefaultFormat();
         Rio.write(model, outputStream, format);
         return outputStream;
     }
@@ -160,6 +206,12 @@ public class RDFUtil {
         print(logisticsObject.model());
     }
 
+    /**
+     * Print
+     *
+     * @param logisticsObject logistics object.
+     * @param format          RDF Format.
+     */
     public static void print(LogisticsObject logisticsObject, RDFFormat format) {
         print(logisticsObject.model(), format);
     }
@@ -208,11 +260,7 @@ public class RDFUtil {
         return Models.objectLiteral(model.filter(subject, predicate, null));
     }
 
-    public static RDFParser getParser(RDFFormat rdfFormat, RDFHandler rdfHandler) {
-        RDFParser parser = Rio.createParser(rdfFormat);
-        parser.setRDFHandler(rdfHandler);
-        return parser;
-    }
+
 
     public static IRI getRootIri(Model model) {
         // set of all subject IRIs
@@ -232,5 +280,46 @@ public class RDFUtil {
         }
 
         return subjectIris.iterator().next();
+    }
+
+    /**
+     * returns the sub model of a model.
+     *
+     * @param baseModel model
+     * @param predicate predicate
+     * @return model
+     */
+    public static Model getSubModel(Model baseModel, IRI predicate) {
+        IRI id = RDFUtil.getRootIri(baseModel);
+        Iterable<Statement> statements = baseModel.getStatements(id, predicate, null);
+        Model subModel = findRecursively(IterableUtils.toList(statements), baseModel).orElse(null);
+        if (subModel != null && !subModel.isEmpty()) {
+            subModel.remove(RDFUtil.getRootIri(baseModel), predicate, null);
+        }
+        return subModel;
+    }
+
+    private static Optional<Model> findRecursively(List<Statement> statements, Model input) {
+
+        Model model = new DynamicModelFactory().createEmptyModel();
+//        model.addAll(statements);
+        List<Statement> list = traverse(statements, new ArrayList<>(), input);
+        model.addAll(list);
+        return Optional.of(model);
+    }
+
+    private static List<Statement> traverse(List<Statement> statements, List<Statement> newStatements, Model model) {
+        statements.forEach(statement -> {
+            if (newStatements.contains(statement)) {
+                return;
+            }
+            newStatements.add(statement);
+            if (statement.getObject().isIRI()) {
+                Iterable<Statement> bNodeStatements = model
+                        .getStatements((org.eclipse.rdf4j.model.Resource) statement.getObject(), null, null);
+                traverse(IterableUtils.toList(bNodeStatements), newStatements, model);
+            }
+        });
+        return newStatements;
     }
 }

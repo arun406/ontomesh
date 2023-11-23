@@ -3,7 +3,6 @@ package com.ontomesh.onerecord.server.converter;
 import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
-import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.services.LogisticsObjectConverterService;
@@ -28,26 +27,19 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @Slf4j
 @Component
 public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConverter<LogisticsObject> {
 
-    private final IdProvider idProvider;
 
     private final LogisticsObjectConverterService converterService;
 
     private final HttpServletRequest httpServletRequest;
-    /**
-     * The default charset used by the converter.
-     */
-    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-
-    public LogisticsObjectRDFMessageConverter(IdProvider idProvider, LogisticsObjectConverterService converterService,
+    public LogisticsObjectRDFMessageConverter(LogisticsObjectConverterService converterService,
                                               HttpServletRequest httpServletRequest) {
-        this.idProvider = idProvider;
         this.converterService = converterService;
         this.httpServletRequest = httpServletRequest;
     }
@@ -59,83 +51,74 @@ public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConve
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return clazz.isAssignableFrom(LogisticsObject.class)
-                && mediaType != null && (mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_TURTLE)
-                || mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)
-                || mediaType.isCompatibleWith(SemanticWebMediaType.TEXT_TURTLE));
+                && (SemanticWebMediaType.APPLICATION_TURTLE.isCompatibleWith(mediaType)
+                || SemanticWebMediaType.APPLICATION_JSON_LD.isCompatibleWith(mediaType)
+                || SemanticWebMediaType.TEXT_TURTLE.isCompatibleWith(mediaType));
     }
 
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
         return clazz.isAssignableFrom(LogisticsObject.class)
-                && mediaType != null && (mediaType.equals(SemanticWebMediaType.APPLICATION_TURTLE)
-                || mediaType.equals(SemanticWebMediaType.APPLICATION_JSON_LD)
-                || mediaType.equals(SemanticWebMediaType.TEXT_TURTLE));
+                && (SemanticWebMediaType.APPLICATION_TURTLE.isCompatibleWith(mediaType)
+                || SemanticWebMediaType.APPLICATION_JSON_LD.isCompatibleWith(mediaType)
+                || SemanticWebMediaType.TEXT_TURTLE.isCompatibleWith(mediaType));
     }
 
-    protected LogisticsObject readInternal(Class<? extends LogisticsObject> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+    protected LogisticsObject readInternal(Class<? extends LogisticsObject> clazz, HttpInputMessage inputMessage)
+            throws IOException, HttpMessageNotReadableException {
         InputStream inputStream = inputMessage.getBody();
-        RDFFormat rdfFormat = getRDFFormat(inputMessage.getHeaders().getContentType());
-        return converterService.getLogisticObject(inputStream, rdfFormat);
+        RDFFormat rdfFormat = RDFUtil.getFormat(Objects.requireNonNull(inputMessage.getHeaders().getContentType()));
+        LogisticsObject logisticsObject = converterService.getLogisticsObject(inputStream, rdfFormat);
+        if (logisticsObject == null) {
+            throw new HttpMessageNotReadableException("Input is not a valid RDF.", inputMessage);
+        }
+        return logisticsObject;
     }
 
     @Override
-    protected void writeInternal(LogisticsObject logisticsObject, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+    protected void writeInternal(LogisticsObject logisticsObject, HttpOutputMessage outputMessage) throws IOException,
+            HttpMessageNotWritableException {
         log.debug("logistics object iri {}", logisticsObject.iri());
-        MediaType selectedContentType = getAcceptMediaType();
-        String rdfString = getString(logisticsObject, selectedContentType);
-        if (selectedContentType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
-            IRI type = RDFUtil.getType(logisticsObject.model(), logisticsObject.iri());
+        MediaType mediaType = getAcceptMediaType();
+        String rdfString = convertToString(logisticsObject, mediaType);
+        if (mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
+//            IRI type = RDFUtil.getType(logisticsObject.model(), logisticsObject.iri());
+            IRI type = logisticsObject.type();
             rdfString = JsonldUtil.jsonLdToString(rdfString, true, type);
-            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), JsonldUtil.getContext(), new JsonLdOptions());
+            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), JsonldUtil.getContext(),
+                    new JsonLdOptions());
             rdfString = JsonUtils.toPrettyString(compact);
         }
         StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
     }
 
     /**
-     * @param logisticsObject
-     * @param selectedContentType
-     * @return
+     * Convert Logistics Object to String.
+     *
+     * @param logisticsObject Logistics Object
+     * @param mediaType       Media Type
+     * @return String.
      */
-    private static String getString(LogisticsObject logisticsObject, MediaType selectedContentType) {
-        ModelToStringConverter modelToStringConverter = getModelToStringConverter(selectedContentType);
+    private static String convertToString(LogisticsObject logisticsObject, MediaType mediaType) {
+        ModelToStringConverter modelToStringConverter = getModelToStringConverter(mediaType);
         return modelToStringConverter.convert(logisticsObject.model());
     }
 
     /**
-     * @return
+     * @return Media Type
      */
     private MediaType getAcceptMediaType() {
         String acceptHeader = httpServletRequest.getHeader(HttpHeaders.ACCEPT);
-        MediaType selectedContentType = SemanticWebMediaType.APPLICATION_JSON_LD;
+        MediaType mediaType = SemanticWebMediaType.APPLICATION_JSON_LD;
         // override the default with requested content type
         if (StringUtils.hasText(acceptHeader)) {
-            selectedContentType = MediaType.valueOf(acceptHeader);
+            mediaType = MediaType.valueOf(acceptHeader);
         }
-        return selectedContentType;
+        return mediaType;
     }
 
-    private static ModelToStringConverter getModelToStringConverter(MediaType selectedContentType) {
-        RDFFormat format = RDFUtil.getFormat(selectedContentType);
+    private static ModelToStringConverter getModelToStringConverter(MediaType mediaType) {
+        RDFFormat format = RDFUtil.getFormat(mediaType);
         return new ModelToStringConverter(format);
     }
-
-
-    /////////////////////////////////////////////*****************\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-
-    private RDFFormat getRDFFormat(MediaType contentType) {
-        if (contentType == null) {
-            return RDFFormat.JSONLD;
-        } else if (contentType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
-            return RDFFormat.JSONLD;
-        } else if (contentType.isCompatibleWith(SemanticWebMediaType.APPLICATION_TURTLE)) {
-            return RDFFormat.TURTLE;
-        } else if (contentType.isCompatibleWith(SemanticWebMediaType.TEXT_TURTLE)) {
-            return RDFFormat.TURTLE;
-        }
-        throw new RuntimeException("Unsupported media type [" + contentType + "]");
-    }
-
-
 }

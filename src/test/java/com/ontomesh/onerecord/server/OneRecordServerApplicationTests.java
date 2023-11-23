@@ -37,10 +37,10 @@ class OneRecordServerApplicationTests {
     void contextLoads() {
     }
 
-    RDFParser rdfParser = Rio.createParser(RDFFormat.JSONLD);
+    private final RDFParser rdfParser = Rio.createParser(RDFFormat.JSONLD);
 
     @Autowired
-    IdProvider idProvider;
+    private IdProvider idProvider;
 
     BlankNodeReplacingStatementHandler statementHandler;
 

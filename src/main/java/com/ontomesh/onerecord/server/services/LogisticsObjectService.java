@@ -38,12 +38,7 @@ import static com.ontomesh.onerecord.server.util.RDFUtil.getObjectLiteral;
 @Service
 public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
-    public static final String DELETE = "https://onerecord.iata.org/ns/api#DELETE";
-    public static final String ADD = "https://onerecord.iata.org/ns/api#ADD";
-
-
-    public LogisticsObjectService(LogisticsObjectRepository repository,
-                                  IdProvider idProvider) {
+    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider) {
         super(repository, idProvider);
     }
 
@@ -151,11 +146,11 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     private void processAddOperations(LogisticsObject logisticsObject, Set<IRI> changedProperties, Set<IRI> operationObjects) {
         log.debug("Applying Add operations...");
         Model changeModel = logisticsObject.model();
-        Map<String, IRI> blankNodeToIri = getBlankNodeToIri(changeModel, operationObjects, ADD);
+        Map<String, IRI> blankNodeToIri = getBlankNodeToIri(changeModel, operationObjects, API.ADD.stringValue());
 
         for (IRI opSubject : operationObjects) {
             IRI patchOperation = getObject(opSubject, API.op, changeModel);
-            if (!patchOperation.toString().equalsIgnoreCase(ADD)) {
+            if (!patchOperation.toString().equalsIgnoreCase(API.ADD.stringValue())) {
                 continue;
             }
             IRI predicate = Values.iri(getObjectLiteral(opSubject, API.p, changeModel).stringValue());
@@ -197,11 +192,11 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     private void processDeleteOperations(LogisticsObject change, Set<IRI> changedProperties, Set<Resource> affectedSubjects, Set<IRI> operationObjects) {
         log.debug("Applying delete operations...");
         Model changeModel = change.model();
-        Map<String, IRI> blankNodeToIri = getBlankNodeToIri(changeModel, operationObjects, DELETE);
+        Map<String, IRI> blankNodeToIri = getBlankNodeToIri(changeModel, operationObjects, API.DELETE.stringValue());
 
         for (IRI operationObject : operationObjects) {
             IRI patchOperation = getObject(operationObject, API.op, changeModel);
-            if (!patchOperation.toString().equalsIgnoreCase(DELETE)) {
+            if (!patchOperation.toString().equalsIgnoreCase(API.DELETE.stringValue())) {
                 continue;
             }
 
