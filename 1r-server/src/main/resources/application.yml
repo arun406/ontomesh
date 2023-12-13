@@ -1,0 +1,64 @@
+organizations:
+  - name: Test Airline
+    type: airline
+    identifier: http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda
+  - name: Test GHA
+    type: gha
+    identifier: http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda
+  - name: Test Forwarder
+    type: forwarder
+    identifier: http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbdb
+
+lo:
+  host: ${SERVER_HOST:localhost}
+  internalIriScheme: ontomesh
+  port: ${SERVER_PORT:8080}
+  scheme: ${PROTOCOL:http}
+
+org:
+  eclipse:
+    rdf4j:
+      repository:
+        debug: true
+rdf4j:
+  spring:
+    uuidsource:
+      predictable:
+        enabled: true
+    resultcache:
+      enabled: true
+    operationlog:
+      jmx:
+        enabled: true
+      enabled: true
+    pool:
+      enabled: true
+    repository:
+      remote:
+        manager-url: http://localhost:8080/rdf4j-server
+        name: ontomesh
+        username: admin
+        password: admin
+    #      inmemory:
+    #        enabled: true
+    tx:
+      enabled: true
+
+spring:
+  config:
+    import: 'optional:configserver:'
+
+logging:
+  level:
+    root: INFO
+    "com.ontomesh.onerecord.server": DEBUG
+    "org.eclipse.rdf4j.spring.operationlog.log.slf4": DEBUG
+    "org.eclipse.rdf4j.spring": DEBUG
+
+subscriptions:
+  sendLogisticsObjectBody: true
+  subscribeToLogisticsEvents: true
+  notifyRequestStatusChange: true
+
+server:
+  port: ${SERVER_PORT:8080}
