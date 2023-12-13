@@ -2,6 +2,7 @@ package com.ontomesh.onerecord.server.api;
 
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
+import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class NotificationController extends BaseController {
     public ResponseEntity<LogisticsObject> handleNotification(@RequestBody LogisticsObject logisticsObject) {
 
 
-        log.debug("notification received {}");
+        RDFUtil.print(logisticsObject);
         return ResponseEntity.noContent().build();
     }
 }

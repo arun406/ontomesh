@@ -138,15 +138,21 @@ public class ActionRequestService {
 
         LogisticsObject actionRequest = this.get(iri);
         Model model = actionRequest.model();
+        IRI status = validateAndGetActionRequestStatus(iri, newStatus, model);
+        updateStatus(iri, status, newStatus);
+        // update the status.
+        model.add(iri, API.hasRequestStatus, newStatus);
+
+        this.actionRequestProcessor.process(actionRequest);
+    }
+
+    private static IRI validateAndGetActionRequestStatus(IRI iri, IRI newStatus, Model model) {
         IRI status = Models.objectIRI(model.getStatements(iri, API.hasRequestStatus, null))
                 .orElse(null);
         log.debug("current action request status {}", status);
-        if (status == null || newStatus.stringValue().equals(status.stringValue())) {
+        if (status == null || newStatus.equals(status)) {
             throw new RuntimeException(String.format("Cannot update status. Action Request status is already %s)", newStatus));
         }
-        updateStatus(iri, status, newStatus);
-
-        actionRequestProcessor.process(actionRequest);
-
+        return status;
     }
 }

@@ -28,7 +28,8 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 @Service
 public class SnapshotService extends AbstractLogisticsObjectService {
-
+    private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyDDmm'T'hhmmss'Z'")
+            .withZone(ZoneId.from(ZoneOffset.UTC));
     private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
     public SnapshotService(LogisticsObjectRepository repository,
@@ -43,8 +44,6 @@ public class SnapshotService extends AbstractLogisticsObjectService {
      */
     public LogisticsObject createSnapshot(LogisticsObject logisticsObject) {
         Model oldModel = logisticsObject.model();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyDDmm'T'hhmmss'Z'")
-                .withZone(ZoneId.from(ZoneOffset.UTC));
         String snapshotAt = dateTimeFormatter.format(Instant.now());
         Literal at = Values.literal(snapshotAt);
         IRI snapshotId = valueFactory.createIRI(logisticsObject.iri().stringValue(), "?at=" + snapshotAt);

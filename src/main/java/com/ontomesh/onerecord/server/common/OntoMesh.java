@@ -84,6 +84,104 @@ public class OntoMesh {
      */
     public static final IRI hasTotalItems;
 
+    /**
+     * hasEventType
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventType}.
+     * <p>
+     * hasEventType
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventType">hasEventType</a>
+     */
+    public static IRI hasEventType;
+    /**
+     * hasEventStatusNew
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventStatusNew}.
+     * <p>
+     * hasEventStatusNew
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatusNew">hasEventStatusNew</a>
+     */
+    public static IRI hasEventStatusNew;
+
+    /**
+     * hasEventStatusFailed
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventStatusFailed}.
+     * <p>
+     * hasEventStatusNew
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatusFailed">hasEventStatusFailed</a>
+     */
+    public static IRI hasEventStatusFailed;
+
+
+    /**
+     * hasEventStatusPending
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventStatusPending}.
+     * <p>
+     * hasEventStatusPending
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatusPending">hasEventStatusPending</a>
+     */
+    public static IRI hasEventStatusPending;
+
+    /**
+     * hasEventStatusPublished
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventStatusPublished}.
+     * <p>
+     * hasEventStatusPublished
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatusPublished">hasEventStatusPublished</a>
+     */
+    public static IRI hasEventStatusPublished;
+
+    /**
+     * hasEventStatusProcessed
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventStatusProcessed}.
+     * <p>
+     * hasEventStatusProcessed
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatusProcessed">hasEventStatusProcessed</a>
+     */
+    public static IRI hasEventStatusProcessed;
+
+    /**
+     * hasEventStatusConsumed
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventStatusConsumed}.
+     * <p>
+     * hasEventStatusConsumed
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatusConsumed">hasEventStatusConsumed</a>
+     */
+    public static IRI hasEventStatusConsumed;
+    /**
+     * hasEventStatus
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasEventStatus}.
+     * <p>
+     * hasTotalItems
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatus">hasEventStatus</a>
+     */
+    public static IRI hasEventStatus;
+    /**
+     * hasTriggeredBy
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasTriggeredBy}.
+     * <p>
+     * hasTriggeredBy
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasEventStatus">hasTriggeredBy</a>
+     */
+    public static IRI hasTriggeredBy;
+
+
     static {
         ValueFactory factory = SimpleValueFactory.getInstance();
         hasSnapshotDate = factory.createIRI(API.NAMESPACE, "hasSnapshotDate");
@@ -93,5 +191,13 @@ public class OntoMesh {
         Collection = factory.createIRI(API.NAMESPACE, "Collection");
         hasItems = factory.createIRI(API.NAMESPACE, "hasItems");
         hasTotalItems = factory.createIRI(API.NAMESPACE, "hasTotalItems");
+        hasEventType = factory.createIRI(API.NAMESPACE, "hasEventType");
+        hasTriggeredBy = factory.createIRI(API.NAMESPACE, "hasTriggeredBy");
+        hasEventStatus = factory.createIRI(API.NAMESPACE, "hasEventStatus");
+        hasEventStatusConsumed = factory.createIRI(API.NAMESPACE, "hasEventStatusConsumed");
+        hasEventStatusProcessed = factory.createIRI(API.NAMESPACE, "hasEventStatusProcessed");
+        hasEventStatusPublished = factory.createIRI(API.NAMESPACE, "hasEventStatusPublished");
+        hasEventStatusPending = factory.createIRI(API.NAMESPACE, "hasEventStatusPending");
+        hasEventStatusNew = factory.createIRI(API.NAMESPACE, "hasEventStatusNew");
     }
 }

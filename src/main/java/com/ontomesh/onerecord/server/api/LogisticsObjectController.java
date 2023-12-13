@@ -13,17 +13,21 @@ import org.eclipse.rdf4j.model.IRI;
 import org.iata.onerecord.api.API;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.Locale;
 
 @Slf4j
 @RestController
@@ -44,23 +48,26 @@ public class LogisticsObjectController extends BaseController {
      *
      * @param httpServletRequest http servlet request
      * @param loReferenceId      logistics object id
-     * @param at                 snapshot at
+     * @param at                 snapshot at time (time is in YYYYMMDDThhmmssZ format)
+     * @param embedded           Optional parameter that can be used to request an embedded version of a Logistics Object,
+     *                           if the parameter is not set, a linked version of the Logistics Object is returned
      * @return Logistics Object
      */
     @GetMapping(path = "/{id}", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
             SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    private ResponseEntity<LogisticsObject> findLogisticsObject(HttpServletRequest httpServletRequest,
-                                                                @PathVariable("id") String loReferenceId,
-                                                                @RequestParam(required = false, name = "at") String at) {
-        OntoMeshId loId = getLoId(loReferenceId);
-        log.info("Searching the logistics objects with IRI of : {}", loId.uri());
+    public ResponseEntity<LogisticsObject> findLogisticsObject(HttpServletRequest httpServletRequest,
+                                                               @PathVariable("id") String loReferenceId,
+                                                               @RequestParam(required = false, name = "at") String at,
+                                                               @RequestParam(required = false, name = "embedded") boolean embedded) {
+        OntoMeshId id = getLoId(loReferenceId);
+        log.info("Searching the logistics objects with IRI of : {}", id.uri());
 
-        HttpHeaders headers = new HttpHeaders();
+        MediaType contentType = MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT));
         if (at != null) {
-            return getLogisticsObjectSnapshot(httpServletRequest, at, loId, headers);
+            return getLogisticsObjectSnapshot(at, id, contentType);
         } else {
-            return getLogisticsObject(httpServletRequest, headers);
+            return getLogisticsObject(id, contentType);
         }
     }
 
@@ -68,18 +75,20 @@ public class LogisticsObjectController extends BaseController {
     /**
      * Returns the audit trail.
      *
-     * @param httpServletRequest http servlet request
      * @return logistics object audit.
      */
     @GetMapping(path = "/{id}/audit-trail", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
             SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    private ResponseEntity<LogisticsObject> findLogisticsObjectAudit(HttpServletRequest httpServletRequest) {
-        log.info("Finding the audit trail of logistics objects with IRI of : {}", httpServletRequest.getRequestURL());
-        URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
-        LogisticsObject logisticsObject = auditTrailService.getAuditTrail(requestURI);
+    public ResponseEntity<LogisticsObject> findLogisticsObjectAudit(@RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
+                                                                    @PathVariable("id") String loReferenceId) {
+        OntoMeshId id = getLoId(loReferenceId);
+        LogisticsObject logisticsObject = auditTrailService.getAuditTrail(id.uri());
 
-        HttpHeaders headers = getResponseHeaders(httpServletRequest);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentLanguage(Locale.US);
+        headers.setContentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : SemanticWebMediaType.APPLICATION_JSON_LD);
+
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
 
@@ -102,39 +111,43 @@ public class LogisticsObjectController extends BaseController {
         }
         removeMarkerPredicate(logisticsObject);
         addRevisionToLO(logisticsObject);
-        this.logisticsObjectService.saveLogisticsObject(logisticsObject);
+
+        this.logisticsObjectService.createLogisticsObject(logisticsObject);
+
         URI loURI = URI.create(logisticsObject.iri().toString());
-        log.debug("Logistics Object is created with IRI : {}", loURI);
-        HttpHeaders responseHeaders = getResponseHeaders(logisticsObject, SemanticWebMediaType.APPLICATION_JSON_LD);
-        return ResponseEntity.created(loURI).headers(responseHeaders).build();
+
+        log.debug("Logistics Object IRI : {} of type {} is created successfully.", logisticsObject.iri(), logisticsObject.type());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(loURI);
+        headers.add("Type", logisticsObject.type().stringValue());
+
+        return ResponseEntity.created(loURI).headers(headers).build();
     }
 
 
     /**
      * Update logistics objects
      *
-     * @param change change logistics object.
-     * @param id     logistics objects id.
+     * @param change        change logistics object.
+     * @param loReferenceId logistics objects loReferenceId.
      * @return void
      */
     @PatchMapping(path = "/{id}", consumes = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE},
             produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
                     SemanticWebMediaType.TEXT_TURTLE_VALUE})
     public ResponseEntity<Void> updateLogisticObject(@RequestBody LogisticsObject change,
-                                                     @PathVariable("id") String id) {
+                                                     @PathVariable("id") String loReferenceId) {
 
-        log.debug("updating the {} logistics object ", id);
-        OntoMeshId loId = getLoId(id);
+        OntoMeshId loId = getLoId(loReferenceId);
         this.validationService.validate(loId.iri(), change.model(), change.iri());
-
-        LogisticsObject logisticsObject = this.logisticsObjectService.findLogisticsObject(loId.uri());
-//        OntoMeshId uriForLoId = idProvider.getUriForLoId(id);
         IRI actionRequest = this.actionRequestService.createActionRequest(change, API.ChangeRequest);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
         headers.setLocation(URI.create(actionRequest.stringValue()));
         headers.add("Type", API.hasChangeRequest.stringValue());
-//        HttpHeaders responseHeaders = getResponseHeaders(change, SemanticWebMediaType.APPLICATION_JSON_LD);
+
         return ResponseEntity.noContent().headers(headers).build();
     }
 }

@@ -96,8 +96,11 @@ public class AuditTrailService {
      */
     @Transactional
     public void updateChangeRequestStatus(IRI changeRequestId, IRI requestStatus) {
-        RepositoryResult<Statement> statements = this.repository.getStatements(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
-        if (statements == null) {
+
+        RepositoryResult<Statement> statements = this.repository
+                .getStatements(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
+
+        if (statements == null || !statements.hasNext()) {
             return;
         }
         Statement next = statements.next();

@@ -2,6 +2,8 @@ package com.ontomesh.onerecord.server.services;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
 import com.ontomesh.onerecord.server.api.OntoMeshId;
+import com.ontomesh.onerecord.server.api.enums.EventStatus;
+import com.ontomesh.onerecord.server.api.enums.NotificationEventType;
 import com.ontomesh.onerecord.server.common.OntoMesh;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.LinkedObjectNotMatchException;
@@ -9,6 +11,7 @@ import com.ontomesh.onerecord.server.exception.LinkedObjectReferenceMissingExcep
 import com.ontomesh.onerecord.server.exception.LogisticsEventNotFoundException;
 import com.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
+import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -31,21 +34,29 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class LogisticsEventService extends AbstractLogisticsObjectService {
-    private final LogisticsObjectService logisticsObjectService;
+    private final LogisticsEventProducer logisticsEventProducer;
 
     protected LogisticsEventService(LogisticsObjectRepository repository,
-                                    IdProvider idProvider, LogisticsObjectService logisticsObjectService) {
+                                    IdProvider idProvider, LogisticsEventProducer logisticsEventProducer) {
         super(repository, idProvider);
-        this.logisticsObjectService = logisticsObjectService;
+        this.logisticsEventProducer = logisticsEventProducer;
+    }
+
+    public void addEventToLogisticsObject(IRI logisticsObjectIRI, LogisticsObject event) {
+        this.repository.add(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, event.iri());
     }
 
     public IRI saveLogisticsEvent(IRI logisticsObjectIRI, LogisticsObject event) {
         validateLogisticsObject(logisticsObjectIRI, event);
 
         // save the model.
-        this.repository.persist(event.model());
-        this.logisticsObjectService.addEvent(logisticsObjectIRI, event);
+        saveLogisticsEvent(event.model());
+        this.addEventToLogisticsObject(logisticsObjectIRI, event);
         return event.iri();
+    }
+
+    private void saveLogisticsEvent(Model model) {
+        this.repository.persist(model);
     }
 
     public LogisticsObject getLogisticsEvent(IRI logisticEventIRI) {
@@ -91,21 +102,62 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         return new LogisticsObject(Values.iri(id.toString()), OntoMesh.Collection, model);
     }
 
+    public void addEventToLogisticsObject(IRI loId, NotificationEventType notificationEventType) {
+
+        OntoMeshId id = idProvider.createUniqueLogisticsEvent(loId);
+
+        Model logisticsEventModel = new LogisticsEventBuilder()
+                .createLogisticsEvent(id.iri(),
+                        loId, notificationEventType,
+                        EventStatus.NEW,
+                        Optional.empty());
+
+        RDFUtil.print(logisticsEventModel);
+        // save the LogisticsEvent
+        saveLogisticsEvent(logisticsEventModel);
+
+        // publish the logistics event
+        logisticsEventProducer.send(logisticsEventModel, id.iri(), idProvider.tenant());
+    }
+
+    /*
+        public void createLOUpdatedEvent(IRI loId, LogisticsObject change) {
+            OntoMeshId id = idProvider.createUniqueLogisticsEventUri(URI.create(loId.stringValue()));
+            new LogisticsEvent(id.iri(), loId, API.LOGISTICS_OBJECT_UPDATED, EventStatus.NEW, Optional.empty(),
+                    Optional.of(change.model()));
+        }
+
+        public void createChangeRequestEvent(IRI loId, LogisticsObject change, IRI eventType) {
+            OntoMeshId id = idProvider.createUniqueLogisticsEventUri(URI.create(loId.stringValue()));
+            new LogisticsEvent(id.iri(), loId, eventType, EventStatus.NEW, Optional.empty(),
+                    Optional.of(change.model()));
+        }
+
+        public void createLogisticEventRequestEvent(IRI loId, IRI eventType) {
+            OntoMeshId id = idProvider.createUniqueLogisticsEventUri(URI.create(loId.stringValue()));
+            new LogisticsEvent(id.iri(), loId, eventType, EventStatus.NEW, Optional.empty(),
+                    Optional.empty());
+        }
+
+        public void createAccessDelegationRequestEvent(IRI loId, IRI eventType) {
+            OntoMeshId id = idProvider.createUniqueLogisticsEventUri(URI.create(loId.stringValue()));
+            new LogisticsEvent(id.iri(), loId, eventType, EventStatus.NEW, Optional.empty(),
+                    Optional.empty());
+        }
+
+        public void createSubscriptionRequestEvent(IRI loId, IRI eventType) {
+            OntoMeshId id = idProvider.createUniqueLogisticsEventUri(URI.create(loId.stringValue()));
+            new LogisticsEvent(id.iri(), loId, eventType, EventStatus.NEW, Optional.empty(),
+                    Optional.empty());
+        }
+    */
     private boolean getLogisticsEventType(IRI iri, Model model, String eventType) {
         return !model.filter(iri, CARGO.eventCode, Values.literal(eventType)).isEmpty();
     }
 
-    public Model getLogisticsEvents(String eventType) {
-        return null;
-    }
-
-    public Model getLogisticsEvents() {
-        return null;
-    }
-
     private void validateLogisticsObject(IRI logisticsObjectIRI, LogisticsObject event) {
         validateLogisticsObject(logisticsObjectIRI);
-        Model model = event.model().filter(event.iri(), CARGO.linkedObject, null);
+        Model model = event.model().filter(event.iri(), CARGO.eventFor, null);
         IRI linkedObjectId = Models.objectIRI(model).orElse(null);
         if (linkedObjectId == null) {
             throw new LinkedObjectReferenceMissingException("Linked Object Reference is missing.");
@@ -116,13 +168,9 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         }
     }
 
-    private boolean isValidIri(IRI iri) {
-        return (OntoMeshId.isInternalIri(iri)) || OntoMeshId.isOneRecordIri(iri)
-                || iri.getNamespace().equals(idProvider.getLogisticsObjectBaseIRI().stringValue());
-    }
 
     private void validateLogisticsObject(IRI logisticsObjectIRI) {
-        boolean exists = this.logisticsObjectService.isExists(logisticsObjectIRI);
+        boolean exists = this.repository.findLoById(logisticsObjectIRI).isPresent();
         if (!exists) {
             throw new LogisticsObjectNotFoundException(logisticsObjectIRI, "Logistics Object with the specified URI could not be found in the database.");
         }

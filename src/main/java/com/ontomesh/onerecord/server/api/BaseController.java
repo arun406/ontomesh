@@ -13,7 +13,6 @@ import com.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Models;
@@ -25,9 +24,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * @author arun
+ */
 @Slf4j
 public abstract class BaseController {
 
@@ -141,10 +144,9 @@ public abstract class BaseController {
     protected boolean isIdPresent(LogisticsObject logisticsObject) {
         // Remove predicate temporarily introduced by LogisticsObjectBodyReader. Information is still part
         // of metadata.
-
-        Optional<Literal> hasPredefIri =
-                Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), hasPredefinedIri, null));
-        return hasPredefIri.map(Literal::booleanValue).orElse(false);
+        return Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), hasPredefinedIri, null))
+                .orElse(Values.literal(false))
+                .booleanValue();
     }
 
 
@@ -168,7 +170,7 @@ public abstract class BaseController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
         headers.setLocation(URI.create(httpServletRequest.getRequestURL().toString()));
-        headers.add("Revision-Header", UUID.randomUUID().toString());
+        headers.add("Revision", UUID.randomUUID().toString());
         headers.add(OntoMesh.LO_TYPE_HEADER, OntoMesh.LO_TYPE_COMPANY_INFORMATION);
         return headers;
     }
@@ -182,27 +184,53 @@ public abstract class BaseController {
         logisticsObject.model().add(logisticsObject.iri(), API.hasRevision, Values.literal(1));
     }
 
+    /**
+     * returns the latest logisticsObject
+     *
+     * @param id        logisticsObject reference
+     * @param mediaType content type.
+     * @return Response Entity.
+     */
 
-    protected ResponseEntity<LogisticsObject> getLogisticsObject(HttpServletRequest httpServletRequest, HttpHeaders headers) {
-        URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
-        LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(requestURI);
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
-        headers.setLocation(URI.create(httpServletRequest.getRequestURL().toString()));
-        headers.add("Revision-Header", UUID.randomUUID().toString());
-        headers.add(OntoMesh.LO_TYPE_HEADER, OntoMesh.LO_TYPE_COMPANY_INFORMATION);
+    protected ResponseEntity<LogisticsObject> getLogisticsObject(OntoMeshId id, MediaType mediaType) {
+
+        HttpHeaders headers = new HttpHeaders();
+        LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(id.uri());
+        String revision = String.valueOf(logisticsObjectService.getRevision(logisticsObject));
+        log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), revision);
+        headers.setContentType(mediaType);
+        headers.setContentLanguage(Locale.US);
+        headers.setLastModified(Instant.now()); // TODO
+        headers.setLocation(id.uri());
+        headers.add("Type", logisticsObject.type().stringValue());
+        headers.add("Latest-Revision", revision);
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
 
-    protected ResponseEntity<LogisticsObject> getLogisticsObjectSnapshot(HttpServletRequest httpServletRequest, String at, OntoMeshId loId, HttpHeaders headers) {
-        log.debug("finding the snapshot for the lo id {} at {}", loId.uri(), at);
-        LogisticsObject logisticsObject = this.snapshotService.findSnapshot(loId.iri(), at);
+    /**
+     * returns the LogisticsObject's Snapshot 'at' a specific time.
+     *
+     * @param at        snapshot time.
+     * @param id        LogisticObject's reference.
+     * @param mediaType Content Type.
+     * @return response.
+     */
+    protected ResponseEntity<LogisticsObject> getLogisticsObjectSnapshot(String at, OntoMeshId id, MediaType mediaType) {
 
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
-        headers.add("Type", logisticsObject.type().stringValue());
-        headers.setLocation(URI.create(logisticsObject.iri().stringValue()));
+        HttpHeaders headers = new HttpHeaders();
+        log.debug("finding the snapshot for the lo id {} at {}", id.uri(), at);
+
+
+        LogisticsObject logisticsObject = this.snapshotService.findSnapshot(id.iri(), at);
         int snapshotVersion = snapshotService.getRevision(logisticsObject);
+        Integer latestRevision = logisticsObjectService.getRevision(id.iri());
+
+        headers.setContentType(mediaType);
+        headers.setContentLanguage(Locale.US);
+        headers.setLastModified(Instant.now()); // TODO
+        headers.setLocation(id.uri());
+        headers.add("Type", logisticsObject.type().stringValue());
         headers.add("Revision", String.valueOf(snapshotVersion));
-        Integer latestRevision = logisticsObjectService.getRevision(loId.iri());
         headers.add("Latest-Revision", latestRevision.toString());
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }

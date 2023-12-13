@@ -1,6 +1,7 @@
 package com.ontomesh.onerecord.server.api;
 
 import com.ontomesh.onerecord.server.config.LoIdConfig;
+import com.ontomesh.onerecord.server.services.ServerInformationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -18,12 +19,13 @@ public class IdProvider {
 
     private final String rootPath;
     private final LoIdConfig loIdConfig;
+    private final ServerInformationService serverInformationService;
 
     public IdProvider(@Value("${server.servlet.context-path:/}") String rootPath, LoIdConfig loIdConfig,
-                      HttpServletRequest httpServletRequest) {
+                      HttpServletRequest httpServletRequest, ServerInformationService serverInformationService) {
         this.rootPath = rootPath;
         this.loIdConfig = loIdConfig;
-        this.httpServletRequest = httpServletRequest;
+        this.serverInformationService = serverInformationService;
     }
 
     public OntoMeshId createInternalIri() {
@@ -40,6 +42,18 @@ public class IdProvider {
 
     public OntoMeshId createUniqueLogisticsEventUri(URI path) {
         UriComponentsBuilder builder = UriComponentsBuilder.newInstance().uri(path).path("/");
+        return OntoMeshId.fromUri(builder.path(UUID.randomUUID().toString()).build().toUri());
+    }
+
+    public OntoMeshId createUniqueLogisticsEvent(IRI loId) {
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+                .uri(URI.create(loId.stringValue())).path("/");
+        return OntoMeshId.fromUri(builder.path("/logistics-events/")
+                .path(UUID.randomUUID().toString()).build().toUri());
+    }
+
+    public OntoMeshId createUniqueLogisticsEventUri(String uuid) {
+        UriComponentsBuilder builder = getEventRequestUriBase(uuid);
         return OntoMeshId.fromUri(builder.path(UUID.randomUUID().toString()).build().toUri());
     }
 
@@ -80,21 +94,8 @@ public class IdProvider {
         return Values.iri(this.getLoUriBase().build().toString());
     }
 
-    private final HttpServletRequest httpServletRequest;
 
-
-    private String getURL() {
-        return httpServletRequest.getRequestURL().toString();
-    }
-
-    public OntoMeshId createUniqueUri() {
-        String url = getURL();
-        log.debug("URL : {} ", url);
-        boolean isLogisticsEvent = url.contains("/logistics-events");
-        if (isLogisticsEvent) {
-            return createUniqueLogisticsEventUri(URI.create(url));
-        } else {
-            return createUniqueLoUri();
-        }
+    public IRI tenant() {
+        return this.serverInformationService.getTenant();
     }
 }

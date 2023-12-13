@@ -48,4 +48,5 @@ public record OntoMeshId(IRI iri, URI uri) {
     public static boolean findParentOnly(IRI iri) {
         return false;
     }
+
 }

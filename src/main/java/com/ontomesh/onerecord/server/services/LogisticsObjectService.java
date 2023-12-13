@@ -1,10 +1,11 @@
 package com.ontomesh.onerecord.server.services;
 
 import com.ontomesh.onerecord.server.api.IdProvider;
-import com.ontomesh.onerecord.server.common.OntoMesh;
+import com.ontomesh.onerecord.server.api.enums.NotificationEventType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidChangeOperationException;
 import com.ontomesh.onerecord.server.exception.InvalidRevisionException;
+import com.ontomesh.onerecord.server.exception.LogisticsObjectException;
 import com.ontomesh.onerecord.server.exception.RevisionMissingException;
 import com.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import com.ontomesh.onerecord.server.util.RDFUtil;
@@ -20,6 +21,7 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.iata.onerecord.api.API;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,13 +40,44 @@ import static com.ontomesh.onerecord.server.util.RDFUtil.getObjectLiteral;
 @Service
 public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
+    @Autowired
+    private LogisticsEventService logisticsEventService;
+
     public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider) {
         super(repository, idProvider);
     }
 
     @Transactional
-    public void saveLogisticsObject(LogisticsObject logisticObject) {
+    public void createLogisticsObject(LogisticsObject logisticObject) {
+
+        validate(logisticObject);
+        // pre process
+
+        preProcess();
         this.repository.persist(logisticObject.iri(), logisticObject.model());
+
+        // create and publish event.
+        logisticsEventService.addEventToLogisticsObject(logisticObject.iri(), NotificationEventType.LOGISTICS_OBJECT_CREATED);
+
+        //post process
+        postProcess();
+
+    }
+
+    private void postProcess() {
+        log.info("invoked post process.");
+    }
+
+    private void preProcess() {
+        log.info("invoked pre process.");
+    }
+
+    private void validate(LogisticsObject logisticObject) throws LogisticsObjectException {
+        boolean isValid = true;
+
+        if (!isValid) {
+            throw new LogisticsObjectException("Validation exception.");
+        }
     }
 
     @Transactional
@@ -257,8 +290,5 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         return iri;
     }
 
-    public void addEvent(IRI logisticsObjectIRI, LogisticsObject event) {
-        this.repository.add(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, event.iri());
-    }
 
 }

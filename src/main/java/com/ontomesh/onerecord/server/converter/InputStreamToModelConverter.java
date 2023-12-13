@@ -1,4 +1,4 @@
-package com.ontomesh.onerecord.server.util;
+package com.ontomesh.onerecord.server.converter;
 
 import com.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
 import lombok.extern.slf4j.Slf4j;

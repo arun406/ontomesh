@@ -1,14 +1,20 @@
 package com.ontomesh.onerecord.server.exception;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.eclipse.rdf4j.model.IRI;
 
-@Data
+import java.io.Serial;
+
+@Getter
 @NoArgsConstructor
 public class LogisticsObjectNotFoundException extends RuntimeException {
+
+    @Serial
     private static final long serialVersionUID = 1L;
 
+    @Setter
     private IRI iri;
 
     public LogisticsObjectNotFoundException(String s) {

@@ -7,7 +7,6 @@ import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.services.LogisticsObjectConverterService;
 import com.ontomesh.onerecord.server.util.JsonldUtil;
-import com.ontomesh.onerecord.server.util.ModelToStringConverter;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

@@ -80,8 +80,8 @@ public class ActionRequestController extends BaseController {
         if (!StringUtils.hasText(status)) {
             throw new RuntimeException("status cannot be blank.");
         }
-        IRI statusIRI = Values.iri(status);
-        this.actionRequestService.updateStatus(actionRequestId.iri(), statusIRI);
+        IRI newStatus = Values.iri(status);
+        this.actionRequestService.updateStatus(actionRequestId.iri(), newStatus);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);

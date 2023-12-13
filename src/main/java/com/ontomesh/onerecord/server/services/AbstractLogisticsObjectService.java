@@ -21,6 +21,7 @@ import java.util.Optional;
 
 @Slf4j
 public abstract class AbstractLogisticsObjectService {
+
     public final LogisticsObjectRepository repository;
     public final IdProvider idProvider;
 

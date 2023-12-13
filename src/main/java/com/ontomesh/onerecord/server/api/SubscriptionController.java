@@ -113,12 +113,12 @@ public class SubscriptionController extends BaseController {
             throw new InvalidApiRequestException("Invalid 'topicType'.");
         }
 
-        if (API.LOGISTICS_OBJECT_TYPE.stringValue().equals(topicType)) {
-            Set<IRI> supportedLogisticTypes = this.serverInformationService.getSupportedLogisticTypes();
-            if (!supportedLogisticTypes.contains(topicIRI)) {
-                throw new LogisticsObjectNotSupportedException("Logistics Object Type is not supported");
-            }
-        }
+//        if (API.LOGISTICS_OBJECT_TYPE.stringValue().equals(topicType)) {
+//            Set<IRI> supportedLogisticTypes = this.serverInformationService.getSupportedLogisticTypes();
+//            if (!supportedLogisticTypes.contains(topicIRI)) {
+//                throw new LogisticsObjectNotSupportedException("Logistics Object Type is not supported");
+//            }
+//        }
         LogisticsObject subscriptionProposal = this.subscriptionService
                 .createSubscriptionProposalResponse(topicIRI, topicTypeIRI);
 

@@ -4,7 +4,7 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
 import com.ontomesh.onerecord.server.util.JsonldUtil;
-import com.ontomesh.onerecord.server.util.ModelToStringConverter;
+import com.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import com.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;

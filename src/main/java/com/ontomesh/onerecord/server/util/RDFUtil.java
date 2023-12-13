@@ -1,6 +1,7 @@
 package com.ontomesh.onerecord.server.util;
 
 import com.ontomesh.onerecord.server.common.SemanticWebMediaType;
+import com.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import com.ontomesh.onerecord.server.domain.LogisticsObject;
 import com.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import org.apache.commons.collections4.IterableUtils;
@@ -15,7 +16,6 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;

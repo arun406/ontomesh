@@ -1,4 +1,4 @@
-package com.ontomesh.onerecord.server.util;
+package com.ontomesh.onerecord.server.converter;
 
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
