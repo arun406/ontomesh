@@ -1,10 +1,11 @@
 package com.ontomesh.onerecord.server.exception;
 
-public class RevisionMissingException extends RuntimeException {
-    public RevisionMissingException() {
-    }
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.eclipse.rdf4j.model.IRI;
 
-    public RevisionMissingException(String message) {
-        super(message);
-    }
+@AllArgsConstructor
+@Data
+public class RevisionMissingException extends RuntimeException {
+    private IRI iri;
 }

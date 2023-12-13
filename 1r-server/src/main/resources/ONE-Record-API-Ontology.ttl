@@ -5,23 +5,23 @@
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix cargo: <https://onerecord.iata.org/ns/cargo/> .
+@prefix cargo: <https://onerecord.iata.org/ns/cargo#> .
 @prefix terms: <http://purl.org/dc/terms/> .
 @base <https://onerecord.iata.org/ns/api#> .
 
 <https://onerecord.iata.org/ns/api> rdf:type owl:Ontology ;
-                                     owl:versionIRI <https://onerecord.iata.org/ns/api/2.0.0-dev> ;
-                                     owl:imports cargo: ;
-                                     dc:description "The ONE Record API vocabulary, described using W3C RDF Schema and the Web Ontology Language."@en ;
-                                     dc:title "ONE Record API Ontology"@en ;
-                                     terms:abstract "The ontology of the ONE Record API is the data model underlying for standard ONE Record API: https://github.com/IATA-Cargo/ONE-Record. ONE Record is a standard for data sharing and creates a single record view of the shipment. This standard defines a common data model for the data that is shared via standardized and secured web API."@en ;
-                                     terms:modified "2023-05-02" ;
-                                     terms:title "ONE Record API Ontology"@en ;
-                                     rdfs:comment """
+                                    owl:versionIRI <https://onerecord.iata.org/ns/api/2.0.0-dev> ;
+                                    owl:imports cargo: ;
+                                    dc:description "The ONE Record API vocabulary, described using W3C RDF Schema and the Web Ontology Language."@en ;
+                                    dc:title "ONE Record API Ontology"@en ;
+                                    terms:abstract "The ontology of the ONE Record API is the data model underlying for standard ONE Record API: https://github.com/IATA-Cargo/ONE-Record. ONE Record is a standard for data sharing and creates a single record view of the shipment. This standard defines a common data model for the data that is shared via standardized and secured web API."@en ;
+                                    terms:modified "2023-05-02" ;
+                                    terms:title "ONE Record API Ontology"@en ;
+                                    rdfs:comment """
 For a detailed Changelog, see CHANGELOG.md in API directory in GitHub"""@en ;
-                                     rdfs:isDefinedBy "https://www.iata.org/one-record/"^^xsd:anyURI ;
-                                     rdfs:label "ONE Record API Ontology"@en ;
-                                     owl:versionInfo "2.0.0-dev" .
+                                    rdfs:isDefinedBy "https://www.iata.org/one-record/"^^xsd:anyURI ;
+                                    rdfs:label "ONE Record API Ontology"@en ;
+                                    owl:versionInfo "2.0.0-dev" .
 
 #################################################################
 #    Annotation properties
@@ -64,14 +64,6 @@ owl:minQualifiedCardinality rdf:type owl:AnnotationProperty .
 
 
 #################################################################
-#    Datatypes
-#################################################################
-
-###  http://www.w3.org/2001/XMLSchema#date
-xsd:date rdf:type rdfs:Datatype .
-
-
-#################################################################
 #    Object Properties
 #################################################################
 
@@ -97,18 +89,17 @@ xsd:date rdf:type rdfs:Datatype .
                   rdfs:label "has Change Request"@en .
 
 
-###  https://onerecord.iata.org/ns/api#hasDataOwner
-:hasDataOwner rdf:type owl:ObjectProperty ;
-              rdfs:domain :ServerInformation ;
-              rdfs:range cargo:Organization ;
-              rdfs:comment "The data owner of the servers data."@en ;
-              rdfs:label "has data owner"@en .
+###  https://onerecord.iata.org/ns/api#hasDataHolder
+:hasDataHolder rdf:type owl:ObjectProperty ;
+               rdfs:domain :ServerInformation ;
+               rdfs:range cargo:Organization ;
+               rdfs:comment "The data holder of the servers data."@en ;
+               rdfs:label "has data holder"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#hasError
 :hasError rdf:type owl:ObjectProperty ;
-          rdfs:domain :ChangeRequest ,
-                      :SubscriptionRequest ;
+          rdfs:domain :ActionRequest ;
           rdfs:range :Error ;
           rdfs:comment "Error object(s) if the processing was not successful"@en ;
           rdfs:label "has Error"@en .
@@ -129,6 +120,13 @@ xsd:date rdf:type rdfs:Datatype .
               rdfs:label "has Event Type"@en .
 
 
+###  https://onerecord.iata.org/ns/api#hasItem
+:hasItem rdf:type owl:ObjectProperty ;
+         rdfs:domain :Collection ;
+         rdfs:comment "Item that is contained in a collection"@en ;
+         rdfs:label "has Item"@en .
+
+
 ###  https://onerecord.iata.org/ns/api#hasLogisticsAgent
 :hasLogisticsAgent rdf:type owl:ObjectProperty ;
                    rdfs:domain :AccessPermissions ;
@@ -144,7 +142,7 @@ xsd:date rdf:type rdfs:Datatype .
 
 ###  https://onerecord.iata.org/ns/api#hasOperation
 :hasOperation rdf:type owl:ObjectProperty ;
-              rdfs:domain :ChangeRequest ;
+              rdfs:domain :Change ;
               rdfs:range :Operation ;
               rdfs:comment "Operation(s) to apply as PATCH on a Logistics Object"@en ;
               rdfs:label "has Operation"@en .
@@ -153,7 +151,7 @@ xsd:date rdf:type rdfs:Datatype .
 ###  https://onerecord.iata.org/ns/api#hasPermission
 :hasPermission rdf:type owl:ObjectProperty ;
                rdfs:subPropertyOf owl:topObjectProperty ;
-               rdfs:domain :AccessDelegationRequest ;
+               rdfs:domain :AccessDelegation ;
                rdfs:range :Permission ;
                rdfs:label "has Permission"@en .
 
@@ -187,13 +185,6 @@ xsd:date rdf:type rdfs:Datatype .
               rdfs:domain :Subscription ;
               rdfs:range :TopicType .
 
-
-###  https://onerecord.iata.org/ns/api#isCreatedAt
-:isCreatedAt rdf:type owl:ObjectProperty ;
-             rdfs:subPropertyOf owl:topObjectProperty ;
-             rdfs:domain :AuditTrail ;
-             rdfs:range xsd:dateTime ;
-             rdfs:label "is created at"@en .
 
 ###  https://onerecord.iata.org/ns/api#isRequestedBy
 :isRequestedBy rdf:type owl:ObjectProperty ;
@@ -237,6 +228,14 @@ xsd:date rdf:type rdfs:Datatype .
 :op rdf:type owl:ObjectProperty ;
     rdfs:domain :Operation ;
     rdfs:range :PatchOperation .
+
+
+###  https://onerecord.iata.org/ns/api#includeSubscriptionEventType
+:includeSubscriptionEventType rdf:type owl:ObjectProperty ;
+                              rdfs:domain :Subscription ;
+                              rdfs:range :SubscriptionEventType ;
+                              rdfs:comment "An array used to indicate the specific types of notifications that the subscriber desires to receive from the publisher. The subscriber is required to specify their preferences on a per-type basis"@en ;
+                              rdfs:label "Include SubscriptionEventType"@en .
 
 
 #################################################################
@@ -286,9 +285,12 @@ xsd:date rdf:type rdfs:Datatype .
 
 ###  https://onerecord.iata.org/ns/api#hasDescription
 :hasDescription rdf:type owl:DatatypeProperty ;
-                rdfs:domain :AccessDelegation ,
-                            :Change ,
-                            :Subscription ;
+                rdfs:domain [ rdf:type owl:Class ;
+                              owl:unionOf ( :AccessDelegation
+                                            :Change
+                                            :Subscription
+                                       )
+                         ] ;
                 rdfs:range xsd:string ;
                 rdfs:comment "Reason for the request (optional)"@en ;
                 rdfs:label "Description"@en .
@@ -297,9 +299,17 @@ xsd:date rdf:type rdfs:Datatype .
 ###  https://onerecord.iata.org/ns/api#hasLatestRevision
 :hasLatestRevision rdf:type owl:DatatypeProperty ;
                    rdfs:domain :AuditTrail ;
-                   rdfs:range xsd:nonNegativeInteger ;
+                   rdfs:range xsd:positiveInteger ;
                    rdfs:comment "Latest revision of the Logistics Object. Starting with revision 0"@en ;
                    rdfs:label "Latest revision"@en .
+
+
+###  https://onerecord.iata.org/ns/api#hasLogisticsObjectType
+:hasLogisticsObjectType rdf:type owl:DatatypeProperty ;
+                        rdfs:domain :Notification ;
+                        rdfs:range xsd:anyURI ;
+                        rdfs:comment "The type of cargo:LogisticsObject in the notification e.g. https://onerecord.iata.org/ns/cargo#Piece" ;
+                        rdfs:label "has Logistics Object Type"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#hasMessage
@@ -329,7 +339,7 @@ xsd:date rdf:type rdfs:Datatype .
 ###  https://onerecord.iata.org/ns/api#hasRevision
 :hasRevision rdf:type owl:DatatypeProperty ;
              rdfs:domain :ChangeRequest ;
-             rdfs:range xsd:string ;
+             rdfs:range xsd:positiveInteger ;
              rdfs:comment "Revision number of the Logistics Object, starting with 0 for changing the initial revision of a Logistics Object"@en ;
              rdfs:label "Revision"@en .
 
@@ -338,7 +348,7 @@ xsd:date rdf:type rdfs:Datatype .
 :hasServerEndpoint rdf:type owl:DatatypeProperty ;
                    rdfs:domain :ServerInformation ;
                    rdfs:range xsd:anyURI ;
-                   rdfs:comment "ONE Record API endpoint in the Internet of Logistics"@en ;
+                   rdfs:comment "ONE Record API endpoint"@en ;
                    rdfs:label "Server endpoint"@en .
 
 
@@ -375,14 +385,6 @@ xsd:date rdf:type rdfs:Datatype .
                       rdfs:label "Supported language"@en .
 
 
-###  https://onerecord.iata.org/ns/api#hasSupportedLogisticsObjectType
-:hasSupportedLogisticsObjectType rdf:type owl:DatatypeProperty ;
-                                 rdfs:domain :ServerInformation ;
-                                 rdfs:range xsd:anyURI ;
-                                 rdfs:comment "Supported logistics object types on the server"@en ;
-                                 rdfs:label "Supported LogisticsObject types"@en .
-
-
 ###  https://onerecord.iata.org/ns/api#hasSupportedOntology
 :hasSupportedOntology rdf:type owl:DatatypeProperty ;
                       rdfs:domain :ServerInformation ;
@@ -409,11 +411,22 @@ xsd:date rdf:type rdfs:Datatype .
 
 ###  https://onerecord.iata.org/ns/api#hasTopic
 :hasTopic rdf:type owl:DatatypeProperty ;
-          rdfs:domain :Notification ,
-                      :Subscription ;
+          rdfs:domain [ rdf:type owl:Class ;
+                        owl:unionOf ( :Notification
+                                      :Subscription
+                                 )
+                   ] ;
           rdfs:range xsd:anyURI ;
           rdfs:comment "The Logistics Object type or specific Logistics Object to which the subscription belongs to e.g. https://onerecord.iata.org/Piece or https://1r.example.com/7f01363f-0c6a-4414-be48-d3692e219b91"@en ;
           rdfs:label "Topic"@en .
+
+
+###  https://onerecord.iata.org/ns/api#hasTotalItems
+:hasTotalItems rdf:type owl:DatatypeProperty ;
+               rdfs:domain :Collection ;
+               rdfs:range xsd:nonNegativeInteger ;
+               rdfs:comment "The number of total items contained in a collection"@en ;
+               rdfs:label "Total items"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#hasValue
@@ -423,22 +436,32 @@ xsd:date rdf:type rdfs:Datatype .
           rdfs:comment "Updated value for the field"@en ;
           rdfs:label "Value"@en .
 
+
 ###  https://onerecord.iata.org/ns/api#isRequestedAt
 :isRequestedAt rdf:type owl:DatatypeProperty ;
-               rdfs:domain :ChangeRequest ,
-                           :SubscriptionRequest ;
+               rdfs:domain :ActionRequest ;
                rdfs:range xsd:dateTime ;
                rdfs:comment "Datetime when the request was created"@en ;
                rdfs:label "Requested at"@en .
 
+
 ###  https://onerecord.iata.org/ns/api#isRevokedAt
 :isRevokedAt rdf:type owl:DatatypeProperty ;
+             rdfs:domain :ActionRequest ;
+             rdfs:range xsd:dateTime ;
              rdfs:comment "The datetime when the action request was revoked."@en ;
              rdfs:label "Revoked at"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#notifyRequestStatusChange
 :notifyRequestStatusChange rdf:type owl:DatatypeProperty ;
+                           rdfs:domain [ rdf:type owl:Class ;
+                                         owl:unionOf ( :AccessDelegation
+                                                       :Change
+                                                       :Subscription
+                                                  )
+                                    ] ;
+                           rdfs:range xsd:boolean ;
                            rdfs:comment "Flag specifying if the requestor wants to receive Notification from the publisher when the status of an action request changed, default=FALSE"@en ;
                            rdfs:label "notify RequestStatus Change"@en .
 
@@ -467,15 +490,6 @@ xsd:date rdf:type rdfs:Datatype .
                          rdfs:label "Send LogisticsObject body"@en .
 
 
-###  https://onerecord.iata.org/ns/api#subscribeToLogisticsEvents
-:subscribeToLogisticsEvents rdf:type owl:DatatypeProperty ;
-                            rdfs:domain :Subscription ;
-                            rdfs:range xsd:boolean ;
-                            rdfs:comment "Flag specifying if the subscriber wants to receive Notification from the publisher when LogisticsEvents for a Logistics Object are received, default=FALSE"@en ;
-                            rdfs:label "Subscribe to LogisticsEvents"@en ;
-                            rdfs:seeAlso "https://onerecord.iata.org/ns/cargo/#LogisticsEvent"^^xsd:anyURI .
-
-
 #################################################################
 #    Classes
 #################################################################
@@ -485,48 +499,48 @@ xsd:date rdf:type rdfs:Datatype .
                   rdfs:subClassOf [ rdf:type owl:Restriction ;
                                     owl:onProperty :hasLogisticsObject ;
                                     owl:allValuesFrom cargo:LogisticsObject
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :hasPermission ;
-                                    owl:allValuesFrom :Permission
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :isRequestedFor ;
-                                    owl:allValuesFrom cargo:Organization
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :hasLogisticsObject ;
-                                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onClass cargo:LogisticsObject
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :hasPermission ;
-                                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onClass :Permission
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :isRequestedFor ;
-                                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onClass cargo:Organization
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :hasDescription ;
-                                    owl:allValuesFrom xsd:string
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :notifyRequestStatusChange ;
-                                    owl:allValuesFrom xsd:boolean
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :notifyRequestStatusChange ;
-                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onDataRange xsd:boolean
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty :hasDescription ;
-                                    owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onDataRange xsd:string
-                                  ] ;
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :hasPermission ;
+                    owl:allValuesFrom :Permission
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :isRequestedFor ;
+                    owl:allValuesFrom cargo:Organization
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :hasLogisticsObject ;
+                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                    owl:onClass cargo:LogisticsObject
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :hasPermission ;
+                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                    owl:onClass :Permission
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :isRequestedFor ;
+                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                    owl:onClass cargo:Organization
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :hasDescription ;
+                    owl:allValuesFrom xsd:string
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :notifyRequestStatusChange ;
+                    owl:allValuesFrom xsd:boolean
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :notifyRequestStatusChange ;
+                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                    owl:onDataRange xsd:boolean
+                           ] ,
+                  [ rdf:type owl:Restriction ;
+                    owl:onProperty :hasDescription ;
+                    owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                    owl:onDataRange xsd:string
+                           ] ;
                   rdfs:comment "Access to a Logistics Object delegated to an Organization"@en ;
                   rdfs:label "Access Delegation"@en .
 
@@ -534,15 +548,15 @@ xsd:date rdf:type rdfs:Datatype .
 ###  https://onerecord.iata.org/ns/api#AccessDelegationRequest
 :AccessDelegationRequest rdf:type owl:Class ;
                          rdfs:subClassOf :ActionRequest ,
-                                         [ rdf:type owl:Restriction ;
-                                           owl:onProperty :hasAccessDelegation ;
-                                           owl:allValuesFrom :AccessDelegation
-                                         ] ,
-                                         [ rdf:type owl:Restriction ;
-                                           owl:onProperty :hasAccessDelegation ;
-                                           owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                           owl:onClass :AccessDelegation
-                                         ] ;
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :hasAccessDelegation ;
+                           owl:allValuesFrom :AccessDelegation
+                                  ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :hasAccessDelegation ;
+                           owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                           owl:onClass :AccessDelegation
+                                  ] ;
                          rdfs:comment "Delegation Request to 3rd parties"@en ;
                          rdfs:label "Access Delegation Request"@en .
 
@@ -552,30 +566,30 @@ xsd:date rdf:type rdfs:Datatype .
                    rdfs:subClassOf [ rdf:type owl:Restriction ;
                                      owl:onProperty :hasLogisticsAgent ;
                                      owl:allValuesFrom cargo:LogisticsAgent
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasLogisticsObject ;
-                                     owl:allValuesFrom cargo:LogisticsObject
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasPermission ;
-                                     owl:allValuesFrom :Permission
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasPermission ;
-                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onClass :Permission
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasLogisticsAgent ;
-                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onClass cargo:LogisticsAgent
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasLogisticsObject ;
-                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onClass cargo:LogisticsObject
-                                   ] ;
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasLogisticsObject ;
+                     owl:allValuesFrom cargo:LogisticsObject
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasPermission ;
+                     owl:allValuesFrom :Permission
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasPermission ;
+                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onClass :Permission
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasLogisticsAgent ;
+                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onClass cargo:LogisticsAgent
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasLogisticsObject ;
+                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onClass cargo:LogisticsObject
+                            ] ;
                    rdfs:comment "Access permissions granted to a logistics agent for a logistics object"@en ;
                    rdfs:label "Access Permissions"@en .
 
@@ -585,53 +599,53 @@ xsd:date rdf:type rdfs:Datatype .
                rdfs:subClassOf [ rdf:type owl:Restriction ;
                                  owl:onProperty :hasError ;
                                  owl:allValuesFrom :Error
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :hasRequestStatus ;
-                                 owl:allValuesFrom :RequestStatus
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRequestedBy ;
-                                 owl:allValuesFrom cargo:Organization
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRevokedBy ;
-                                 owl:allValuesFrom cargo:Organization
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :hasRequestStatus ;
-                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onClass :RequestStatus
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRequestedBy ;
-                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onClass cargo:Organization
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRevokedBy ;
-                                 owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onClass cargo:Organization
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRequestedAt ;
-                                 owl:allValuesFrom xsd:dateTime
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRevokedAt ;
-                                 owl:allValuesFrom xsd:dateTime
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRequestedAt ;
-                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onDataRange xsd:dateTime
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :isRevokedAt ;
-                                 owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onDataRange xsd:dateTime
-                               ] ;
-               rdfs:comment "Superclass for all kinds of requests (i.e someone requsted something (e.g. subscription, access, etc.) at a publisher/owner of a logistics object)"@en ;
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :hasRequestStatus ;
+                 owl:allValuesFrom :RequestStatus
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRequestedBy ;
+                 owl:allValuesFrom cargo:Organization
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRevokedBy ;
+                 owl:allValuesFrom cargo:Organization
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :hasRequestStatus ;
+                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                 owl:onClass :RequestStatus
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRequestedBy ;
+                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                 owl:onClass cargo:Organization
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRevokedBy ;
+                 owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                 owl:onClass cargo:Organization
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRequestedAt ;
+                 owl:allValuesFrom xsd:dateTime
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRevokedAt ;
+                 owl:allValuesFrom xsd:dateTime
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRequestedAt ;
+                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                 owl:onDataRange xsd:dateTime
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :isRevokedAt ;
+                 owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                 owl:onDataRange xsd:dateTime
+                        ] ;
+               rdfs:comment "Superclass for all kinds of requests (i.e someone requsted something (e.g. subscription, access, etc.) at a publisher/holder of a logistics object)"@en ;
                rdfs:label "Action Request"@en .
 
 
@@ -640,21 +654,16 @@ xsd:date rdf:type rdfs:Datatype .
             rdfs:subClassOf [ rdf:type owl:Restriction ;
                               owl:onProperty :hasChangeRequest ;
                               owl:allValuesFrom :ChangeRequest
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty :hasLatestRevision ;
-                              owl:allValuesFrom xsd:nonNegativeInteger
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty :hasLatestRevision ;
-                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onDataRange xsd:nonNegativeInteger
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty :isCreatedAt ;
-                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onDataRange xsd:dateTime
-                            ] ;
+                     ] ,
+            [ rdf:type owl:Restriction ;
+              owl:onProperty :hasLatestRevision ;
+              owl:allValuesFrom xsd:positiveInteger
+                     ] ,
+            [ rdf:type owl:Restriction ;
+              owl:onProperty :hasLatestRevision ;
+              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+              owl:onDataRange xsd:positiveInteger
+                     ] ;
             rdfs:comment "Audit trail of a Logistics Object"@en ;
             rdfs:label "Audit Trail"@en .
 
@@ -664,65 +673,80 @@ xsd:date rdf:type rdfs:Datatype .
         rdfs:subClassOf [ rdf:type owl:Restriction ;
                           owl:onProperty :hasLogisticsObject ;
                           owl:allValuesFrom cargo:LogisticsObject
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :hasOperation ;
-                          owl:allValuesFrom :Operation
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :hasOperation ;
-                          owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                          owl:onClass :Operation
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :hasLogisticsObject ;
-                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                          owl:onClass cargo:LogisticsObject
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :hasDescription ;
-                          owl:allValuesFrom xsd:string
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :hasRevision ;
-                          owl:allValuesFrom xsd:nonNegativeInteger
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :notifyRequestStatusChange ;
-                          owl:allValuesFrom xsd:boolean
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :hasRevision ;
-                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                          owl:onDataRange xsd:nonNegativeInteger
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :notifyRequestStatusChange ;
-                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                          owl:onDataRange xsd:boolean
-                        ] ,
-                        [ rdf:type owl:Restriction ;
-                          owl:onProperty :hasDescription ;
-                          owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                          owl:onDataRange xsd:string
-                        ] ;
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :hasOperation ;
+          owl:allValuesFrom :Operation
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :hasOperation ;
+          owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+          owl:onClass :Operation
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :hasLogisticsObject ;
+          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+          owl:onClass cargo:LogisticsObject
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :hasDescription ;
+          owl:allValuesFrom xsd:string
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :hasRevision ;
+          owl:allValuesFrom xsd:positiveInteger
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :notifyRequestStatusChange ;
+          owl:allValuesFrom xsd:boolean
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :hasRevision ;
+          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+          owl:onDataRange xsd:positiveInteger
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :notifyRequestStatusChange ;
+          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+          owl:onDataRange xsd:boolean
+                 ] ,
+        [ rdf:type owl:Restriction ;
+          owl:onProperty :hasDescription ;
+          owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+          owl:onDataRange xsd:string
+                 ] ;
         rdfs:label "Change"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#ChangeRequest
 :ChangeRequest rdf:type owl:Class ;
                rdfs:subClassOf :ActionRequest ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :hasChange ;
-                                 owl:allValuesFrom :Change
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :hasChange ;
-                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onClass :Change
-                               ] ;
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :hasChange ;
+                 owl:allValuesFrom :Change
+                        ] ,
+               [ rdf:type owl:Restriction ;
+                 owl:onProperty :hasChange ;
+                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                 owl:onClass :Change
+                        ] ;
                rdfs:comment "Change Request containing updates on a Logistics Object"@en ;
                rdfs:label "Change Request"@en .
+
+
+###  https://onerecord.iata.org/ns/api#Collection
+:Collection rdf:type owl:Class ;
+            rdfs:subClassOf [ rdf:type owl:Restriction ;
+                              owl:onProperty :hasItem ;
+                              owl:someValuesFrom owl:Thing
+                     ] ,
+            [ rdf:type owl:Restriction ;
+              owl:onProperty :hasTotalItems ;
+              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+              owl:onDataRange xsd:nonNegativeInteger
+                     ] ;
+            rdfs:comment "Used as response of endpoints returning a collection of more than one graph, i.e. more than one not linked subjects."@en ;
+            rdfs:label "Collection"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#Error
@@ -730,21 +754,21 @@ xsd:date rdf:type rdfs:Datatype .
        rdfs:subClassOf [ rdf:type owl:Restriction ;
                          owl:onProperty :hasErrorDetail ;
                          owl:allValuesFrom :ErrorDetail
-                       ] ,
-                       [ rdf:type owl:Restriction ;
-                         owl:onProperty :hasErrorDetail ;
-                         owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                         owl:onClass :ErrorDetail
-                       ] ,
-                       [ rdf:type owl:Restriction ;
-                         owl:onProperty :hasTitle ;
-                         owl:allValuesFrom xsd:string
-                       ] ,
-                       [ rdf:type owl:Restriction ;
-                         owl:onProperty :hasTitle ;
-                         owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                         owl:onDataRange xsd:string
-                       ] ;
+                ] ,
+       [ rdf:type owl:Restriction ;
+         owl:onProperty :hasErrorDetail ;
+         owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+         owl:onClass :ErrorDetail
+                ] ,
+       [ rdf:type owl:Restriction ;
+         owl:onProperty :hasTitle ;
+         owl:allValuesFrom xsd:string
+                ] ,
+       [ rdf:type owl:Restriction ;
+         owl:onProperty :hasTitle ;
+         owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+         owl:onDataRange xsd:string
+                ] ;
        rdfs:comment "Error model"@en ;
        rdfs:label "Error"@en .
 
@@ -754,39 +778,39 @@ xsd:date rdf:type rdfs:Datatype .
              rdfs:subClassOf [ rdf:type owl:Restriction ;
                                owl:onProperty :hasCode ;
                                owl:allValuesFrom xsd:string
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty :hasMessage ;
-                               owl:allValuesFrom xsd:string
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty :hasProperty ;
-                               owl:allValuesFrom xsd:anyURI
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty :hasResource ;
-                               owl:allValuesFrom xsd:anyURI
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty :hasCode ;
-                               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:string
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty :hasMessage ;
-                               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:string
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty :hasProperty ;
-                               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:anyURI
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty :hasResource ;
-                               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:anyURI
-                             ] ;
+                      ] ,
+             [ rdf:type owl:Restriction ;
+               owl:onProperty :hasMessage ;
+               owl:allValuesFrom xsd:string
+                      ] ,
+             [ rdf:type owl:Restriction ;
+               owl:onProperty :hasProperty ;
+               owl:allValuesFrom xsd:anyURI
+                      ] ,
+             [ rdf:type owl:Restriction ;
+               owl:onProperty :hasResource ;
+               owl:allValuesFrom xsd:anyURI
+                      ] ,
+             [ rdf:type owl:Restriction ;
+               owl:onProperty :hasCode ;
+               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+               owl:onDataRange xsd:string
+                      ] ,
+             [ rdf:type owl:Restriction ;
+               owl:onProperty :hasMessage ;
+               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+               owl:onDataRange xsd:string
+                      ] ,
+             [ rdf:type owl:Restriction ;
+               owl:onProperty :hasProperty ;
+               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+               owl:onDataRange xsd:anyURI
+                      ] ,
+             [ rdf:type owl:Restriction ;
+               owl:onProperty :hasResource ;
+               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+               owl:onDataRange xsd:anyURI
+                      ] ;
              rdfs:comment "Error details that belong to an error"@en ;
              rdfs:label "Error Detail"@en .
 
@@ -796,43 +820,43 @@ xsd:date rdf:type rdfs:Datatype .
               rdfs:subClassOf [ rdf:type owl:Restriction ;
                                 owl:onProperty :hasEventType ;
                                 owl:allValuesFrom :NotificationEventType
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasLogisticsObject ;
-                                owl:allValuesFrom cargo:LogisticsObject
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :isTriggeredBy ;
-                                owl:allValuesFrom :ActionRequest
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasEventType ;
-                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onClass :NotificationEventType
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasLogisticsObject ;
-                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onClass cargo:LogisticsObject
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :isTriggeredBy ;
-                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onClass :ActionRequest
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasChangedProperty ;
-                                owl:allValuesFrom xsd:anyURI
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasTopic ;
-                                owl:allValuesFrom xsd:anyURI
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasTopic ;
-                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onDataRange xsd:anyURI
-                              ] ;
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasLogisticsObject ;
+                owl:allValuesFrom cargo:LogisticsObject
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :isTriggeredBy ;
+                owl:allValuesFrom :ActionRequest
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasEventType ;
+                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onClass :NotificationEventType
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasLogisticsObject ;
+                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onClass cargo:LogisticsObject
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :isTriggeredBy ;
+                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onClass :ActionRequest
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasChangedProperty ;
+                owl:allValuesFrom xsd:anyURI
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasLogisticsObjectType ;
+                owl:allValuesFrom xsd:anyURI
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasLogisticsObjectType ;
+                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onDataRange xsd:anyURI
+                       ] ;
               rdfs:comment "Notification sent by the publisher to the subscriber"@en ;
               rdfs:label "Notification"@en .
 
@@ -858,9 +882,20 @@ xsd:date rdf:type rdfs:Datatype .
                                                          :SUBSCRIPTION_REQUEST_PENDING
                                                          :SUBSCRIPTION_REQUEST_REJECTED
                                                          :SUBSCRIPTION_REQUEST_REVOKED
-                                                       )
-                                           ] ;
-                       rdfs:label "Event Type"@en .
+                                                      )
+                                ] ;
+                       rdfs:label "Notification Event Type"@en .
+
+
+###  https://onerecord.iata.org/ns/api#SubscriptionEventType
+:SubscriptionEventType rdf:type owl:Class ;
+                       owl:equivalentClass [ rdf:type owl:Class ;
+                                             owl:oneOf ( :LOGISTICS_EVENT_RECEIVED
+                                                         :LOGISTICS_OBJECT_CREATED
+                                                         :LOGISTICS_OBJECT_UPDATED
+                                                      )
+                                ] ;
+                       rdfs:label "Subscription Event Type"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#Operation
@@ -868,39 +903,39 @@ xsd:date rdf:type rdfs:Datatype .
            rdfs:subClassOf [ rdf:type owl:Restriction ;
                              owl:onProperty :o ;
                              owl:allValuesFrom :OperationObject
-                           ] ,
-                           [ rdf:type owl:Restriction ;
-                             owl:onProperty :op ;
-                             owl:allValuesFrom :PatchOperation
-                           ] ,
-                           [ rdf:type owl:Restriction ;
-                             owl:onProperty :o ;
-                             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                             owl:onClass :OperationObject
-                           ] ,
-                           [ rdf:type owl:Restriction ;
-                             owl:onProperty :op ;
-                             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                             owl:onClass :PatchOperation
-                           ] ,
-                           [ rdf:type owl:Restriction ;
-                             owl:onProperty :p ;
-                             owl:allValuesFrom xsd:anyURI
-                           ] ,
-                           [ rdf:type owl:Restriction ;
-                             owl:onProperty :s ;
-                             owl:allValuesFrom xsd:string
-                           ] ,
-                           [ rdf:type owl:Restriction ;
-                             owl:onProperty :p ;
-                             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                             owl:onDataRange xsd:anyURI
-                           ] ,
-                           [ rdf:type owl:Restriction ;
-                             owl:onProperty :s ;
-                             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                             owl:onDataRange xsd:string
-                           ] ;
+                    ] ,
+           [ rdf:type owl:Restriction ;
+             owl:onProperty :op ;
+             owl:allValuesFrom :PatchOperation
+                    ] ,
+           [ rdf:type owl:Restriction ;
+             owl:onProperty :o ;
+             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+             owl:onClass :OperationObject
+                    ] ,
+           [ rdf:type owl:Restriction ;
+             owl:onProperty :op ;
+             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+             owl:onClass :PatchOperation
+                    ] ,
+           [ rdf:type owl:Restriction ;
+             owl:onProperty :p ;
+             owl:allValuesFrom xsd:anyURI
+                    ] ,
+           [ rdf:type owl:Restriction ;
+             owl:onProperty :s ;
+             owl:allValuesFrom xsd:string
+                    ] ,
+           [ rdf:type owl:Restriction ;
+             owl:onProperty :p ;
+             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+             owl:onDataRange xsd:anyURI
+                    ] ,
+           [ rdf:type owl:Restriction ;
+             owl:onProperty :s ;
+             owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+             owl:onDataRange xsd:string
+                    ] ;
            rdfs:comment "Operation Request contained in the PATCH body"@en ;
            rdfs:label "Operation"@en .
 
@@ -910,21 +945,21 @@ xsd:date rdf:type rdfs:Datatype .
                  rdfs:subClassOf [ rdf:type owl:Restriction ;
                                    owl:onProperty :hasDatatype ;
                                    owl:allValuesFrom xsd:anyURI
-                                 ] ,
-                                 [ rdf:type owl:Restriction ;
-                                   owl:onProperty :hasValue ;
-                                   owl:allValuesFrom xsd:string
-                                 ] ,
-                                 [ rdf:type owl:Restriction ;
-                                   owl:onProperty :hasDatatype ;
-                                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                   owl:onDataRange xsd:anyURI
-                                 ] ,
-                                 [ rdf:type owl:Restriction ;
-                                   owl:onProperty :hasValue ;
-                                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                   owl:onDataRange xsd:string
-                                 ] ;
+                          ] ,
+                 [ rdf:type owl:Restriction ;
+                   owl:onProperty :hasValue ;
+                   owl:allValuesFrom xsd:string
+                          ] ,
+                 [ rdf:type owl:Restriction ;
+                   owl:onProperty :hasDatatype ;
+                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                   owl:onDataRange xsd:anyURI
+                          ] ,
+                 [ rdf:type owl:Restriction ;
+                   owl:onProperty :hasValue ;
+                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                   owl:onDataRange xsd:string
+                          ] ;
                  rdfs:comment "Object to modify in the PATCH request"@en ;
                  rdfs:label "Operation Object"@en .
 
@@ -934,8 +969,8 @@ xsd:date rdf:type rdfs:Datatype .
                 owl:equivalentClass [ rdf:type owl:Class ;
                                       owl:oneOf ( :ADD
                                                   :DELETE
-                                                )
-                                    ] ;
+                                               )
+                         ] ;
                 rdfs:label "Patch Operation" .
 
 
@@ -946,8 +981,8 @@ xsd:date rdf:type rdfs:Datatype .
                                               :GET_LOGISTICS_OBJECT
                                               :PATCH_LOGISTICS_OBJECT
                                               :POST_LOGISTICS_EVENT
-                                            )
-                                ] ;
+                                           )
+                     ] ;
             rdfs:label "Permission"@en .
 
 
@@ -959,111 +994,122 @@ xsd:date rdf:type rdfs:Datatype .
                                                  :REQUEST_PENDING
                                                  :REQUEST_REJECTED
                                                  :REQUEST_REVOKED
-                                               )
-                                   ] ;
+                                              )
+                        ] ;
                rdfs:label "RequestStatus"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#ServerInformation
 :ServerInformation rdf:type owl:Class ;
                    rdfs:subClassOf [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasDataOwner ;
-                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onClass cargo:Organization
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSupportedEncoding ;
-                                     owl:allValuesFrom xsd:string
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSupportedApiVersion ;
-                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:string
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSupportedContentType ;
-                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:string
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSupportedLanguage ;
-                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:string
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSupportedLogisticsObjectType ;
-                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:anyURI
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSupportedOntology ;
-                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:anyURI
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasSupportedOntologyVersion ;
-                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:anyURI
-                                   ] ,
-                                   [ rdf:type owl:Restriction ;
-                                     owl:onProperty :hasServerEndpoint ;
-                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                     owl:onDataRange xsd:anyURI
-                                   ] ;
-                   rdfs:comment "Information about the ONE Record server in the Internet of Logistics"@en ;
+                                     owl:onProperty :hasDataHolder ;
+                                     owl:allValuesFrom cargo:Organization
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasDataHolder ;
+                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onClass cargo:Organization
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasSupportedEncoding ;
+                     owl:allValuesFrom xsd:string
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasSupportedApiVersion ;
+                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onDataRange xsd:string
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasSupportedContentType ;
+                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onDataRange xsd:string
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasSupportedLanguage ;
+                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onDataRange xsd:string
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasSupportedOntology ;
+                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onDataRange xsd:anyURI
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasSupportedOntologyVersion ;
+                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onDataRange xsd:anyURI
+                            ] ,
+                   [ rdf:type owl:Restriction ;
+                     owl:onProperty :hasServerEndpoint ;
+                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                     owl:onDataRange xsd:anyURI
+                            ] ;
+                   rdfs:comment "Information about the ONE Record server"@en ;
                    rdfs:label "Server Information"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#Subscription
 :Subscription rdf:type owl:Class ;
               rdfs:subClassOf [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasTopicType ;
-                                owl:allValuesFrom :TopicType
-                              ] ,
-                              [ rdf:type owl:Restriction ;
                                 owl:onProperty :hasSubscriber ;
-                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onClass cargo:Organization
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasTopicType ;
-                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onClass :TopicType
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasContentType ;
-                                owl:allValuesFrom xsd:string
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasTopic ;
-                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onDataRange xsd:anyURI
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :notifyRequestStatusChange ;
-                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onDataRange xsd:boolean
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :expiresAt ;
-                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onDataRange xsd:dateTime
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :hasDescription ;
-                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onDataRange xsd:string
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :sendLogisticsObjectBody ;
-                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onDataRange xsd:boolean
-                              ] ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty :subscribeToLogisticsEvents ;
-                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                owl:onDataRange xsd:boolean
-                              ] ;
+                                owl:allValuesFrom cargo:Organization
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasTopicType ;
+                owl:allValuesFrom :TopicType
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :includeSubscriptionEventType ;
+                owl:allValuesFrom :SubscriptionEventType
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :includeSubscriptionEventType ;
+                owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onClass :SubscriptionEventType
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasSubscriber ;
+                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onClass cargo:Organization
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasTopicType ;
+                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onClass :TopicType
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasContentType ;
+                owl:allValuesFrom xsd:string
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :notifyRequestStatusChange ;
+                owl:allValuesFrom xsd:boolean
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasTopic ;
+                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onDataRange xsd:anyURI
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :notifyRequestStatusChange ;
+                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onDataRange xsd:boolean
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :expiresAt ;
+                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onDataRange xsd:dateTime
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :hasDescription ;
+                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onDataRange xsd:string
+                       ] ,
+              [ rdf:type owl:Restriction ;
+                owl:onProperty :sendLogisticsObjectBody ;
+                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                owl:onDataRange xsd:boolean
+                       ] ;
               rdfs:comment "Subscription information sent to the publisher"@en ;
               rdfs:label "Subscription"@en .
 
@@ -1071,16 +1117,16 @@ xsd:date rdf:type rdfs:Datatype .
 ###  https://onerecord.iata.org/ns/api#SubscriptionRequest
 :SubscriptionRequest rdf:type owl:Class ;
                      rdfs:subClassOf :ActionRequest ,
-                                     [ rdf:type owl:Restriction ;
-                                       owl:onProperty :hasSubscription ;
-                                       owl:allValuesFrom :Subscription
-                                     ] ,
-                                     [ rdf:type owl:Restriction ;
-                                       owl:onProperty :hasSubscription ;
-                                       owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                       owl:onClass :Subscription
-                                     ] ;
-                     rdfs:comment "SubscriptionRequest initiated by subscribers to publisher (data owner) for themselves or for a third party subscriber."@en ;
+                     [ rdf:type owl:Restriction ;
+                       owl:onProperty :hasSubscription ;
+                       owl:allValuesFrom :Subscription
+                              ] ,
+                     [ rdf:type owl:Restriction ;
+                       owl:onProperty :hasSubscription ;
+                       owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                       owl:onClass :Subscription
+                              ] ;
+                     rdfs:comment "SubscriptionRequest initiated by subscribers to publisher (data holder) for themselves or for a third party subscriber."@en ;
                      rdfs:label "Subscription Request"@en .
 
 
@@ -1089,19 +1135,19 @@ xsd:date rdf:type rdfs:Datatype .
            owl:equivalentClass [ rdf:type owl:Class ;
                                  owl:oneOf ( :LOGISTICS_OBJECT_IDENTIFIER
                                              :LOGISTICS_OBJECT_TYPE
-                                           )
-                               ] .
+                                          )
+                    ] .
 
 
-###  https://onerecord.iata.org/ns/cargo/LogisticsAgent
+###  https://onerecord.iata.org/ns/cargo#LogisticsAgent
 cargo:LogisticsAgent rdf:type owl:Class .
 
 
-###  https://onerecord.iata.org/ns/cargo/LogisticsObject
+###  https://onerecord.iata.org/ns/cargo#LogisticsObject
 cargo:LogisticsObject rdf:type owl:Class .
 
 
-###  https://onerecord.iata.org/ns/cargo/Organization
+###  https://onerecord.iata.org/ns/cargo#Organization
 cargo:Organization rdf:type owl:Class .
 
 
@@ -1201,13 +1247,15 @@ cargo:Organization rdf:type owl:Class .
 
 ###  https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED
 :LOGISTICS_EVENT_RECEIVED rdf:type owl:NamedIndividual ,
-                                   :NotificationEventType ;
+                                   :NotificationEventType ,
+                                   :SubscriptionEventType ;
                           rdfs:label "LOGISTICS_EVENT_RECEIVED"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED
 :LOGISTICS_OBJECT_CREATED rdf:type owl:NamedIndividual ,
-                                   :NotificationEventType ;
+                                   :NotificationEventType ,
+                                   :SubscriptionEventType ;
                           rdfs:label "LOGISTICS_OBJECT_CREATED"@en .
 
 
@@ -1225,7 +1273,8 @@ cargo:Organization rdf:type owl:Class .
 
 ###  https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED
 :LOGISTICS_OBJECT_UPDATED rdf:type owl:NamedIndividual ,
-                                   :NotificationEventType ;
+                                   :NotificationEventType ,
+                                   :SubscriptionEventType ;
                           rdfs:label "LOGISTICS_OBJECT_UPDATED"@en .
 
 
@@ -1257,7 +1306,7 @@ cargo:Organization rdf:type owl:Class .
 ###  https://onerecord.iata.org/ns/api#REQUEST_PENDING
 :REQUEST_PENDING rdf:type owl:NamedIndividual ,
                           :RequestStatus ;
-                 rdfs:label "REQUEST_ACCEPTED"@en .
+                 rdfs:label "REQUEST_PENDING"@en .
 
 
 ###  https://onerecord.iata.org/ns/api#REQUEST_REJECTED
@@ -1313,10 +1362,5 @@ cargo:Organization rdf:type owl:Class .
 
 [ owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger
  ] .
-
-#################################################################
-#    Annotations
-#################################################################
-
 
 ###  Generated by the OWL API (version 4.5.25.2023-02-15T19:15:49Z) https://github.com/owlcs/owlapi

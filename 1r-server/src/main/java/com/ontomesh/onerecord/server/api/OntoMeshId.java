@@ -1,15 +1,17 @@
 package com.ontomesh.onerecord.server.api;
 
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
+import org.iata.onerecord.api.API;
+import org.iata.onerecord.cargo.CARGO;
 
 import java.net.URI;
 
-@Data
-public class OntoMeshId {
-    private final IRI iri;
-    private final URI uri;
+@Slf4j
+public record OntoMeshId(IRI iri, URI uri) {
+
+    public static final String ONTOMESH_NAMESPACE = "ontomesh:";
 
     public OntoMeshId(IRI iri, URI uri) {
         this.iri = iri;
@@ -25,6 +27,26 @@ public class OntoMeshId {
     }
 
     public static boolean isInternalIri(IRI iri) {
-        return iri.getNamespace().equals("ontomesh:");
+        return iri.getNamespace().equals(ONTOMESH_NAMESPACE);
     }
+
+    public static boolean isOneRecordIri(IRI iri) {
+        return iri.getNamespace().startsWith(CARGO.NAMESPACE)
+                || iri.getNamespace().startsWith(API.NAMESPACE);
+    }
+
+    /**
+     * @param iri
+     * @return
+     */
+    public static boolean isValidIri(IRI iri, IRI logisticsObjectBaseIRI) {
+        return (OntoMeshId.isInternalIri(iri)) || OntoMeshId.isOneRecordIri(iri)
+                || iri.getNamespace().equals(logisticsObjectBaseIRI.stringValue());
+    }
+
+
+    public static boolean findParentOnly(IRI iri) {
+        return false;
+    }
+
 }

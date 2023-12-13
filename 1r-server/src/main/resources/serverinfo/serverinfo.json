@@ -5,7 +5,7 @@
   },
   "@id": "https://onerecord.ontomesh.com/",
   "@type": "api:ServerInformation",
-  "api:hasDataOwner": {
+  "api:hasDataHolder": {
     "@type": "cargo:Company",
     "@id": "https://onerecord.ontomesh.com/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda"
   },
