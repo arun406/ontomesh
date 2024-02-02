@@ -1,6 +1,7 @@
 package io.ontomesh.onerecord.server.services;
 
-import io.ontomesh.onerecord.server.api.IdProvider;
+import io.ontomesh.onerecord.server.common.IdProvider;
+import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import io.ontomesh.onerecord.server.exception.RevisionMissingException;
@@ -15,15 +16,20 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.iata.onerecord.api.API;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @Slf4j
 public abstract class AbstractLogisticsObjectService {
 
     public final LogisticsObjectRepository repository;
     public final IdProvider idProvider;
+
+    @Autowired
+    public ServerInformationService serverInformationService;
 
     protected AbstractLogisticsObjectService(LogisticsObjectRepository repository,
                                              IdProvider idProvider) {
@@ -86,7 +92,20 @@ public abstract class AbstractLogisticsObjectService {
      */
     public LogisticsObject findLogisticsObject(IRI iri) {
         log.info("Searching for Logistics Object of IRI {}", iri.toString());
-        return repository.findLoById(iri)
+        Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(OntoMesh.hasLogisticsEvents));
+        return repository.findLoById(iri, predicate)
                 .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "logistics object not found."));
     }
+
+    /**
+     * Returns the Logistics Object Type.
+     *
+     * @param loId Logistics Object IRI.
+     * @return
+     */
+    public IRI getType(IRI loId) {
+        return Models.objectIRI(this.repository.getStatements(loId, RDF.TYPE, null))
+                .orElseThrow(() -> new RuntimeException("Unable to get Logistics Object Type."));
+    }
+
 }

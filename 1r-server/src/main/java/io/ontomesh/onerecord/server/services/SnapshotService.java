@@ -1,8 +1,8 @@
 package io.ontomesh.onerecord.server.services;
 
-import io.ontomesh.onerecord.server.api.IdProvider;
-import io.ontomesh.onerecord.server.api.OntoMeshId;
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
+import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.SnapshotNotFoundException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
@@ -28,9 +28,9 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 @Service
 public class SnapshotService extends AbstractLogisticsObjectService {
+    private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
     private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyDDmm'T'hhmmss'Z'")
             .withZone(ZoneId.from(ZoneOffset.UTC));
-    private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
     public SnapshotService(LogisticsObjectRepository repository,
                            IdProvider idProvider) {
@@ -66,7 +66,7 @@ public class SnapshotService extends AbstractLogisticsObjectService {
         newModel.add(snapshotId, API.hasLogisticsObject, valueFactory.createLiteral(logisticsObject.iri().stringValue()));
 
         LogisticsObject snapshot = new LogisticsObject(snapshotId, logisticsObject.type(), newModel);
-        this.repository.persist(snapshot.iri(), snapshot.model());
+        this.repository.persist(snapshot.model());
 //        print(snapshot, RDFFormat.JSONLD);
         return snapshot;
     }

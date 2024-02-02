@@ -35,6 +35,26 @@ public class ErrorObjectRDFMessageConverter extends AbstractHttpMessageConverter
         this.httpServletRequest = httpServletRequest;
     }
 
+    private static String getString(ErrorObject errorObject, MediaType selectedContentType) {
+        ModelToStringConverter modelToStringConverter = getModelToStringConverter(selectedContentType);
+        return modelToStringConverter.convert(errorObject.errorModel());
+    }
+
+    private static ModelToStringConverter getModelToStringConverter(MediaType selectedContentType) {
+        RDFFormat format = RDFUtil.getFormat(selectedContentType);
+        return new ModelToStringConverter(format);
+    }
+
+    private MediaType getAcceptMediaType() {
+        String acceptHeader = httpServletRequest.getHeader(HttpHeaders.ACCEPT);
+        MediaType selectedContentType = SemanticWebMediaType.APPLICATION_JSON_LD;
+        // override the default with requested content type
+        if (StringUtils.hasText(acceptHeader)) {
+            selectedContentType = MediaType.valueOf(acceptHeader);
+        }
+        return selectedContentType;
+    }
+
     @Override
     protected boolean supports(Class<?> clazz) {
         return clazz.isAssignableFrom(ErrorObject.class);
@@ -47,10 +67,10 @@ public class ErrorObjectRDFMessageConverter extends AbstractHttpMessageConverter
 
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
-        return clazz.isAssignableFrom(ErrorObject.class)
-                && mediaType != null && (mediaType.equals(SemanticWebMediaType.APPLICATION_TURTLE)
-                || mediaType.equals(SemanticWebMediaType.APPLICATION_JSON_LD)
-                || mediaType.equals(SemanticWebMediaType.TEXT_TURTLE));
+        return clazz.isAssignableFrom(ErrorObject.class);
+//                && mediaType != null && (mediaType.equals(SemanticWebMediaType.APPLICATION_TURTLE)
+//                || mediaType.equals(SemanticWebMediaType.APPLICATION_JSON_LD)
+//                || mediaType.equals(SemanticWebMediaType.TEXT_TURTLE));
     }
 
     @Override
@@ -65,25 +85,5 @@ public class ErrorObjectRDFMessageConverter extends AbstractHttpMessageConverter
             rdfString = JsonUtils.toPrettyString(compact);
         }
         StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
-    }
-
-    private MediaType getAcceptMediaType() {
-        String acceptHeader = httpServletRequest.getHeader(HttpHeaders.ACCEPT);
-        MediaType selectedContentType = SemanticWebMediaType.APPLICATION_JSON_LD;
-        // override the default with requested content type
-        if (StringUtils.hasText(acceptHeader)) {
-            selectedContentType = MediaType.valueOf(acceptHeader);
-        }
-        return selectedContentType;
-    }
-
-    private static String getString(ErrorObject errorObject, MediaType selectedContentType) {
-        ModelToStringConverter modelToStringConverter = getModelToStringConverter(selectedContentType);
-        return modelToStringConverter.convert(errorObject.errorModel());
-    }
-
-    private static ModelToStringConverter getModelToStringConverter(MediaType selectedContentType) {
-        RDFFormat format = RDFUtil.getFormat(selectedContentType);
-        return new ModelToStringConverter(format);
     }
 }

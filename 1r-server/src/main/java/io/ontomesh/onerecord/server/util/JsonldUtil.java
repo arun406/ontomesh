@@ -82,6 +82,8 @@ public class JsonldUtil {
         opts.setCompactArrays(true);
         opts.setOmitGraph(false);
         opts.setEmbed(true);
+        opts.setRequireAll(true);
+        opts.setUseRdfType(true);
         return opts;
     }
 

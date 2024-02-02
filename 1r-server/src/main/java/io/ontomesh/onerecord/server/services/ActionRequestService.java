@@ -1,16 +1,17 @@
 package io.ontomesh.onerecord.server.services;
 
-import io.ontomesh.onerecord.server.api.IdProvider;
+import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
+import io.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import io.ontomesh.onerecord.server.util.RDFUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.ModelBuilder;
-import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.iata.onerecord.api.API;
@@ -21,99 +22,90 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class ActionRequestService {
+public class ActionRequestService extends AbstractLogisticsObjectService {
 
-    private final IdProvider idProvider;
-    private final LogisticsObjectRepository repository;
+
+    /**
+     * Logistics Event Service.
+     */
+    private final LogisticsEventService logisticsEventService;
+
+    /**
+     * Action Request Processor.
+     */
     private final ActionRequestProcessor actionRequestProcessor;
 
     /**
-     * create action request
-     *
-     * @param request logistic object action request
-     * @param type    action request type.
+     * @param repository
+     * @param idProvider
      */
-    @Transactional
-    public IRI createActionRequest(LogisticsObject request, IRI type) {
+    protected ActionRequestService(LogisticsObjectRepository repository, IdProvider idProvider,
+                                   LogisticsEventService logisticsEventService,
+                                   ActionRequestProcessor actionRequestProcessor) {
+        super(repository, idProvider);
+        this.logisticsEventService = logisticsEventService;
+        this.actionRequestProcessor = actionRequestProcessor;
+    }
 
-        validateActionRequestType(type);
-        Model requestModel = request.model();
-        IRI actionRequestID = idProvider.createUniqueActionRequestUri().iri();
-        IRI requestedBy = idProvider.createUniqueLoUri().iri();
-        Model actionRequestModel = new ModelBuilder()
-                .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
-                .setNamespace(API.PREFIX, API.NAMESPACE)
-                .subject(actionRequestID)
-                .add(RDF.TYPE, type)
-                .add(API.isRequestedAt, Date.from(Instant.now()))
-                .add(API.hasRequestStatus, API.REQUEST_PENDING)
-                .add(API.isRequestedBy, requestedBy)
-                .subject(request.iri())
-                .build();
-
-        if (API.SubscriptionRequest.stringValue().equals(type.stringValue())) {
-            actionRequestModel.add(actionRequestID, API.hasSubscription, request.iri());
-        } else if (API.ChangeRequest.stringValue().equals(type.stringValue())) {
-            actionRequestModel.add(actionRequestID, API.hasChange, request.iri());
-        } else if (API.AccessDelegationRequest.stringValue().equals(type.stringValue())) {
-            actionRequestModel.add(actionRequestID, API.hasAccessDelegation, request.iri());
+    private static IRI validateAndGetActionRequestStatus(IRI iri, IRI newStatus, Model model) {
+        IRI status = getStatus(iri, model);
+        log.debug("current action request status {}", status);
+        if (isSameStatus(newStatus, status) || isAlreadyAccepted(status)) {
+            throw new InvalidApiRequestException(String.format("Cannot update status. Action Request status is already %s)",
+                    newStatus));
         }
-        actionRequestModel.addAll(requestModel);
-        this.repository.persist(actionRequestModel);
-        return actionRequestID;
+        return status;
     }
 
-    private void validateActionRequestType(IRI type) {
-        if (!Arrays.asList(API.ChangeRequest.stringValue(),
-                API.SubscriptionRequest.stringValue(),
-                API.AccessDelegationRequest.stringValue()).contains(type.stringValue())) {
-            throw new RuntimeException(String.format("Invalid Action Request Type %s", type.stringValue()));
+    private static boolean isSameStatus(IRI newStatus, IRI status) {
+        if (newStatus == null || status == null)
+            return true;
+        return newStatus.equals(status);
+    }
+
+    private static boolean isAlreadyAccepted(IRI status) {
+        if (status == null) {
+            return true;
         }
+        return status.equals(API.REQUEST_ACCEPTED);
     }
 
-    public LogisticsObject get(IRI iri) {
-        return this.repository.findLoById(iri, (iri1) -> true)
-                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "action request with iri " + iri + " not found."));
+    private static IRI getStatus(IRI iri, Model model) {
+        return RDFUtil.getObjectIRI(model, iri, API.hasRequestStatus, false);
     }
 
+    private void addEventToLogisticsObject(Model model, IRI iri, IRI type, IRI status) {
+        IRI logisticsObjectIRI;
+        NotificationEventType notificationEventType;
 
-    /**
-     * revokes the action request.
-     *
-     * @param iri       action request iri.
-     * @param revokedBy action request revoked by.
-     */
-    @Transactional
-    public void revokeActionRequest(IRI iri, IRI revokedBy) {
-        LogisticsObject actionRequest = this.get(iri);
-
-        Model model = actionRequest.model();
-        IRI status = Models.objectIRI(model.getStatements(iri, API.hasRequestStatus, null))
-                .orElse(null);
-        if (status == null || !status.stringValue().equals(API.REQUEST_PENDING.stringValue())) {
-            throw new RuntimeException("Cannot revoke the action request as currentStatus is not pending.");
+        if (!type.equals(API.SubscriptionRequest)) {
+            logisticsObjectIRI = getLogisticsObjetIRI(model, iri);
+            if (type.equals(API.ChangeRequest)) {
+                notificationEventType = LogisticsObjectService.getNotificationEventType(status);
+            } else {
+                notificationEventType = null;
+            }
+        } else {
+            Model subscriptionModel = RDFUtil.getSubModel(model, API.hasSubscription);
+            IRI subscriptionIRI = RDFUtil.getRootIri(subscriptionModel);
+            logisticsObjectIRI = SubscriptionService.getTopicIRI(subscriptionModel, subscriptionIRI);
+            notificationEventType = SubscriptionService.getNotificationEventType(status);
         }
-        model.add(iri, API.isRevokedBy, revokedBy);
-        model.add(iri, API.isRevokedAt, Values.literal(Date.from(Instant.now())));
-        IRI revokeStatus = getRevokeRequestStatus(iri, model);
-        updateStatus(iri, status, revokeStatus);
+        log.info("Logistics Object IRI {}", logisticsObjectIRI);
+        if (logisticsObjectIRI == null) {
+            return;
+        }
+
+        this.logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI,
+                notificationEventType);
     }
 
-    /**
-     * update the status of the action request.
-     *
-     * @param iri           action request iri.
-     * @param currentStatus current status iri.
-     * @param newStatus     new status iri.
-     */
-    private void updateStatus(IRI iri, IRI currentStatus, IRI newStatus) {
-        this.repository.delete(iri, API.hasRequestStatus, currentStatus);
-        log.debug("updating the request status from {} to new request status {}", currentStatus, newStatus);
-        this.repository.add(iri, API.hasRequestStatus, newStatus);
+    private IRI getLogisticsObjetIRI(Model model, IRI iri) {
+        return RDFUtil.getObjectIRI(model, iri, API.hasLogisticsObject, false);
     }
 
     private IRI getRevokeRequestStatus(IRI iri, Model model) {
@@ -127,8 +119,117 @@ public class ActionRequestService {
         return API.REQUEST_PENDING;
     }
 
+    private void saveActionRequestModel(Model actionRequestModel) {
+        this.repository.persist(actionRequestModel);
+    }
+
     /**
-     * update the status to new value.
+     * update the status of the action request.
+     *
+     * @param iri           action request iri.
+     * @param currentStatus current status iri.
+     * @param newStatus     new status iri.
+     */
+    private void updateStatus(IRI iri, IRI currentStatus, IRI newStatus) {
+        this.repository.update(iri, API.hasRequestStatus, currentStatus, newStatus);
+    }
+
+    private void validateActionRequestType(IRI type) {
+        if (!Arrays.asList(API.ChangeRequest.stringValue(),
+                API.SubscriptionRequest.stringValue(),
+                API.AccessDelegationRequest.stringValue()).contains(type.stringValue())) {
+            throw new RuntimeException(String.format("Invalid Action Request Type %s", type.stringValue()));
+        }
+    }
+
+    /**
+     * create action request
+     *
+     * @param request logistic object action request
+     * @param type    action request type.
+     */
+    @Transactional
+    public IRI createActionRequest(LogisticsObject request, IRI type) {
+        validateActionRequestType(type);
+        Model requestModel = request.model();
+        IRI actionRequestID = idProvider.createUniqueActionRequestUri().iri();
+        IRI requestedBy = idProvider.createUniqueLoUri().iri();
+
+        Model actionRequestModel = new ModelBuilder()
+                .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
+                .setNamespace(API.PREFIX, API.NAMESPACE)
+                .subject(actionRequestID)
+                .add(RDF.TYPE, type)
+                .add(API.isRequestedAt, Date.from(Instant.now()))
+                .add(API.hasRequestStatus, API.REQUEST_PENDING)
+                .add(API.isRequestedBy, requestedBy)
+                .subject(request.iri())
+                .build();
+
+        if (API.SubscriptionRequest.equals(type)) {
+            actionRequestModel.add(actionRequestID, API.hasSubscription, request.iri());
+        } else if (API.ChangeRequest.equals(type)) {
+            actionRequestModel.add(actionRequestID, API.hasChange, request.iri());
+        } else if (API.AccessDelegationRequest.equals(type)) {
+            actionRequestModel.add(actionRequestID, API.hasAccessDelegation, request.iri());
+        }
+        actionRequestModel.addAll(requestModel);
+
+        saveActionRequestModel(actionRequestModel);
+
+        return actionRequestID;
+    }
+
+    /**
+     * @param iri
+     * @return
+     */
+    public LogisticsObject get(IRI iri) {
+
+        Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(API.hasLogisticsObject) || statement.getPredicate().equals(API.hasTopic));
+        return this.repository
+                .findLoById(iri, predicate)
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "Action request with iri " + iri + " not found."));
+    }
+
+    /**
+     * revokes the action request.
+     *
+     * @param iri       action request iri.
+     * @param revokedBy action request revoked by.
+     */
+    @Transactional
+    public void revokeActionRequest(IRI iri, IRI revokedBy) {
+        LogisticsObject actionRequest = this.get(iri);
+
+        Model model = actionRequest.model();
+        IRI status = getStatus(iri, model);
+        if (status == null || !status.stringValue().equals(API.REQUEST_PENDING.stringValue())) {
+            throw new RuntimeException("Cannot revoke the action request as currentStatus is not pending.");
+        }
+        model.add(iri, API.isRevokedBy, revokedBy);
+        model.add(iri, API.isRevokedAt, Values.literal(Date.from(Instant.now())));
+        IRI revokeStatus = getRevokeRequestStatus(iri, model);
+        updateStatus(iri, status, revokeStatus);
+
+        // send notification
+        addEventToLogisticsObject(model, iri, revokeStatus);
+    }
+
+    public void addEventToLogisticsObject(Model model, IRI iri, IRI status) {
+        log.debug("Status {}", status);
+        IRI logisticsObjectIRI = getLogisticsObjetIRI(model, iri);
+
+        log.info("Logistics Object IRI {}", logisticsObjectIRI);
+        if (logisticsObjectIRI == null) {
+            return;
+        }
+        this.logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI,
+                NotificationEventType.valueOf(status));
+    }
+
+    /**
+     * Update the status to new value.
      *
      * @param iri       action request iri.
      * @param newStatus new action request status.
@@ -138,21 +239,15 @@ public class ActionRequestService {
 
         LogisticsObject actionRequest = this.get(iri);
         Model model = actionRequest.model();
-        IRI status = validateAndGetActionRequestStatus(iri, newStatus, model);
-        updateStatus(iri, status, newStatus);
-        // update the status.
+        IRI currentStatus = validateAndGetActionRequestStatus(iri, newStatus, model);
+
+        updateStatus(iri, currentStatus, newStatus);
+        // update the currentStatus.
         model.add(iri, API.hasRequestStatus, newStatus);
 
         this.actionRequestProcessor.process(actionRequest);
-    }
 
-    private static IRI validateAndGetActionRequestStatus(IRI iri, IRI newStatus, Model model) {
-        IRI status = Models.objectIRI(model.getStatements(iri, API.hasRequestStatus, null))
-                .orElse(null);
-        log.debug("current action request status {}", status);
-        if (status == null || newStatus.equals(status)) {
-            throw new RuntimeException(String.format("Cannot update status. Action Request status is already %s)", newStatus));
-        }
-        return status;
+        // add Event
+        addEventToLogisticsObject(model, iri, actionRequest.type(), newStatus);
     }
 }

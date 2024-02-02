@@ -1,6 +1,6 @@
 package io.ontomesh.onerecord.server.handler;
 
-import io.ontomesh.onerecord.server.api.IdProvider;
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.domain.ErrorObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -4,7 +4,7 @@ import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
-import io.ontomesh.onerecord.server.services.ServerInformationService;
+import io.ontomesh.onerecord.server.services.LogisticsObjectService;
 import io.ontomesh.onerecord.server.services.SubscriptionService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -31,16 +31,12 @@ import java.util.Locale;
 public class SubscriptionController extends BaseController {
 
     private final SubscriptionService subscriptionService;
-    private final ServerInformationService serverInformationService;
-    private final ActionRequestService actionRequestService;
 
-    public SubscriptionController(
-            SubscriptionService subscriptionService,
-            ServerInformationService serverInformationService, ActionRequestService actionRequestService) {
-        super();
+    public SubscriptionController(LogisticsObjectService logisticsObjectService,
+                                  SubscriptionService subscriptionService,
+                                  ActionRequestService actionRequestService) {
+        super(logisticsObjectService, null, actionRequestService, null, null);
         this.subscriptionService = subscriptionService;
-        this.serverInformationService = serverInformationService;
-        this.actionRequestService = actionRequestService;
     }
 
     /**
@@ -69,9 +65,6 @@ public class SubscriptionController extends BaseController {
         IRI actionRequestID = this.actionRequestService
                 .createActionRequest(subscription, API.SubscriptionRequest);
         // update location.
-//        String location = subscription.iri().stringValue()
-//                .replace("logistics-objects", "action-requests");
-//        URI locationURI = URI.create(location);
         HttpHeaders headers = new HttpHeaders();
 //        headers.setLocation(URI.create(subscriptionRequest.iri().stringValue()));
         headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
@@ -111,12 +104,6 @@ public class SubscriptionController extends BaseController {
             throw new InvalidApiRequestException("Invalid 'topicType'.");
         }
 
-//        if (API.LOGISTICS_OBJECT_TYPE.stringValue().equals(topicType)) {
-//            Set<IRI> supportedLogisticTypes = this.serverInformationService.getSupportedLogisticTypes();
-//            if (!supportedLogisticTypes.contains(topicIRI)) {
-//                throw new LogisticsObjectNotSupportedException("Logistics Object Type is not supported");
-//            }
-//        }
         LogisticsObject subscriptionProposal = this.subscriptionService
                 .createSubscriptionProposalResponse(topicIRI, topicTypeIRI);
 

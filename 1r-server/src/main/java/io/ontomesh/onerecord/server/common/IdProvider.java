@@ -1,6 +1,6 @@
-package io.ontomesh.onerecord.server.api;
+package io.ontomesh.onerecord.server.common;
 
-import io.ontomesh.onerecord.server.config.LoIdConfig;
+import io.ontomesh.onerecord.server.config.OneRecordProperties;
 import io.ontomesh.onerecord.server.services.ServerInformationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,22 +18,52 @@ import java.util.UUID;
 public class IdProvider {
 
     private final String rootPath;
-    private final LoIdConfig loIdConfig;
+    private final OneRecordProperties oneRecordProperties;
     private final ServerInformationService serverInformationService;
 
-    public IdProvider(@Value("${server.servlet.context-path:/}") String rootPath, LoIdConfig loIdConfig,
+    public IdProvider(@Value("${server.servlet.context-path:/}") String rootPath, OneRecordProperties oneRecordProperties,
                       HttpServletRequest httpServletRequest, ServerInformationService serverInformationService) {
         this.rootPath = rootPath;
-        this.loIdConfig = loIdConfig;
+        this.oneRecordProperties = oneRecordProperties;
         this.serverInformationService = serverInformationService;
     }
 
+    private UriComponentsBuilder baseUri() {
+        return UriComponentsBuilder.newInstance().scheme(oneRecordProperties.getServer().getScheme())
+                .host(oneRecordProperties.getServer().getHost())
+                .port(oneRecordProperties.getServer().getPort());
+    }
+
+    private UriComponentsBuilder getActionRequestUriBase() {
+        return baseUri()
+                .path("/action-requests/");
+    }
+
+    private UriComponentsBuilder getEventRequestUriBase(String uuid) {
+        return getLoUriBase().path(uuid)
+                .path("/logistics-events/");
+    }
+
+    private UriComponentsBuilder getLoUriBase() {
+        return baseUri()
+                .path("/logistics-objects/");
+    }
+
+    private UriComponentsBuilder getSubscriptionsUriBase() {
+        return baseUri()
+                .path("/subscriptions/");
+    }
+
     public OntoMeshId createInternalIri() {
-        return OntoMeshId.fromIri(Values.iri(loIdConfig.getInternalIriScheme() + ":" + UUID.randomUUID()));
+        return OntoMeshId.fromIri(Values.iri(oneRecordProperties.getServer().getInternalIriScheme() + ":" + UUID.randomUUID()));
     }
 
     public OntoMeshId createUniqueLoUri() {
         return OntoMeshId.fromUri(getLoUriBase().path(UUID.randomUUID().toString()).build().toUri());
+    }
+
+    public OntoMeshId createUniqueSubscriptionUri() {
+        return OntoMeshId.fromUri(getSubscriptionsUriBase().path(UUID.randomUUID().toString()).build().toUri());
     }
 
     public OntoMeshId createUniqueActionRequestUri() {
@@ -52,6 +82,13 @@ public class IdProvider {
                 .path(UUID.randomUUID().toString()).build().toUri());
     }
 
+    public OntoMeshId createUniqueNotificationEvent(IRI loId) {
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+                .uri(URI.create(loId.stringValue())).path("/");
+        return OntoMeshId.fromUri(builder.path("/notification-events/")
+                .path(UUID.randomUUID().toString()).build().toUri());
+    }
+
     public OntoMeshId createUniqueLogisticsEventUri(String uuid) {
         UriComponentsBuilder builder = getEventRequestUriBase(uuid);
         return OntoMeshId.fromUri(builder.path(UUID.randomUUID().toString()).build().toUri());
@@ -67,27 +104,6 @@ public class IdProvider {
 
     public OntoMeshId getUriForLogisticsEventId(String uuid1, String uuid2) {
         return OntoMeshId.fromUri(getEventRequestUriBase(uuid1).path(uuid2).build().toUri());
-    }
-
-    private UriComponentsBuilder getLoUriBase() {
-        return baseUri()
-                .path("/logistics-objects/");
-    }
-
-    private UriComponentsBuilder getActionRequestUriBase() {
-        return baseUri()
-                .path("/action-requests/");
-    }
-
-    private UriComponentsBuilder getEventRequestUriBase(String uuid) {
-        return getLoUriBase().path(uuid)
-                .path("/logistics-events/");
-    }
-
-    private UriComponentsBuilder baseUri() {
-        return UriComponentsBuilder.newInstance().scheme(loIdConfig.getScheme())
-                .host(loIdConfig.getHost())
-                .port(loIdConfig.getPort());
     }
 
     public IRI getLogisticsObjectBaseIRI() {

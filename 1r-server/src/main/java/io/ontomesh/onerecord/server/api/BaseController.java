@@ -1,9 +1,10 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
+import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.AlreadyExistsException;
-import io.ontomesh.onerecord.server.exception.InvalidAddressException;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
 import io.ontomesh.onerecord.server.services.AuditTrailService;
 import io.ontomesh.onerecord.server.services.LogisticsEventService;
@@ -14,7 +15,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.iata.onerecord.api.API;
@@ -41,10 +41,6 @@ public abstract class BaseController {
     public ActionRequestService actionRequestService;
     public LogisticsEventService eventService;
     public AuditTrailService auditTrailService;
-
-    private final SimpleValueFactory instance = SimpleValueFactory.getInstance();
-
-    private final IRI hasPredefinedIri = instance.createIRI("https://www.ontomesh.com/onerecord#", "hasId");
 
     public BaseController() {
 
@@ -111,7 +107,7 @@ public abstract class BaseController {
      * @param logisticsObject logistics object.
      */
     public void removeMarkerPredicate(LogisticsObject logisticsObject) {
-        logisticsObject.model().remove(logisticsObject.iri(), hasPredefinedIri, null);
+        logisticsObject.model().remove(logisticsObject.iri(), OntoMesh.hasId, null);
     }
 
     protected String getLoType(LogisticsObject logisticsObject) {
@@ -131,9 +127,9 @@ public abstract class BaseController {
     protected void checkForDuplicateIRI(LogisticsObject logisticsObject) {
         IRI iri = logisticsObject.iri();
         // Check for proper address path.
-        if (!iri.toString().contains(idProvider.getLogisticsObjectBaseIRI().toString())) {
-            throw new InvalidAddressException(iri, idProvider.getLogisticsObjectBaseIRI());
-        }
+//        if (!iri.toString().contains(idProvider.getLogisticsObjectBaseIRI().toString())) {
+//            throw new InvalidAddressException(iri, idProvider.getLogisticsObjectBaseIRI());
+//        }
 
         // Check if IRI is already taken.
         boolean exists = logisticsObjectService.isExists(iri);
@@ -144,36 +140,11 @@ public abstract class BaseController {
     protected boolean isIdPresent(LogisticsObject logisticsObject) {
         // Remove predicate temporarily introduced by LogisticsObjectBodyReader. Information is still part
         // of metadata.
-        return Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), hasPredefinedIri, null))
+        return Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), OntoMesh.hasId, null))
                 .orElse(Values.literal(false))
                 .booleanValue();
     }
 
-
-    protected HttpHeaders getResponseHeaders(URI loURI, String loType, MediaType contentType) {
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add(OntoMesh.LO_TYPE_HEADER, OntoMesh.LO_TYPE_COMPANY_INFORMATION);
-        responseHeaders.setContentType(contentType);
-        responseHeaders.add("Type", loType);
-        responseHeaders.setLocation(loURI);
-        return responseHeaders;
-    }
-
-
-    public HttpHeaders getResponseHeaders(LogisticsObject logisticsObject, MediaType contentType) {
-        URI loURI = URI.create(logisticsObject.iri().stringValue());
-        String loType = getLoType(logisticsObject);
-        return getResponseHeaders(loURI, loType, contentType);
-    }
-
-    protected HttpHeaders getResponseHeaders(HttpServletRequest httpServletRequest) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
-        headers.setLocation(URI.create(httpServletRequest.getRequestURL().toString()));
-        headers.add("Revision", UUID.randomUUID().toString());
-        headers.add(OntoMesh.LO_TYPE_HEADER, OntoMesh.LO_TYPE_COMPANY_INFORMATION);
-        return headers;
-    }
 
     /**
      * Add revision statement logistics object.
@@ -195,7 +166,7 @@ public abstract class BaseController {
     protected ResponseEntity<LogisticsObject> getLogisticsObject(OntoMeshId id, MediaType mediaType) {
 
         HttpHeaders headers = new HttpHeaders();
-        LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(id.uri());
+        LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(id.iri());
         String revision = String.valueOf(logisticsObjectService.getRevision(logisticsObject));
         log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), revision);
         headers.setContentType(mediaType);

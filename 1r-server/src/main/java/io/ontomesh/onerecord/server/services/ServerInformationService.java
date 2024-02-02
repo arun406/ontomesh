@@ -43,12 +43,12 @@ public class ServerInformationService {
 //        log.debug("data owner iri: {}", dataOwnerIri);
         InputStream inputStream = serverInfo.getInputStream();
         Model serverInfoModel = Rio.parse(inputStream, RDFFormat.JSONLD);
-        repository.persist(null, serverInfoModel); //TODO revisit
+        repository.persist(serverInfoModel); //TODO revisit
     }
 
     public LogisticsObject getServerInformation() {
         log.debug("Getting Server Information...");
-        return this.repository.findLoById(Values.iri("https://onerecord.ontomesh.com/"))
+        return this.repository.findLoById(Values.iri("http://1r.ontomesh.io/"))
                 .orElseThrow(() -> new ServerInfoNotFoundException("Server Information not defined."));
     }
 

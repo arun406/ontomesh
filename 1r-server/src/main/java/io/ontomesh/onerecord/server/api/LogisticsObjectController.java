@@ -1,5 +1,6 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
@@ -7,6 +8,7 @@ import io.ontomesh.onerecord.server.services.AuditTrailService;
 import io.ontomesh.onerecord.server.services.LogisticsObjectService;
 import io.ontomesh.onerecord.server.services.LogisticsObjectValidationService;
 import io.ontomesh.onerecord.server.services.SnapshotService;
+import io.ontomesh.onerecord.server.services.SubscriptionService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Locale;
 
 @Slf4j
@@ -37,10 +40,32 @@ public class LogisticsObjectController extends BaseController {
     @Autowired
     private LogisticsObjectValidationService validationService;
 
+    @Autowired
+    private SubscriptionService subscriptionService;
+
     public LogisticsObjectController(LogisticsObjectService logisticsObjectService,
                                      SnapshotService snapshotService, AuditTrailService auditTrailService,
                                      ActionRequestService actionRequestService) {
         super(logisticsObjectService, snapshotService, actionRequestService, auditTrailService);
+    }
+
+    @GetMapping(path = "/{loId}/subscriptions",
+            produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
+                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    private ResponseEntity<LogisticsObject> getLogisticsSubscriptions(HttpServletRequest httpServletRequest,
+                                                                      @PathVariable("loId") String loReferenceId) {
+        OntoMeshId loId = getLoId(loReferenceId);
+
+        LogisticsObject logisticsObject = this.subscriptionService
+                .getSubscriptionsByLoId(loId.iri());
+
+        //Last-Modified, Type, Location, Content-Type, Content-Language
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentLanguage(Locale.US);
+        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
+        headers.setLastModified(Instant.now());
+
+        return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
 
     /**
@@ -71,7 +96,6 @@ public class LogisticsObjectController extends BaseController {
         }
     }
 
-
     /**
      * Returns the audit trail.
      *
@@ -80,8 +104,9 @@ public class LogisticsObjectController extends BaseController {
     @GetMapping(path = "/{id}/audit-trail", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
             SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<LogisticsObject> findLogisticsObjectAudit(@RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
-                                                                    @PathVariable("id") String loReferenceId) {
+    public ResponseEntity<LogisticsObject> findLogisticsObjectAudit(
+            @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
+            @PathVariable("id") String loReferenceId) {
         OntoMeshId id = getLoId(loReferenceId);
         LogisticsObject logisticsObject = auditTrailService.getAuditTrail(id.uri());
 
@@ -114,9 +139,9 @@ public class LogisticsObjectController extends BaseController {
 
         this.logisticsObjectService.createLogisticsObject(logisticsObject);
 
-        URI loURI = URI.create(logisticsObject.iri().toString());
-
-        log.debug("Logistics Object IRI : {} of type {} is created successfully.", logisticsObject.iri(), logisticsObject.type());
+        URI loURI = logisticsObject.uri();
+        logisticsObject.print();
+        log.info("{} is created successfully.", logisticsObject);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(loURI);
@@ -124,7 +149,6 @@ public class LogisticsObjectController extends BaseController {
 
         return ResponseEntity.created(loURI).headers(headers).build();
     }
-
 
     /**
      * Update logistics objects

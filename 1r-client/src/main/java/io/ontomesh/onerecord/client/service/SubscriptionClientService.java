@@ -18,18 +18,22 @@ public class SubscriptionClientService {
 
     private final OneRecordWebClient client;
 
-    private final ModelToStringConverter modelToStringConverter;
-
     private final StringToModelConverter stringToModelConverter;
 
     public SubscriptionClientService(OneRecordWebClient client,
                                      @Qualifier("jsonLDToStringConverter") ModelToStringConverter modelToStringConverter,
                                      @Qualifier("stringToJsonLDConverter") StringToModelConverter stringToModelConverter) {
         this.client = client;
-        this.modelToStringConverter = modelToStringConverter;
         this.stringToModelConverter = stringToModelConverter;
     }
 
+    /**
+     * Initiate Subscription.
+     *
+     * @param topic
+     * @param topicType
+     * @return
+     */
     public Model initiateSubscription(IRI topic, IRI topicType) {
         Model subscriptionModel = new DynamicModelFactory().createEmptyModel();
         if (topic == null) {

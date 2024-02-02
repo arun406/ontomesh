@@ -11,25 +11,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationClientService {
 
-    private final OneRecordWebClient client;
+    private final OneRecordWebClient oneRecordWebClient;
 
     private final ModelToStringConverter converter;
 
-    public NotificationClientService(OneRecordWebClient client,
+    public NotificationClientService(OneRecordWebClient oneRecordWebClient,
                                      @Qualifier("jsonLDToStringConverter") ModelToStringConverter converter) {
-        this.client = client;
+        this.oneRecordWebClient = oneRecordWebClient;
         this.converter = converter;
-    }
-
-    public void sendNotification(Model notificationModel) {
-        if (notificationModel.isEmpty()) {
-            log.debug("nothing to send..exiting");
-            return;
-        }
-
-        String notificationMessage = getNotificationMessage(notificationModel);
-        log.debug("Notification message {}", notificationMessage);
-        this.client.sendNotification(notificationMessage);
     }
 
     /**
@@ -40,5 +29,21 @@ public class NotificationClientService {
      */
     private String getNotificationMessage(Model notificationModel) {
         return converter.convert(notificationModel);
+    }
+
+    /**
+     * Sends Notification.
+     *
+     * @param notificationModel
+     */
+    public void sendNotification(Model notificationModel) {
+        if (notificationModel.isEmpty()) {
+            log.debug("nothing to send..exiting");
+            return;
+        }
+
+        String notificationMessage = getNotificationMessage(notificationModel);
+        log.debug("Notification message {}", notificationMessage);
+        this.oneRecordWebClient.sendNotification(notificationMessage);
     }
 }

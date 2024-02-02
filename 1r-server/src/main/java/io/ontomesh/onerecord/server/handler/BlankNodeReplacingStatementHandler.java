@@ -1,6 +1,6 @@
 package io.ontomesh.onerecord.server.handler;
 
-import io.ontomesh.onerecord.server.api.IdProvider;
+import io.ontomesh.onerecord.server.common.IdProvider;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;

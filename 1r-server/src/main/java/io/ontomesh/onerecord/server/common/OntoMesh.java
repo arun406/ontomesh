@@ -51,6 +51,19 @@ public class OntoMesh {
      */
     public static final IRI hasLogisticsEvents;
 
+
+    /**
+     * hasNotificationEvents
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasNotificationEvents}.
+     * <p>
+     * Notification Events
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasNotificationEvents">hasNotificationEvents</a>
+     */
+    public static final IRI hasNotificationEvents;
+
+
     /**
      * Collection
      * <p>
@@ -182,12 +195,46 @@ public class OntoMesh {
     public static IRI hasTriggeredBy;
 
 
+    /**
+     * isInternal
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#isInternal}.
+     * <p>
+     * isInternal
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#isInternal">isInternal</a>
+     */
+    public static IRI isInternal;
+
+    /**
+     * notificationEvent
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#notificationEvent}.
+     * <p>
+     * notificationEvent
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#notificationEvent">notificationEvent</a>
+     */
+    public static IRI notificationEvent;
+
+    /**
+     * hasId
+     * <p>
+     * {@code https://onerecord.iata.org/ns/api#hasId}.
+     * <p>
+     * hasId
+     *
+     * @see <a href="https://onerecord.iata.org/ns/api#hasId">hasId</a>
+     */
+    public static IRI hasId;
+
     static {
         ValueFactory factory = SimpleValueFactory.getInstance();
         hasSnapshotDate = factory.createIRI(API.NAMESPACE, "hasSnapshotDate");
         hasDetails = factory.createIRI(API.NAMESPACE, "details");
         hasAttribute = factory.createIRI(API.NAMESPACE, "attribute");
         hasLogisticsEvents = factory.createIRI(API.NAMESPACE, "hasLogisticsEvents");
+        hasNotificationEvents = factory.createIRI(API.NAMESPACE, "hasNotificationEvents");
         Collection = factory.createIRI(API.NAMESPACE, "Collection");
         hasItems = factory.createIRI(API.NAMESPACE, "hasItems");
         hasTotalItems = factory.createIRI(API.NAMESPACE, "hasTotalItems");
@@ -199,5 +246,8 @@ public class OntoMesh {
         hasEventStatusPublished = factory.createIRI(API.NAMESPACE, "hasEventStatusPublished");
         hasEventStatusPending = factory.createIRI(API.NAMESPACE, "hasEventStatusPending");
         hasEventStatusNew = factory.createIRI(API.NAMESPACE, "hasEventStatusNew");
+        isInternal = factory.createIRI(API.NAMESPACE, "isInternal");
+        notificationEvent = factory.createIRI(API.NAMESPACE, "notificationEvent");
+        hasId = factory.createIRI(API.NAMESPACE, "hasId");
     }
 }

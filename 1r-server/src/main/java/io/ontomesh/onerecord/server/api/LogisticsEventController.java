@@ -1,5 +1,6 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.LogisticsEventService;
@@ -36,36 +37,6 @@ public class LogisticsEventController extends BaseController {
      */
     public LogisticsEventController(LogisticsEventService eventService) {
         super(eventService);
-    }
-
-    /**
-     * Saves the logistics event.
-     *
-     * @param loReferenceId
-     * @param logisticsEvent
-     * @param httpServletRequest
-     * @return
-     */
-    @PostMapping(value = "", consumes =
-            {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE},
-            produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<Void> saveLogisticsEvents(@PathVariable("loId") String loReferenceId,
-                                                    @RequestBody LogisticsObject logisticsEvent,
-                                                    HttpServletRequest httpServletRequest) {
-
-        OntoMeshId loId = getLoId(loReferenceId);
-        log.debug("LO ID {}", loId);
-        // validate loId.
-        IRI logisticsEventIRI = this.eventService.saveLogisticsEvent(loId.iri(), logisticsEvent);
-        log.debug("Logistics Event IRI {}", logisticsEventIRI);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Type", CARGO.LogisticsEvent.stringValue());
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
-
-        return ResponseEntity.created(URI.create(logisticsEventIRI.stringValue())).headers(headers).build();
     }
 
     /**
@@ -113,7 +84,7 @@ public class LogisticsEventController extends BaseController {
         OntoMeshId loId = getLoId(loReferenceId);
 
         LogisticsObject logisticsObject = this.eventService
-                .getLogisticsEventByLogisticsObject(loId.iri(), requestURI, eventType);
+                .getEventsByLogisticsObjectIRI(loId.iri(), requestURI, eventType);
 
         //Last-Modified, Type, Location, Content-Type, Content-Language
         HttpHeaders headers = new HttpHeaders();
@@ -122,5 +93,34 @@ public class LogisticsEventController extends BaseController {
         headers.setLastModified(Instant.now());
 
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
+    }
+
+    /**
+     * Saves the logistics event.
+     *
+     * @param logisticsEvent
+     * @param httpServletRequest
+     * @return
+     */
+    @PostMapping(consumes =
+            {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
+                    SemanticWebMediaType.TEXT_TURTLE_VALUE},
+            produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
+                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    public ResponseEntity<Void> saveLogisticsEvents(@RequestBody LogisticsObject logisticsEvent,
+                                                    HttpServletRequest httpServletRequest) {
+
+        StringBuffer requestURL = httpServletRequest.getRequestURL();
+        String loId = requestURL.substring(0, requestURL.lastIndexOf("/logistics-events"));
+        IRI loIRI = Values.iri(loId);
+        // validate loId.
+        IRI logisticsEventIRI = this.eventService.saveLogisticsEvent(loIRI, CARGO.LogisticsEvent, logisticsEvent);
+        log.debug("Logistics Event IRI {}", logisticsEventIRI);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Type", CARGO.LogisticsEvent.stringValue());
+        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
+
+        return ResponseEntity.created(URI.create(logisticsEventIRI.stringValue())).headers(headers).build();
     }
 }

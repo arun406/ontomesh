@@ -1,5 +1,6 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
@@ -76,11 +77,12 @@ public class ActionRequestController extends BaseController {
     public ResponseEntity<Void> update(@PathVariable("id") String actionRequestReference,
                                        @RequestParam(required = false, name = "status") String status) {
 
-        OntoMeshId actionRequestId = getActionRequestId(actionRequestReference);
         if (!StringUtils.hasText(status)) {
             throw new RuntimeException("status cannot be blank.");
         }
         IRI newStatus = Values.iri(status);
+        OntoMeshId actionRequestId = getActionRequestId(actionRequestReference);
+
         this.actionRequestService.updateStatus(actionRequestId.iri(), newStatus);
 
         HttpHeaders headers = new HttpHeaders();

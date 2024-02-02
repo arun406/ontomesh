@@ -1,8 +1,8 @@
 package io.ontomesh.onerecord.server.exception.handler;
 
+import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.domain.ErrorObject;
 import io.ontomesh.onerecord.server.exception.RevisionMissingException;
-import io.ontomesh.onerecord.server.common.OntoMesh;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.ModelBuilder;

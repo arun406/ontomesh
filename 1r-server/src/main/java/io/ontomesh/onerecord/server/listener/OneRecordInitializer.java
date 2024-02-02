@@ -12,17 +12,17 @@ import java.io.IOException;
 @Component
 @Order(0)
 @Slf4j
-public class OntomeshApplicationListener implements ApplicationListener<ApplicationReadyEvent> {
+public class OneRecordInitializer implements ApplicationListener<ApplicationReadyEvent> {
 
     private final ServerInformationService serverInformationService;
 
-    public OntomeshApplicationListener(ServerInformationService serverInformationService) {
+    public OneRecordInitializer(ServerInformationService serverInformationService) {
         this.serverInformationService = serverInformationService;
     }
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        log.debug("OntomeshApplicationListener#onApplicationEvent");
+        log.debug("OnerecordInitializer#onApplicationEvent");
         try {
             serverInformationService.createServerInformation();
         } catch (IOException e) {

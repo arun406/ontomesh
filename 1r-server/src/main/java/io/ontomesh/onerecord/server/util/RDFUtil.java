@@ -1,9 +1,11 @@
 package io.ontomesh.onerecord.server.util;
 
+import io.ontomesh.onerecord.server.common.LogOutputStream;
 import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.InvalidApiRequestException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -19,6 +21,7 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
+import org.slf4j.event.Level;
 import org.springframework.http.MediaType;
 
 import java.io.ByteArrayOutputStream;
@@ -41,7 +44,10 @@ import java.util.stream.Collectors;
  *
  * @author arun
  */
+@Slf4j
 public class RDFUtil {
+
+    private static final LogOutputStream logOutputStream = new LogOutputStream(log, Level.INFO);
 
     /**
      * Create IRI.
@@ -220,14 +226,14 @@ public class RDFUtil {
         if (model == null) {
             return;
         }
-        Rio.write(model, System.out, RDFFormat.TURTLE);
+        Rio.write(model, logOutputStream, RDFFormat.TURTLE);
     }
 
     public static void print(Model model, RDFFormat format) {
         if (model == null) {
             return;
         }
-        Rio.write(model, System.out, format);
+        Rio.write(model, logOutputStream, format);
     }
 
     public static Set<IRI> getObjects(IRI subject, IRI predicate, Model model) {
@@ -261,7 +267,6 @@ public class RDFUtil {
     }
 
 
-
     public static IRI getRootIri(Model model) {
         // set of all subject IRIs
         Set<IRI> subjectIris = Models.subjectIRIs(model);
@@ -280,6 +285,16 @@ public class RDFUtil {
         }
 
         return subjectIris.iterator().next();
+    }
+
+    public static IRI getObjectIRI(Model model, IRI subject, IRI predicate, boolean raiseException) {
+        if (!raiseException) {
+            return Models.objectIRI(model.filter(subject, predicate, null))
+                    .orElse(null);
+        } else {
+            return Models.objectIRI(model.filter(subject, predicate, null))
+                    .orElseThrow(() -> new RuntimeException("property not found."));
+        }
     }
 
     /**

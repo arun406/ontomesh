@@ -1,6 +1,6 @@
 package io.ontomesh.onerecord.server;
 
-import io.ontomesh.onerecord.server.api.IdProvider;
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.LogisticsObjectConverterService;

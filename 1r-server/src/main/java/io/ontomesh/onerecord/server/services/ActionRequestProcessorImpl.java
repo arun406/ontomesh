@@ -20,7 +20,80 @@ public class ActionRequestProcessorImpl implements ActionRequestProcessor {
 
     private final LogisticsObjectService logisticsObjectService;
     private final SubscriptionService subscriptionService;
-    private final SnapshotService snapshotService;
+
+    private static LogisticsObject createChange(Model model) {
+        Model changeModel = RDFUtil.getSubModel(model, API.hasChange);
+        IRI changeIRI = RDFUtil.getRootIri(changeModel);
+        log.debug("Change IRI {} and Type {} ", changeIRI, API.Change);
+        return new LogisticsObject(changeIRI, API.Change, changeModel);
+    }
+
+    private LogisticsObject getLogisticsObject(Model model, IRI iri) {
+
+        IRI logisticsObjectIRI = getLogisticsObjectIRI(model, iri);
+        log.info("Logistics Object IRI {}", logisticsObjectIRI);
+        if (logisticsObjectIRI == null) {
+            return null;
+        }
+        return logisticsObjectService.findLogisticsObject(logisticsObjectIRI);
+    }
+
+    private IRI getLogisticsObjectIRI(Model model, IRI iri) {
+        return Models.objectIRI(model.filter(iri, API.hasLogisticsObject, null))
+                .orElse(null);
+    }
+
+    private IRI getStatus(Model model, IRI iri) {
+        return Models.objectIRI(model.filter(iri, API.hasRequestStatus, null))
+                .orElse(null);
+    }
+
+    private IRI getTopicTypeIRI(Model model, IRI iri) {
+        return Models.objectIRI(model.filter(iri, API.hasTopicType, null))
+                .orElse(null);
+    }
+
+    private void processAccessDelegationRequest(LogisticsObject accessDelegationRequest) {
+
+    }
+
+    private void processChangeRequest(LogisticsObject changeRequest) {
+
+        LogisticsObject change = createChange(changeRequest.model());
+        LogisticsObject logisticsObject = getLogisticsObject(change.model(), change.iri());
+        if (logisticsObject == null) {
+            log.warn("Change request {} do not contain logisticsObject reference.", changeRequest.iri());
+            return;
+        }
+
+        logisticsObjectService.processChangeRequest(change, logisticsObject);
+    }
+
+    private void processSubscriptionRequest(LogisticsObject subscriptionRequest) {
+//        add event for subscription.
+//        API.SUBSCRIPTION_REQUEST_ACCEPTED,
+//        API.SUBSCRIPTION_REQUEST_REVOKED,
+//        API.SUBSCRIPTION_REQUEST_PENDING,
+//        API.SUBSCRIPTION_REQUEST_REJECTED,
+//        API.SUBSCRIPTION_REQUEST_FAILED,
+
+        Model model = subscriptionRequest.model();
+        IRI status = getStatus(model, subscriptionRequest.iri());
+        log.debug("Action request status : {}", status);
+
+        Model subscriptionModel = RDFUtil.getSubModel(model, API.hasSubscription);
+        IRI subscriptionIRI = RDFUtil.getRootIri(subscriptionModel);
+        log.debug("Subscription IRI {} and Type {} ", subscriptionIRI, API.Subscription);
+        LogisticsObject subscription = new LogisticsObject(subscriptionIRI, API.Subscription, subscriptionModel);
+        IRI topicTypeIRI = getTopicTypeIRI(subscriptionModel, subscriptionIRI);
+        if (topicTypeIRI == null) {
+            log.warn("Subscription Topic Type :{}", topicTypeIRI);
+            return;
+        }
+        if (topicTypeIRI.equals(API.LOGISTICS_OBJECT_IDENTIFIER)) {
+            this.subscriptionService.processSubscriptionRequest(subscription, status);
+        }
+    }
 
     /**
      * process the action request.
@@ -37,61 +110,5 @@ public class ActionRequestProcessorImpl implements ActionRequestProcessor {
         } else if (actionRequest.type().equals(API.AccessDelegationRequest)) {
             processAccessDelegationRequest(actionRequest);
         }
-    }
-
-    private void processAccessDelegationRequest(LogisticsObject accessDelegationRequest) {
-
-    }
-
-    private void processSubscriptionRequest(LogisticsObject subscriptionRequest) {
-//        add event for subscription.
-//        API.SUBSCRIPTION_REQUEST_ACCEPTED,
-//        API.SUBSCRIPTION_REQUEST_REVOKED,
-//        API.SUBSCRIPTION_REQUEST_PENDING,
-//        API.SUBSCRIPTION_REQUEST_REJECTED,
-//        API.SUBSCRIPTION_REQUEST_FAILED,
-
-        Model subscriptionRequestModel = subscriptionRequest.model();
-        IRI status = Models.objectIRI(subscriptionRequestModel.getStatements(subscriptionRequest.iri(), API.hasRequestStatus, null))
-                .orElse(null);
-        log.debug("Action request status : {}", status);
-
-        Model subscriptionModel = RDFUtil.getSubModel(subscriptionRequestModel, API.hasSubscription);
-        IRI subscriptionIRI = RDFUtil.getRootIri(subscriptionModel);
-        log.debug("Subscription IRI {} and Type {} ", subscriptionIRI, API.Subscription);
-        LogisticsObject subscription = new LogisticsObject(subscriptionIRI, API.Subscription, subscriptionModel);
-        IRI topicTypeIRI = Models.objectIRI(subscriptionModel.filter(subscriptionIRI, API.hasTopicType, null))
-                .orElse(null);
-        log.debug("Subscription Topic Type :{}", topicTypeIRI);
-        if (topicTypeIRI == null) {
-            return;
-        }
-        if (topicTypeIRI.equals(API.LOGISTICS_OBJECT_IDENTIFIER)) {
-            this.subscriptionService.processSubscriptionRequest(subscription, status);
-        }
-    }
-
-    private void processChangeRequest(LogisticsObject changeRequest) {
-
-        Model changeModel = RDFUtil.getSubModel(changeRequest.model(), API.hasChange);
-        IRI changeIRI = RDFUtil.getRootIri(changeModel);
-//        IRI changeType = RDFUtil.getType(changeModel, changeIRI);
-        log.debug("Change IRI {} and Type {} ", changeIRI, API.Change);
-
-        LogisticsObject change = new LogisticsObject(changeIRI, API.Change, changeModel);
-//        RDFUtil.print(change, RDFFormat.TURTLE);
-
-        IRI logisticsObjectIRI = Models
-                .objectIRI(changeModel.filter(changeIRI, API.hasLogisticsObject, null))
-                .orElse(null);
-
-        log.debug("Logistics Object IRI {}", logisticsObjectIRI);
-        if (logisticsObjectIRI == null) {
-            return;
-        }
-        LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(logisticsObjectIRI);
-        logisticsObjectService.processActionRequest(change, logisticsObject);
-        LogisticsObject snapshot = snapshotService.createSnapshot(logisticsObject);
-        log.debug("Snapshot with {} is created successfully.", snapshot.iri());
     }
 }

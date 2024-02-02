@@ -1,7 +1,7 @@
 package io.ontomesh.onerecord.server.services;
 
-import io.ontomesh.onerecord.server.api.IdProvider;
 import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.InvalidChangeOperationException;
 import io.ontomesh.onerecord.server.exception.InvalidRevisionException;
@@ -21,7 +21,6 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.iata.onerecord.api.API;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,28 +39,50 @@ import static io.ontomesh.onerecord.server.util.RDFUtil.getObjectLiteral;
 @Service
 public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
-    @Autowired
-    private LogisticsEventService logisticsEventService;
+    private final LogisticsEventService logisticsEventService;
+    private final SnapshotService snapshotService;
 
-    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider) {
+    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider, LogisticsEventService logisticsEventService, SnapshotService snapshotService) {
         super(repository, idProvider);
+        this.logisticsEventService = logisticsEventService;
+        this.snapshotService = snapshotService;
     }
 
-    @Transactional
-    public void createLogisticsObject(LogisticsObject logisticObject) {
+    public static NotificationEventType getNotificationEventType(IRI status) {
+        if (status.equals(API.REQUEST_ACCEPTED)) {
+            return NotificationEventType.CHANGE_REQUEST_ACCEPTED;
+        } else if (status.equals(API.REQUEST_REJECTED)) {
+            return NotificationEventType.CHANGE_REQUEST_REJECTED;
+        } else if (status.equals(API.REQUEST_REVOKED)) {
+            return NotificationEventType.CHANGE_REQUEST_REVOKED;
+        } else if (status.equals(API.REQUEST_FAILED)) {
+            return NotificationEventType.CHANGE_REQUEST_FAILED;
+        }
+        return NotificationEventType.CHANGE_REQUEST_PENDING;
+    }
 
-        validate(logisticObject);
-        // pre process
+    /**
+     * @param logisticsObject       logistics object.
+     * @param notificationEventType event type.
+     */
+    private void addEventToLogisticsObject(LogisticsObject logisticsObject, NotificationEventType notificationEventType) {
+        logisticsEventService.addEventToLogisticsObject(logisticsObject.iri(),
+                notificationEventType);
+    }
 
-        preProcess();
-        this.repository.persist(logisticObject.iri(), logisticObject.model());
-
-        // create and publish event.
-        logisticsEventService.addEventToLogisticsObject(logisticObject.iri(), NotificationEventType.LOGISTICS_OBJECT_CREATED);
-
-        //post process
-        postProcess();
-
+    private Map<String, IRI> getBlankNodeToIri(Model changeModel, Set<IRI> operationObjects, String operation) {
+        return operationObjects.stream()
+                .filter(iri -> {
+                    IRI object = getObject(iri, API.op, changeModel);
+                    return object.toString().equalsIgnoreCase(operation);
+                })
+                .map(subject -> getObjectLiteral(subject, API.s, changeModel).stringValue())
+                .filter(s -> s.startsWith("_:"))
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        this::resolveAddOperationIri,
+                        (iri, iri2) -> iri
+                ));
     }
 
     private void postProcess() {
@@ -70,110 +91,6 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
     private void preProcess() {
         log.info("invoked pre process.");
-    }
-
-    private void validate(LogisticsObject logisticObject) throws LogisticsObjectException {
-        boolean isValid = true;
-
-        if (!isValid) {
-            throw new LogisticsObjectException("Validation exception.");
-        }
-    }
-
-    @Transactional
-    public boolean isExists(IRI iri) {
-        Optional<LogisticsObject> optionalModel = this.repository.findLoById(iri);
-        return optionalModel.isPresent();
-    }
-
-
-    @Transactional
-    public Set<IRI> processActionRequest(LogisticsObject change, LogisticsObject logisticsObject) {
-        log.debug("Updating Logistics Object [{}]", logisticsObject.iri());
-
-        Model changeModel = change.model();
-
-        validateRevision(change, logisticsObject);
-
-        Set<IRI> changedProperties = new HashSet<>();
-        Set<Resource> affectedSubjects = new HashSet<>();
-
-        Set<IRI> operationObjects = RDFUtil.getObjects(change.iri(), API.hasOperation, changeModel);
-        processDeleteOperations(change, changedProperties, affectedSubjects, operationObjects);
-        processAddOperations(change, changedProperties, operationObjects);
-
-        // check if any subject that was affected by a delete operation now only has the "type" triple left
-        affectedSubjects.forEach(resource -> {
-            Model model = repository.getStatements(resource, null, null).stream()
-                    .collect(ModelCollector.toModel());
-            if (model.size() == 1 && Models.predicate(model.filter(resource, RDF.TYPE, null)).isPresent()) {
-                model.forEach(statement ->
-                        repository.delete(
-                                statement.getSubject(),
-                                statement.getPredicate(),
-                                statement.getObject()
-                        )
-                );
-            }
-        });
-        // increase the Logistics Object revision after successful change
-        updateLogisticObjectRevision(logisticsObject);
-        Model model = logisticsObject.model();
-        IRI iri = logisticsObject.iri();
-        Model revisionModel = model.filter(iri, API.hasRevision, null);
-        String revision = Models.objectString(revisionModel).orElse("unknown");
-        log.debug("latest revision {}", revision);
-        return changedProperties;
-    }
-
-    /**
-     * Updates the logistics object revision.
-     *
-     * @param logisticsObject logistics object id
-     */
-    private void updateLogisticObjectRevision(LogisticsObject logisticsObject) {
-
-        Model model = logisticsObject.model();
-        IRI iri = logisticsObject.iri();
-        Integer revision = getRevision(iri);
-        if (revision == null) return;
-        // First Remove the existing statement.
-        this.repository.delete(iri, API.hasRevision, Values.literal(revision));
-        //Add New statement
-        Literal newRevision = Values.literal(revision + 1);
-        this.repository.add(iri, API.hasRevision, newRevision);
-        // update the local object.
-        model.remove(iri, API.hasRevision, null);
-        model.add(iri, API.hasRevision, newRevision);
-    }
-
-
-    /**
-     * validates the latest logistics object revision with the change request revision.
-     *
-     * @param change          change request.
-     * @param logisticsObject logistics object.
-     */
-    private void validateRevision(LogisticsObject change, LogisticsObject logisticsObject) {
-
-        log.debug("logistics object iri :{}", logisticsObject.iri());
-
-        int changeRevision = getRevision(change);
-        int loRevision = getRevision(logisticsObject);
-        if (loRevision != changeRevision) {
-            throw new InvalidRevisionException(logisticsObject.iri());
-        }
-    }
-
-    /**
-     * returns the logistics object revision from the model.
-     *
-     * @param logisticsObject logistics object model.
-     * @return revision.
-     */
-    public int getRevision(LogisticsObject logisticsObject) {
-        Optional<Literal> optionalLiteral = Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), API.hasRevision, null));
-        return optionalLiteral.orElseThrow(() -> new RevisionMissingException(logisticsObject.iri())).intValue();
     }
 
     private void processAddOperations(LogisticsObject logisticsObject, Set<IRI> changedProperties, Set<IRI> operationObjects) {
@@ -265,21 +182,6 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         }
     }
 
-    private Map<String, IRI> getBlankNodeToIri(Model changeModel, Set<IRI> operationObjects, String operation) {
-        return operationObjects.stream()
-                .filter(iri -> {
-                    IRI object = getObject(iri, API.op, changeModel);
-                    return object.toString().equalsIgnoreCase(operation);
-                })
-                .map(subject -> getObjectLiteral(subject, API.s, changeModel).stringValue())
-                .filter(s -> s.startsWith("_:"))
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        this::resolveAddOperationIri,
-                        (iri, iri2) -> iri
-                ));
-    }
-
     private IRI resolveAddOperationIri(String value) {
         IRI iri;
         if (value.startsWith("_:")) {
@@ -290,5 +192,138 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         return iri;
     }
 
+    /**
+     * Updates the logistics object revision.
+     *
+     * @param logisticsObject logistics object id
+     */
+    private void updateLogisticObjectRevision(LogisticsObject logisticsObject) {
 
+        Model model = logisticsObject.model();
+        IRI iri = logisticsObject.iri();
+        Integer revision = getRevision(iri);
+        if (revision == null) {
+            return;
+        }
+        // First Remove the existing statement.
+        this.repository.delete(iri, API.hasRevision, Values.literal(revision));
+        //Add New statement
+        Literal newRevision = Values.literal(revision + 1);
+        this.repository.add(iri, API.hasRevision, newRevision);
+        // update the local object.
+        model.remove(iri, API.hasRevision, null);
+        model.add(iri, API.hasRevision, newRevision);
+    }
+
+    private void validate(LogisticsObject logisticObject) throws LogisticsObjectException {
+        boolean isValid = true;
+
+        if (!isValid) {
+            throw new LogisticsObjectException("Validation exception.");
+        }
+    }
+
+    /**
+     * validates the latest logistics object revision with the change request revision.
+     *
+     * @param change          change request.
+     * @param logisticsObject logistics object.
+     */
+    private void validateRevision(LogisticsObject change, LogisticsObject logisticsObject) {
+
+        log.debug("logistics object iri :{}", logisticsObject.iri());
+
+        int changeRevision = getRevision(change);
+        int loRevision = getRevision(logisticsObject);
+        if (loRevision != changeRevision) {
+            throw new InvalidRevisionException(logisticsObject.iri());
+        }
+    }
+
+    @Transactional
+    public void createLogisticsObject(LogisticsObject logisticsObject) {
+
+        validate(logisticsObject);
+        // pre process
+
+        preProcess();
+        this.repository.persist(logisticsObject.model());
+
+        // create and publish event.
+        addEventToLogisticsObject(logisticsObject, NotificationEventType.LOGISTICS_OBJECT_CREATED);
+
+        //post process
+        postProcess();
+
+    }
+
+    @Transactional
+    public boolean isExists(IRI iri) {
+        Optional<LogisticsObject> optionalModel = this.repository.findLoById(iri);
+        return optionalModel.isPresent();
+    }
+
+    public void processChangeRequest(LogisticsObject change, LogisticsObject logisticsObject) {
+
+
+        Set<IRI> changedProperties = processActionRequest(change, logisticsObject);
+
+        // create and publish event.
+        addEventToLogisticsObject(logisticsObject, NotificationEventType.LOGISTICS_OBJECT_UPDATED);
+
+        LogisticsObject snapshot = snapshotService.createSnapshot(logisticsObject);
+        log.info("Snapshot with {} is created successfully.", snapshot.iri());
+
+
+    }
+
+    @Transactional
+    public Set<IRI> processActionRequest(LogisticsObject change, LogisticsObject logisticsObject) {
+        log.debug("Updating [{}]", logisticsObject);
+
+        Model changeModel = change.model();
+
+        validateRevision(change, logisticsObject);
+
+        Set<IRI> changedProperties = new HashSet<>();
+        Set<Resource> affectedSubjects = new HashSet<>();
+
+        Set<IRI> operationObjects = RDFUtil.getObjects(change.iri(), API.hasOperation, changeModel);
+        processDeleteOperations(change, changedProperties, affectedSubjects, operationObjects);
+        processAddOperations(change, changedProperties, operationObjects);
+
+        // check if any subject that was affected by a delete operation now only has the "type" triple left
+        affectedSubjects.forEach(resource -> {
+            Model model = repository.getStatements(resource, null, null).stream()
+                    .collect(ModelCollector.toModel());
+            if (model.size() == 1 && Models.predicate(model.filter(resource, RDF.TYPE, null)).isPresent()) {
+                model.forEach(statement ->
+                        repository.delete(
+                                statement.getSubject(),
+                                statement.getPredicate(),
+                                statement.getObject()
+                        )
+                );
+            }
+        });
+        // increase the Logistics Object revision after successful change
+        updateLogisticObjectRevision(logisticsObject);
+        Model model = logisticsObject.model();
+        IRI iri = logisticsObject.iri();
+        Model revisionModel = model.filter(iri, API.hasRevision, null);
+        String revision = Models.objectString(revisionModel).orElse("unknown");
+        log.debug("latest revision {}", revision);
+        return changedProperties;
+    }
+
+    /**
+     * returns the logistics object revision from the model.
+     *
+     * @param logisticsObject logistics object model.
+     * @return revision.
+     */
+    public int getRevision(LogisticsObject logisticsObject) {
+        Optional<Literal> optionalLiteral = Models.objectLiteral(logisticsObject.model().filter(logisticsObject.iri(), API.hasRevision, null));
+        return optionalLiteral.orElseThrow(() -> new RevisionMissingException(logisticsObject.iri())).intValue();
+    }
 }

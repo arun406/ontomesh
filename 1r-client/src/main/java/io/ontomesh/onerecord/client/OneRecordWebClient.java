@@ -42,6 +42,12 @@ public class OneRecordWebClient {
         this.webClient = createDefaultClient(baseUrl);
     }
 
+    /**
+     * Creates the Default Client.
+     *
+     * @param baseUrl
+     * @return
+     */
     private WebClient createDefaultClient(String baseUrl) {
 
         HttpClient httpClient = HttpClient.create()
@@ -73,6 +79,12 @@ public class OneRecordWebClient {
                 .build();
     }
 
+
+    /**
+     * Sends Notification.
+     *
+     * @param notification Notification.
+     */
     public void sendNotification(String notification) {
         OneRecordClientExceptionHandler handler = new OneRecordClientExceptionHandler();
 
@@ -89,6 +101,13 @@ public class OneRecordWebClient {
 
     }
 
+    /**
+     * Initiate Subscription.
+     *
+     * @param topic
+     * @param topicType
+     * @return
+     */
     public String initiateSubscription(IRI topic, IRI topicType) {
 
         OneRecordClientExceptionHandler exceptionHandler = new OneRecordClientExceptionHandler();

@@ -26,8 +26,6 @@ public class NotificationController extends BaseController {
             produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
                     SemanticWebMediaType.TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> handleNotification(@RequestBody LogisticsObject logisticsObject) {
-
-
         RDFUtil.print(logisticsObject);
         return ResponseEntity.noContent().build();
     }
