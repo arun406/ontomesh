@@ -1,73 +1,61 @@
-organizations:
-  - name: Test Airline
-    type: airline
-    identifier: http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda
-  - name: Test GHA
-    type: gha
-    identifier: http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda
-  - name: Test Forwarder
-    type: forwarder
-    identifier: http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbdb
-
+logging:
+  level:
+    io:
+      ontomesh:
+        onerecord:
+          server: INFO
+    org:
+      eclipse:
+        rdf4j:
+          spring: ERROR
+          spring.operationlog.log.slf4: ERROR
+    root: INFO
 onerecord:
+  client:
+    events-topic: logistics-events
+    events-topic-group-id: group-id-01
+    id: 'null'
   server:
     host: ${SERVER_HOST:1r.ontomesh.io}
     internalIriScheme: ontomesh
     port: ${SERVER_PORT:8085}
     scheme: ${PROTOCOL:http}
     subscription:
+      include-subscription-event-type: https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED, https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED, https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED
+      notify-request-status-change: false
       send-logistics-object-body: false
       subscribe-to-logistics-events: false
-      notify-request-status-change: false
-      include-subscription-event-type: >
-        https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED,
-        https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED,
-        https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED
-  client:
-    id:
-    events-topic: logistics-events
-    events-topic-group-id: group-id-01
-
 org:
   eclipse:
     rdf4j:
       repository:
         debug: true
+organizations: '[{name=Test Airline, type=airline, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
+    {name=Test GHA, type=gha, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
+    {name=Test Forwarder, type=forwarder, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbdb}]'
 rdf4j:
   spring:
-    uuidsource:
-      predictable:
-        enabled: true
-    resultcache:
-      enabled: true
     operationlog:
+      enabled: true
       jmx:
         enabled: true
-      enabled: true
     pool:
       enabled: true
     repository:
       remote:
         manager-url: http://localhost:8080/rdf4j-server
         name: ontomesh
-        username: admin
         password: admin
-    #      inmemory:
-    #        enabled: true
+        username: admin
+    resultcache:
+      enabled: true
     tx:
       enabled: true
-
+    uuidsource:
+      predictable:
+        enabled: true
+server:
+  port: ${SERVER_PORT:8085}
 spring:
   config:
     import: 'optional:configserver:'
-
-logging:
-  level:
-    root: INFO
-    "io.ontomesh.onerecord.server": INFO
-    "org.eclipse.rdf4j.spring.operationlog.log.slf4": ERROR
-    "org.eclipse.rdf4j.spring": ERROR
-
-
-server:
-  port: ${SERVER_PORT:8085}
