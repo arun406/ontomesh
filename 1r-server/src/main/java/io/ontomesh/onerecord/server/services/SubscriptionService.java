@@ -42,15 +42,16 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
 
     private final LogisticsEventService logisticsEventService;
 
-    @Value("${subscriptions.send-logistics-object-body:false}")
+    @Value("${onerecord.server.subscriptions.send-logistics-object-body:false}")
     private boolean sendLogisticsObjectBody;
 
-    @Value("${subscriptions.subscribe-to-logistics-events:true}")
+    @Value("${onerecord.server.subscriptions.subscribe-to-logistics-events:true}")
     private boolean subscribeToLogisticsEvents;
-    @Value("${subscriptions.notify-request-status-change:true}")
+
+    @Value("${onerecord.server.subscriptions.notify-request-status-change:true}")
     private boolean notifyRequestStatusChange;
 
-    @Value("${subscriptions.include-subscription-event-type:}")
+    @Value("${onerecord.server.subscriptions.include-subscription-event-type:}")
     private String[] includeSubscriptionEventType;
 
     public SubscriptionService(LogisticsObjectRepository repository, IdProvider idProvider,
@@ -64,7 +65,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
                 .orElse(null);
     }
 
-    public static List<String> contentTypes() {
+    private List<String> contentTypes() {
         return List.of(APPLICATION_JSON_LD_VALUE);
     }
 
@@ -122,20 +123,22 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
      */
     public LogisticsObject createSubscriptionProposalResponse(IRI topic, IRI topicType) {
 
-        IRI subscriptionIRI = idProvider.createUniqueSubscriptionUri().iri();
+        IRI subscriptionIRI = getIdProvider().createUniqueSubscriptionUri().iri();
         ModelBuilder modelBuilder = new ModelBuilder()
                 .subject(subscriptionIRI)
                 .add(RDF.TYPE, API.Subscription)
-                .add(API.hasSubscriber, idProvider.tenant())
+                .add(API.hasSubscriber, getIdProvider().tenant())
                 .add(API.hasTopic, topic)
                 .add(API.hasTopicType, topicType)
                 .add(API.notifyRequestStatusChange, Values.literal(notifyRequestStatusChange))
                 .add(API.expiresAt, Values.literal(Instant.now().toString(), CoreDatatype.XSD.DATETIME))
                 .add(API.sendLogisticsObjectBody, Values.literal(sendLogisticsObjectBody));
+
         contentTypes()
                 .forEach(contentType -> modelBuilder.add(API.hasContentType, Values.literal(contentType)));
+
         includeSubscriptionEventType()
-                .forEach(type -> modelBuilder.add("api:includeSubscriptionEventType", type));
+                .forEach(type -> modelBuilder.add(API.includeSubscriptionEventType, type));
         Model model = modelBuilder.build();
 
         return new LogisticsObject(subscriptionIRI, RDFUtil.getType(model, subscriptionIRI), model);
@@ -144,8 +147,8 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     /**
      * Process the Subscription Request.
      *
-     * @param subscription
-     * @param status
+     * @param subscription subscription
+     * @param status       subscription status
      */
     public void processSubscriptionRequest(LogisticsObject subscription, IRI status) {
         log.debug("processSubscriptionRequest is invoked.");
@@ -175,7 +178,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
                 .subject(subject)
                 .add(RDF.TYPE, OntoMesh.Collection);
 
-        RepositoryResult<Statement> repositoryResult = this.repository
+        RepositoryResult<Statement> repositoryResult = this.getRepository()
                 .getStatements(null, API.hasTopic, loType);
 
         List<Statement> statementList = repositoryResult.stream().toList();
@@ -222,7 +225,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
                 .subject(subject)
                 .add(RDF.TYPE, OntoMesh.Collection);
 
-        RepositoryResult<Statement> repositoryResult = this.repository
+        RepositoryResult<Statement> repositoryResult = this.getRepository()
                 .getStatements(null, API.hasTopic, logisticsObjectIRI);
 
         List<Statement> statementList = repositoryResult.stream().toList();
@@ -230,7 +233,6 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
         int counter = 0;
         for (Statement statement : statementList) {
             if (statement.getObject().isIRI()) {
-                log.debug("Logistics Subscription IRI {}", statement.getObject());
 
                 LogisticsObject subscription = getSubscription((IRI) statement.getSubject());
                 counter++;
@@ -256,7 +258,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
      */
     public LogisticsObject getSubscription(IRI subscriptionIRI) {
 
-        Optional<LogisticsObject> logisticsObjectOptional = this.repository
+        Optional<LogisticsObject> logisticsObjectOptional = this.getRepository()
                 .findLoById(subscriptionIRI, OntoMeshId::isInternalIri);
 
         return logisticsObjectOptional
@@ -267,7 +269,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     public List<IRI> getSubscribersForLoId(IRI loId) {
         List<IRI> subscribers = new ArrayList<>();
 
-        TupleQuery tupleQuery = this.repository.connection.prepareTupleQuery("PREFIX api:  <https://onerecord.iata.org/ns/api#>\n" +
+        TupleQuery tupleQuery = this.getRepository().connection.prepareTupleQuery("PREFIX api:  <https://onerecord.iata.org/ns/api#>\n" +
                 "\n" +
                 "SELECT  ?subscriber \n" +
                 "WHERE\n" +
@@ -283,7 +285,6 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
         while (evaluate.hasNext()) {
             BindingSet next = evaluate.next();
             for (Binding binding : next) {
-                log.info("name: {}, value : {} ", binding.getName(), binding.getValue());
                 subscribers.add((IRI) binding.getValue());
             }
         }
@@ -308,7 +309,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
                 "}";
 
         log.info("tuple query {}", tupleQueryString);
-        TupleQuery tupleQuery = this.repository.connection.prepareTupleQuery(tupleQueryString);
+        TupleQuery tupleQuery = this.getRepository().connection.prepareTupleQuery(tupleQueryString);
         TupleQueryResult evaluate = tupleQuery.evaluate();
         while (evaluate.hasNext()) {
             BindingSet next = evaluate.next();

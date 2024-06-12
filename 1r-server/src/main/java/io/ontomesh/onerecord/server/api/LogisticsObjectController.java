@@ -32,6 +32,8 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Locale;
 
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
+
 @Slf4j
 @RestController
 @RequestMapping("/logistics-objects")
@@ -50,8 +52,8 @@ public class LogisticsObjectController extends BaseController {
     }
 
     @GetMapping(path = "/{loId}/subscriptions",
-            produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE,
+                    TEXT_TURTLE_VALUE})
     private ResponseEntity<LogisticsObject> getLogisticsSubscriptions(HttpServletRequest httpServletRequest,
                                                                       @PathVariable("loId") String loReferenceId) {
         OntoMeshId loId = getLoId(loReferenceId);
@@ -78,9 +80,9 @@ public class LogisticsObjectController extends BaseController {
      *                           if the parameter is not set, a linked version of the Logistics Object is returned
      * @return Logistics Object
      */
-    @GetMapping(path = "/{id}", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
-            SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-            SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    @GetMapping(path = "/{id}", produces = {APPLICATION_JSON_LD_VALUE,
+            APPLICATION_TURTLE_VALUE,
+            TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> findLogisticsObject(HttpServletRequest httpServletRequest,
                                                                @PathVariable("id") String loReferenceId,
                                                                @RequestParam(required = false, name = "at") String at,
@@ -101,9 +103,9 @@ public class LogisticsObjectController extends BaseController {
      *
      * @return logistics object audit.
      */
-    @GetMapping(path = "/{id}/audit-trail", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
-            SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-            SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    @GetMapping(path = "/{id}/audit-trail", produces = {APPLICATION_JSON_LD_VALUE,
+            APPLICATION_TURTLE_VALUE,
+            TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> findLogisticsObjectAudit(
             @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
             @PathVariable("id") String loReferenceId) {
@@ -112,7 +114,7 @@ public class LogisticsObjectController extends BaseController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentLanguage(Locale.US);
-        headers.setContentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : SemanticWebMediaType.APPLICATION_JSON_LD);
+        headers.setContentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : APPLICATION_JSON_LD);
 
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
@@ -123,11 +125,9 @@ public class LogisticsObjectController extends BaseController {
      * @param logisticsObject logistics object
      * @return void
      */
-    @PostMapping(consumes =
-            {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE},
-            produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    @PostMapping(
+            consumes = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE},
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<Void> saveLogisticsObject(@RequestBody LogisticsObject logisticsObject) {
 
         boolean hasId = isIdPresent(logisticsObject);
@@ -137,7 +137,7 @@ public class LogisticsObjectController extends BaseController {
         removeMarkerPredicate(logisticsObject);
         addRevisionToLO(logisticsObject);
 
-        this.logisticsObjectService.createLogisticsObject(logisticsObject);
+        getLogisticsObjectService().createLogisticsObject(logisticsObject);
 
         URI loURI = logisticsObject.uri();
         logisticsObject.print();
@@ -157,9 +157,9 @@ public class LogisticsObjectController extends BaseController {
      * @param loReferenceId logistics objects loReferenceId.
      * @return void
      */
-    @PatchMapping(path = "/{id}", consumes = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE},
-            produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    @PatchMapping(path = "/{id}", consumes = {APPLICATION_JSON_LD_VALUE},
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE,
+                    TEXT_TURTLE_VALUE})
     public ResponseEntity<Void> updateLogisticObject(@RequestBody LogisticsObject change,
                                                      @PathVariable("id") String loReferenceId) {
 
@@ -168,10 +168,11 @@ public class LogisticsObjectController extends BaseController {
         IRI actionRequest = this.actionRequestService.createActionRequest(change, API.ChangeRequest);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
-        headers.setLocation(URI.create(actionRequest.stringValue()));
-        headers.add("Type", API.hasChangeRequest.stringValue());
+        headers.setContentType(APPLICATION_JSON_LD);
+        URI location = URI.create(actionRequest.stringValue());
+        headers.setLocation(location);
+        headers.add("Type", API.ChangeRequest.stringValue());
 
-        return ResponseEntity.noContent().headers(headers).build();
+        return ResponseEntity.created(location).headers(headers).build();
     }
 }

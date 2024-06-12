@@ -44,14 +44,14 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
     }
 
     private void save(LogisticsObject auditTrail) {
-        this.repository.persist(auditTrail.model());
+        this.getRepository().persist(auditTrail.model());
     }
 
     /**
      * @param auditTrailId audit trail id.
      */
     private void updateLatestRevision(IRI auditTrailId) {
-        RepositoryResult<Statement> statements = this.repository.getStatements(auditTrailId, API.hasLatestRevision, null);
+        RepositoryResult<Statement> statements = this.getRepository().getStatements(auditTrailId, API.hasLatestRevision, null);
         if (statements == null) {
             return;
         }
@@ -59,9 +59,9 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
         if (next.getObject().isLiteral()) {
             int revision = Integer.parseInt(next.getObject().stringValue());
             // First Remove the existing statement.
-            this.repository.delete(auditTrailId, API.hasLatestRevision, Values.literal(revision));
+            this.getRepository().delete(auditTrailId, API.hasLatestRevision, Values.literal(revision));
             //Add New statement
-            this.repository.add(auditTrailId, API.hasLatestRevision, Values.literal(revision + 1));
+            this.getRepository().add(auditTrailId, API.hasLatestRevision, Values.literal(revision + 1));
         }
     }
 
@@ -77,7 +77,7 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
 
         IRI auditTrailId = getAuditIri(URI.create(logisticsObjectIRI.toString()));
 
-        LogisticsObject auditTrail = this.repository.findLoById(auditTrailId, OntoMeshId::findParentOnly)
+        LogisticsObject auditTrail = this.getRepository().findLoById(auditTrailId, OntoMeshId::findParentOnly)
                 .orElseGet(() -> this.create(auditTrailId, changeRequestIRI));
         auditTrail.model().add(auditTrail.iri(), API.hasChangeRequest, changeRequestIRI);
         save(auditTrail);
@@ -103,7 +103,7 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
     @Transactional
     public void updateChangeRequestStatus(IRI changeRequestId, IRI requestStatus) {
 
-        RepositoryResult<Statement> statements = this.repository
+        RepositoryResult<Statement> statements = this.getRepository()
                 .getStatements(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
 
         if (statements == null || !statements.hasNext()) {
@@ -112,9 +112,9 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
         Statement next = statements.next();
         if (next.getObject().isIRI()) {
             // First Remove the existing statement.
-            this.repository.delete(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
+            this.getRepository().delete(changeRequestId, API.hasRequestStatus, REQUEST_PENDING);
             //Add New statement
-            this.repository.add(changeRequestId, API.hasRequestStatus, requestStatus);
+            this.getRepository().add(changeRequestId, API.hasRequestStatus, requestStatus);
         }
     }
 //
@@ -150,7 +150,7 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
      * @return
      */
     public IRI saveError(ErrorObject errorObject) {
-        this.repository.persist(errorObject.errorModel());
+        this.getRepository().persist(errorObject.errorModel());
         return errorObject.iri();
     }
 
@@ -163,13 +163,13 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
     public LogisticsObject getAuditTrail(URI auditTrailId) {
         IRI auditIri = getAuditIri(auditTrailId);
         log.info("audit trail id {}", auditIri);
-        return this.repository.findLoById(auditIri,
-                        (iri) -> OntoMeshId.isValidIri(iri, idProvider.getLogisticsObjectBaseIRI()))
+        return this.getRepository().findLoById(auditIri,
+                        (iri) -> OntoMeshId.isValidIri(iri, getIdProvider().getLogisticsObjectBaseIRI()))
                 .orElseThrow(() -> new LogisticsObjectNotFoundException(auditIri, "Audit Trail not found."));
     }
 
     public void addError(IRI changeRequestIRI, ErrorObject errorObject) {
         IRI iri = this.saveError(errorObject);
-        this.repository.add(changeRequestIRI, API.hasError, errorObject.iri());
+        this.getRepository().add(changeRequestIRI, API.hasError, errorObject.iri());
     }
 }

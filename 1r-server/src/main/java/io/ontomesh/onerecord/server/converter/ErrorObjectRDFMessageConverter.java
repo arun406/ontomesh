@@ -24,6 +24,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -81,7 +83,9 @@ public class ErrorObjectRDFMessageConverter extends AbstractHttpMessageConverter
         if (selectedContentType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
             IRI type = RDFUtil.getType(errorObject.errorModel(), errorObject.iri());
             rdfString = JsonldUtil.jsonLdToString(rdfString, true, type);
-            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), JsonldUtil.getContext(), new JsonLdOptions());
+            Map<String, Map<String, String>> context = JsonldUtil.getContext();
+            context = new HashMap<>();
+            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), context, new JsonLdOptions());
             rdfString = JsonUtils.toPrettyString(compact);
         }
         StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());

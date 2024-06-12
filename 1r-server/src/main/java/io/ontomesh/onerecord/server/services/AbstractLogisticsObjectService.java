@@ -1,35 +1,29 @@
 package io.ontomesh.onerecord.server.services;
 
+import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
+import io.ontomesh.onerecord.server.exception.LogisticsObjectException;
 import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
-import io.ontomesh.onerecord.server.exception.RevisionMissingException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.iata.onerecord.api.API;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
-import java.util.Optional;
 import java.util.function.Predicate;
 
+@Getter
 @Slf4j
 public abstract class AbstractLogisticsObjectService {
 
-    public final LogisticsObjectRepository repository;
-    public final IdProvider idProvider;
-
-    @Autowired
-    public ServerInformationService serverInformationService;
+    private final LogisticsObjectRepository repository;
+    private final IdProvider idProvider;
 
     protected AbstractLogisticsObjectService(LogisticsObjectRepository repository,
                                              IdProvider idProvider) {
@@ -37,37 +31,6 @@ public abstract class AbstractLogisticsObjectService {
         this.idProvider = idProvider;
     }
 
-    /**
-     * returns the snapshot version.
-     *
-     * @param logisticsObject logistics object.
-     * @return logistics object revision
-     */
-    public int getRevision(LogisticsObject logisticsObject) {
-        Model model = logisticsObject.model();
-        IRI iri = logisticsObject.iri();
-        Optional<Literal> optionalLiteral = Models.objectLiteral(model.filter(iri, API.hasRevision, null));
-        return optionalLiteral.orElseThrow(() -> new RevisionMissingException(iri)).intValue();
-    }
-
-    /**
-     * Latest logistics object revision from the repository by iri.
-     *
-     * @param iri logistics object id.
-     * @return revision.
-     */
-    public Integer getRevision(IRI iri) {
-        RepositoryResult<Statement> statements = this.repository
-                .getStatements(iri, API.hasRevision, null);
-        if (statements == null) {
-            return null;
-        }
-        Statement next = statements.next();
-        if (!next.getObject().isLiteral()) {
-            return null;
-        }
-        return Integer.parseInt(next.getObject().stringValue());
-    }
 
     protected int isTypePredicate(IRI iri1) {
         return iri1.toString().compareTo(RDF.TYPE.toString());
@@ -101,11 +64,37 @@ public abstract class AbstractLogisticsObjectService {
      * Returns the Logistics Object Type.
      *
      * @param loId Logistics Object IRI.
-     * @return
+     * @return Logistics Object Type
      */
     public IRI getType(IRI loId) {
-        return Models.objectIRI(this.repository.getStatements(loId, RDF.TYPE, null))
+        return Models.objectIRI(getRepository().getStatements(loId, RDF.TYPE, null))
                 .orElseThrow(() -> new RuntimeException("Unable to get Logistics Object Type."));
+    }
+
+    protected void createLogisticsObject(LogisticsObject logisticsObject) {
+        getRepository().persist(logisticsObject.model());
+    }
+
+    /**
+     * Validates Logistics Object
+     *
+     * @param logisticObject logistics Object
+     * @throws LogisticsObjectException exception.
+     */
+    protected void validate(LogisticsObject logisticObject) throws LogisticsObjectException {
+        boolean isValid = true;
+
+        if (!isValid) {
+            throw new LogisticsObjectException("Validation exception.");
+        }
+    }
+
+    /**
+     * @param logisticsObject       logistics object.
+     * @param notificationEventType event type.
+     */
+    protected void addEventToLogisticsObject(LogisticsObject logisticsObject, NotificationEventType notificationEventType) {
+//        logisticsEventService.addEventToLogisticsObject(logisticsObject.iri(), notificationEventType);
     }
 
 }

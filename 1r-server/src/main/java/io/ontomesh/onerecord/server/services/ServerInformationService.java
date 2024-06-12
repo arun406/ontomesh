@@ -39,32 +39,19 @@ public class ServerInformationService {
     public void createServerInformation() throws IOException {
 
         log.debug("creating the server information from the resource...");
-//        IRI dataOwnerIri = idProvider.getUriForLoId("_data-owner").iri();
-//        log.debug("data owner iri: {}", dataOwnerIri);
         InputStream inputStream = serverInfo.getInputStream();
         Model serverInfoModel = Rio.parse(inputStream, RDFFormat.JSONLD);
         repository.persist(serverInfoModel); //TODO revisit
     }
 
-    public LogisticsObject getServerInformation() {
-        log.debug("Getting Server Information...");
-        return this.repository.findLoById(Values.iri("http://1r.ontomesh.io/"))
+    public LogisticsObject getServerInformation(String url) {
+        log.info("Getting Server Information of {}", url);
+        return this.repository.findLoById(Values.iri(url))
                 .orElseThrow(() -> new ServerInfoNotFoundException("Server Information not defined."));
     }
 
-    //    /**
-//     * returns the supported logistics type IRIs.
-//     *
-//     * @return
-//     */
-//    public Set<IRI> getSupportedLogisticTypes() {
-//        LogisticsObject logisticsObject = getServerInformation();
-//        return Models.objectStrings(logisticsObject.model()
-//                        .filter(logisticsObject.iri(), API.hasSupportedLogisticsObjectType, null))
-//                .stream().map(Values::iri).collect(Collectors.toSet());
-//    }
     public IRI getTenant() {
-        LogisticsObject serverInformation = getServerInformation();
+        LogisticsObject serverInformation = getServerInformation("http://1r.ontomesh.io/");
         return Models.objectIRI(serverInformation.model().filter(serverInformation.iri(), API.hasDataHolder, null))
                 .orElseThrow(() -> new MissingDataHolderException("Data holder is not defined for the server information."));
     }

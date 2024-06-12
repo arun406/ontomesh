@@ -2,6 +2,8 @@ package io.ontomesh.onerecord.server.services;
 
 import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
 import io.ontomesh.onerecord.server.common.IdProvider;
+import io.ontomesh.onerecord.server.common.OntoMeshId;
+import io.ontomesh.onerecord.server.domain.ActionRequest;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
@@ -22,12 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 
 @Slf4j
 @Service
 public class ActionRequestService extends AbstractLogisticsObjectService {
-
 
     /**
      * Logistics Event Service.
@@ -40,11 +42,10 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
     private final ActionRequestProcessor actionRequestProcessor;
 
     /**
-     * @param repository
-     * @param idProvider
+     * @param repository repository
+     * @param idProvider id Provider
      */
-    protected ActionRequestService(LogisticsObjectRepository repository, IdProvider idProvider,
-                                   LogisticsEventService logisticsEventService,
+    protected ActionRequestService(LogisticsObjectRepository repository, IdProvider idProvider, LogisticsEventService logisticsEventService,
                                    ActionRequestProcessor actionRequestProcessor) {
         super(repository, idProvider);
         this.logisticsEventService = logisticsEventService;
@@ -95,13 +96,12 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
             logisticsObjectIRI = SubscriptionService.getTopicIRI(subscriptionModel, subscriptionIRI);
             notificationEventType = SubscriptionService.getNotificationEventType(status);
         }
-        log.info("Logistics Object IRI {}", logisticsObjectIRI);
         if (logisticsObjectIRI == null) {
             return;
         }
 
-        this.logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI,
-                notificationEventType);
+        assert notificationEventType != null;
+        this.logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI, notificationEventType);
     }
 
     private IRI getLogisticsObjetIRI(Model model, IRI iri) {
@@ -120,7 +120,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
     }
 
     private void saveActionRequestModel(Model actionRequestModel) {
-        this.repository.persist(actionRequestModel);
+        this.getRepository().persist(actionRequestModel);
     }
 
     /**
@@ -131,7 +131,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
      * @param newStatus     new status iri.
      */
     private void updateStatus(IRI iri, IRI currentStatus, IRI newStatus) {
-        this.repository.update(iri, API.hasRequestStatus, currentStatus, newStatus);
+        this.getRepository().update(iri, API.hasRequestStatus, currentStatus, newStatus);
     }
 
     private void validateActionRequestType(IRI type) {
@@ -152,8 +152,8 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
     public IRI createActionRequest(LogisticsObject request, IRI type) {
         validateActionRequestType(type);
         Model requestModel = request.model();
-        IRI actionRequestID = idProvider.createUniqueActionRequestUri().iri();
-        IRI requestedBy = idProvider.createUniqueLoUri().iri();
+        IRI actionRequestID = getIdProvider().createUniqueActionRequestUri().iri();
+        IRI requestedBy = getIdProvider().createUniqueLoUri().iri();
 
         Model actionRequestModel = new ModelBuilder()
                 .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
@@ -181,13 +181,14 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
     }
 
     /**
-     * @param iri
-     * @return
+     * @param iri Logistics Object IRI
+     * @return Logistics Object
      */
     public LogisticsObject get(IRI iri) {
 
-        Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(API.hasLogisticsObject) || statement.getPredicate().equals(API.hasTopic));
-        return this.repository
+        Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(API.hasLogisticsObject)
+                || statement.getPredicate().equals(API.hasTopic));
+        return this.getRepository()
                 .findLoById(iri, predicate)
                 .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "Action request with iri " + iri + " not found."));
     }
@@ -224,7 +225,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
         if (logisticsObjectIRI == null) {
             return;
         }
-        this.logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI,
+        logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI,
                 NotificationEventType.valueOf(status));
     }
 
@@ -249,5 +250,22 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
 
         // add Event
         addEventToLogisticsObject(model, iri, actionRequest.type(), newStatus);
+    }
+
+    /**
+     * Returns action request by OntoMeshID.
+     *
+     * @param id ontomesh id
+     * @return logistics object
+     */
+    public LogisticsObject get(OntoMeshId id) {
+        if (id.iri() != null) {
+            return get(id.iri());
+        }
+        return null;
+    }
+
+    public List<ActionRequest> listAll(IRI type, int limit, int offset, IRI status) {
+        return this.getRepository().listLogisticsObject(type, limit, offset, status);
     }
 }

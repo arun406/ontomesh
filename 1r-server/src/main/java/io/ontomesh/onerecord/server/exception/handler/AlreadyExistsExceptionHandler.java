@@ -32,7 +32,7 @@ public class AlreadyExistsExceptionHandler extends AbstractExceptionHandler<Alre
                 .subject(errorIRI)
                 .add(RDF.TYPE, API.Error)
                 .add(API.hasTitle, Values.literal("Logistic Object Already Exists"))
-                .add(OntoMesh.hasDetails, errorDetailsIRI)
+                .add(API.hasErrorDetail, errorDetailsIRI)
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())

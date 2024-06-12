@@ -2,7 +2,6 @@ package io.ontomesh.onerecord.server.adapter;
 
 import io.ontomesh.onerecord.server.domain.ErrorObject;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.AuditTrailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -19,7 +18,7 @@ public class OneRecordResponseBodyAdviceAdapter implements ResponseBodyAdvice<Ob
 
     private final HttpServletRequest httpServletRequest;
 
-    public OneRecordResponseBodyAdviceAdapter(HttpServletRequest httpServletRequest, AuditTrailService auditTrailService) {
+    public OneRecordResponseBodyAdviceAdapter(HttpServletRequest httpServletRequest) {
         this.httpServletRequest = httpServletRequest;
     }
 
@@ -35,7 +34,6 @@ public class OneRecordResponseBodyAdviceAdapter implements ResponseBodyAdvice<Ob
                                   Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request, ServerHttpResponse response) {
         if (httpServletRequest.getMethod().equals("PATCH")) {
-//            log.debug("Change Request IRI: {}", httpServletRequest.getAttribute("changeRequestIRI"));
 //            IRI changeRequestIRI = (IRI) httpServletRequest.getAttribute("changeRequestIRI");
 
             if (body instanceof LogisticsObject logisticsObject) {

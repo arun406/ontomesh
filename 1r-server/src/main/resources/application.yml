@@ -1,14 +1,8 @@
 logging:
   level:
-    io:
-      ontomesh:
-        onerecord:
-          server: INFO
-    org:
-      eclipse:
-        rdf4j:
-          spring: ERROR
-          spring.operationlog.log.slf4: ERROR
+    io.ontomesh.onerecord.server: DEBUG
+    org.eclipse.rdf4j.spring: ERROR
+    org.eclipse.rdf4j.spring.operationlog.log.slf4: ERROR
     root: INFO
 onerecord:
   client:
@@ -20,7 +14,8 @@ onerecord:
     internalIriScheme: ontomesh
     port: ${SERVER_PORT:8085}
     scheme: ${PROTOCOL:http}
-    subscription:
+    url: ${SERVER_URL:http://1r.ontomesh.io/}
+    subscriptions:
       include-subscription-event-type: https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED, https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED, https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED
       notify-request-status-change: false
       send-logistics-object-body: false
@@ -43,7 +38,7 @@ rdf4j:
       enabled: true
     repository:
       remote:
-        manager-url: http://localhost:8080/rdf4j-server
+        manager-url: http://localhost:9090/rdf4j-server
         name: ontomesh
         password: admin
         username: admin
@@ -56,6 +51,13 @@ rdf4j:
         enabled: true
 server:
   port: ${SERVER_PORT:8085}
+
 spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    client-id: client-01
+    consumer:
+      group-id: group-01
+
   config:
     import: 'optional:configserver:'

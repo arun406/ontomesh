@@ -1,5 +1,8 @@
 package io.ontomesh.onerecord.server.util;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
 import java.net.URI;
 
 public class URIUtil extends org.eclipse.rdf4j.model.util.URIUtil {
@@ -15,5 +18,9 @@ public class URIUtil extends org.eclipse.rdf4j.model.util.URIUtil {
 
     public static URI getURI(String uri) {
         return URI.create(uri);
+    }
+
+    public static IRI toIRI(URI uri) {
+        return SimpleValueFactory.getInstance().createIRI(uri.toString());
     }
 }

@@ -45,9 +45,9 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     /**
      * constructor
      *
-     * @param repository
-     * @param idProvider
-     * @param eventProducer
+     * @param repository    DB repository.
+     * @param idProvider    ID provider.
+     * @param eventProducer An event producer.
      */
     protected LogisticsEventService(LogisticsObjectRepository repository,
                                     IdProvider idProvider, EventProducer eventProducer) {
@@ -66,7 +66,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param eventIRI           event IRI.
      */
     private void linkToLogisticsObject(IRI logisticsObjectIRI, IRI eventIRI) {
-        this.repository.add(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, eventIRI);
+        getRepository().add(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, eventIRI);
     }
 
 
@@ -76,7 +76,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param model model tobe persisted in the database.
      */
     private void saveEvent(Model model) {
-        this.repository.persist(model);
+        getRepository().persist(model);
     }
 
     /**
@@ -107,7 +107,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param logisticsObjectIRI Logistics Object IRI.
      */
     private void validate(IRI logisticsObjectIRI) {
-        boolean exists = this.repository.findLoById(logisticsObjectIRI).isPresent();
+        boolean exists = getRepository().findLoById(logisticsObjectIRI).isPresent();
         if (!exists) {
             throw new LogisticsObjectNotFoundException(logisticsObjectIRI,
                     "Logistics Object with the specified URI could not be found in the database.");
@@ -124,9 +124,9 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType) {
 
         log.debug("Adding {} event to logistics object {} ", eventType.label(), loId);
+        IdProvider idProvider = getIdProvider();
         OntoMeshId eventId = idProvider.createUniqueLogisticsEvent(loId);
         IRI eventCodeIRI = idProvider.createInternalIri().iri();
-        IRI eventForIRI = idProvider.createInternalIri().iri();
 
         Model eventCodeModel = new ModelBuilder()
                 .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
@@ -141,11 +141,12 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
                 .subject(CARGO.ACTUAL)
                 .add(RDF.TYPE, CARGO.EventTimeType).build();
 
-        this.repository.persist(eventTimeTypeModel);
-        this.repository.persist(eventCodeModel);
+        getRepository().persist(eventTimeTypeModel);
+        getRepository().persist(eventCodeModel);
 
+        IRI tenant = idProvider.tenant();
         Model event = new EventBuilder(eventId.iri(), loId, getType(loId),
-                eventType.name(), true, idProvider.tenant(), eventCodeIRI, CARGO.ACTUAL)
+                eventType.name(), true, tenant, eventCodeIRI, CARGO.ACTUAL)
                 .build();
 
         // save the LogisticsEvent
@@ -160,19 +161,19 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
             if (ex == null) {
                 log.debug("Sent event =[{}] with offset=[{}]",
                         eventId.iri().stringValue(), result.getRecordMetadata().offset());
-                LogisticsEventService.this.repository.delete(eventId.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew);
+                getRepository().delete(eventId.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew);
                 // update the event status.
-                LogisticsEventService.this.repository.add(eventId.iri(), OntoMesh.hasEventStatus, EventStatus.PUBLISHED.label());
+                getRepository().add(eventId.iri(), OntoMesh.hasEventStatus, EventStatus.PUBLISHED.label());
             } else {
                 log.debug("Unable to send event=[{}}] due to {}: ",
                         eventId.iri().stringValue(), ex.getMessage());
-                LogisticsEventService.this.repository.delete(eventId.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew);
+                getRepository().delete(eventId.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew);
                 // update the event status.
-                LogisticsEventService.this.repository.add(eventId.iri(), OntoMesh.hasEventStatus, EventStatus.FAILED.label());
+                getRepository().add(eventId.iri(), OntoMesh.hasEventStatus, EventStatus.FAILED.label());
             }
         };
 
-        this.eventProducer.send(eventString, idProvider.tenant(), action);
+        this.eventProducer.send(eventString, tenant, action);
     }
 
     /**
@@ -205,7 +206,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
                 .setNamespace(API.PREFIX, API.NAMESPACE)
                 .subject(id.toString())
                 .add(RDF.TYPE, OntoMesh.Collection);
-        RepositoryResult<Statement> repositoryResult = this.repository
+        RepositoryResult<Statement> repositoryResult = this.getRepository()
                 .getStatements(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, null);
         List<Statement> statementList = repositoryResult.stream().toList();
         int counter = 0;
@@ -241,7 +242,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
 
         Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(CARGO.eventFor));
 
-        Optional<LogisticsObject> logisticsObjectOptional = this.repository
+        Optional<LogisticsObject> logisticsObjectOptional = this.getRepository()
                 .findLoById(logisticEventIRI, predicate);
 
         if (logisticsObjectOptional.isEmpty()) {

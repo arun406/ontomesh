@@ -22,7 +22,7 @@ public class LogisticsObjectNotSupportedExceptionHandler extends AbstractBadRequ
                 .subject(errorIRI)
                 .add(RDF.TYPE, API.Error)
                 .add(API.hasTitle, Values.literal("Logistics Object Type not supported"))
-                .add(OntoMesh.hasDetails, errorDetailsIRI)
+                .add(API.hasErrorDetail, errorDetailsIRI)
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())

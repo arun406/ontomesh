@@ -11,6 +11,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.iata.onerecord.api.API;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
@@ -26,7 +27,7 @@ public class InvalidApiRequestExceptionHandler extends AbstractBadRequestExcepti
                 .subject(errorIRI)
                 .add(RDF.TYPE, API.Error)
                 .add(API.hasTitle, Values.literal("Invalid API Request."))
-                .add(OntoMesh.hasDetails, errorDetailsIRI)
+                .add(API.hasErrorDetail, errorDetailsIRI)
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())
@@ -36,7 +37,9 @@ public class InvalidApiRequestExceptionHandler extends AbstractBadRequestExcepti
     }
 
     @ExceptionHandler(value = InvalidApiRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorObject exception(InvalidApiRequestException exception) {
         return super.handle(exception);
     }
+
 }

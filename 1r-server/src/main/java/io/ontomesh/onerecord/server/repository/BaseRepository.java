@@ -27,10 +27,10 @@ public abstract class BaseRepository {
     public RepositoryConnection connection;
 
     /**
-     * @param statements
-     * @param newStatements
-     * @param continueTraversal
-     * @return
+     * @param statements        statements
+     * @param newStatements     new statements
+     * @param continueTraversal recursive
+     * @return List of statements.
      */
     private List<Statement> traverse(List<Statement> statements, List<Statement> newStatements,
                                      Predicate<Statement> continueTraversal) {
@@ -67,9 +67,9 @@ public abstract class BaseRepository {
     }
 
     /**
-     * @param iri
-     * @param continueRecursionIf
-     * @return
+     * @param iri                 IRI
+     * @param continueRecursionIf indicator to continue recursive search
+     * @return Model
      */
     public Optional<Model> findByIRI(IRI iri, Predicate<Statement> continueRecursionIf) {
         RepositoryResult<Statement> statements = connection.getStatements(iri, null, null);
@@ -81,9 +81,9 @@ public abstract class BaseRepository {
     }
 
     /**
-     * @param continueRecursionIf
-     * @param statements
-     * @return
+     * @param continueRecursionIf indicator to continue recursive search
+     * @param statements          rdf statements
+     * @return Model
      */
     public Optional<Model> findRecursively(Predicate<Statement> continueRecursionIf, List<Statement> statements) {
 

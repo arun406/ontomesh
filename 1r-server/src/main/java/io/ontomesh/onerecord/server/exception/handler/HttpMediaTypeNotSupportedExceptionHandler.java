@@ -34,7 +34,7 @@ public class HttpMediaTypeNotSupportedExceptionHandler extends AbstractException
                 .subject(errorIRI)
                 .add(RDF.TYPE, API.Error)
                 .add(API.hasTitle, Values.literal("Media Type Not Supported"))
-                .add(OntoMesh.hasDetails, errorDetailsIRI)
+                .add(API.hasErrorDetail, errorDetailsIRI)
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())

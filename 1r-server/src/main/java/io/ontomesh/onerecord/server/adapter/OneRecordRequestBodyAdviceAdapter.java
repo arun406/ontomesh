@@ -1,7 +1,6 @@
 package io.ontomesh.onerecord.server.adapter;
 
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.AuditTrailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -20,11 +19,9 @@ public class OneRecordRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter 
     private final HttpServletRequest httpServletRequest;
 
     /**
-     * @param auditTrailService
      * @param httpServletRequest
      */
-    public OneRecordRequestBodyAdviceAdapter(AuditTrailService auditTrailService,
-                                             HttpServletRequest httpServletRequest) {
+    public OneRecordRequestBodyAdviceAdapter(HttpServletRequest httpServletRequest) {
         this.httpServletRequest = httpServletRequest;
     }
 

@@ -9,6 +9,7 @@ import io.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,8 @@ public class ServerInformationController extends BaseController {
 
     @Autowired
     private final ServerInformationService serverInformationService;
+    @Value("${onerecord.server.url:http://1r.ontomesh.io}")
+    private String ONERECORD_SERVER_BASE;
 
     public ServerInformationController(ServerInformationService serverInformationService) {
         super();
@@ -38,24 +41,22 @@ public class ServerInformationController extends BaseController {
     /**
      * return the one record server information.
      *
-     * @param accept
-     * @param httpServletRequest
-     * @return
+     * @return Server information.
      */
-    @GetMapping(path = "", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
+    @GetMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<String> getServerInformation(@RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
-                                                       HttpServletRequest httpServletRequest) {
+    public ResponseEntity<LogisticsObject> getServerInformation(HttpServletRequest request) {
 
         try {
-            LogisticsObject logisticsObject = serverInformationService.getServerInformation();
-            OutputStream stream = RDFUtil.getRDFByteStream(logisticsObject.model(), MediaType.valueOf(accept));
-//            HttpHeaders headers = getResponseHeaders(httpServletRequest);
+            String accept = request.getHeader(HttpHeaders.ACCEPT);
+            LogisticsObject logisticsObject = serverInformationService.getServerInformation(ONERECORD_SERVER_BASE);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentLanguage(Locale.US);
             headers.setContentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : SemanticWebMediaType.APPLICATION_JSON_LD);
             headers.setLastModified(Instant.now());
-            return ResponseEntity.ok().headers(headers).body(stream.toString());
+
+            return ResponseEntity.ok().headers(headers).body(logisticsObject);
         } catch (LogisticsObjectNotFoundException logisticsObjectNotFoundException) {
             throw new ServerInfoNotFoundException("Server Information is not defined.");
         }

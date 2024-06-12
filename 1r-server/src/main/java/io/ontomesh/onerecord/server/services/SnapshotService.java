@@ -66,15 +66,15 @@ public class SnapshotService extends AbstractLogisticsObjectService {
         newModel.add(snapshotId, API.hasLogisticsObject, valueFactory.createLiteral(logisticsObject.iri().stringValue()));
 
         LogisticsObject snapshot = new LogisticsObject(snapshotId, logisticsObject.type(), newModel);
-        this.repository.persist(snapshot.model());
+        this.getRepository().persist(snapshot.model());
 //        print(snapshot, RDFFormat.JSONLD);
         return snapshot;
     }
 
     public LogisticsObject findSnapshot(IRI loIRI, String at) {
         IRI snapshotIRI = valueFactory.createIRI(loIRI.stringValue(), "?at=" + at);
-        return this.repository.findLoById(snapshotIRI,
-                        (iri) -> OntoMeshId.isValidIri(iri, idProvider.getLogisticsObjectBaseIRI()))
+        return this.getRepository().findLoById(snapshotIRI,
+                        (iri) -> OntoMeshId.isValidIri(iri, getIdProvider().getLogisticsObjectBaseIRI()))
                 .orElseThrow(() -> new SnapshotNotFoundException("Snapshot not exists."));
     }
 }

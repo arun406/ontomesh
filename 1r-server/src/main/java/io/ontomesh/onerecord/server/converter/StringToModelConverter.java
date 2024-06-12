@@ -15,9 +15,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class StringToModelConverter implements Converter<String, Model> {
 
-    private RDFFormat rdfFormat;
+    private final RDFFormat rdfFormat;
 
-    private DefaultStatementHandler statementHandler;
+    private final DefaultStatementHandler statementHandler;
 
     public StringToModelConverter(RDFFormat rdfFormat, DefaultStatementHandler statementHandler) {
         this.rdfFormat = rdfFormat;

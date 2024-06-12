@@ -28,19 +28,8 @@ public class ActionRequestProcessorImpl implements ActionRequestProcessor {
         return new LogisticsObject(changeIRI, API.Change, changeModel);
     }
 
-    private LogisticsObject getLogisticsObject(Model model, IRI iri) {
-
-        IRI logisticsObjectIRI = getLogisticsObjectIRI(model, iri);
-        log.info("Logistics Object IRI {}", logisticsObjectIRI);
-        if (logisticsObjectIRI == null) {
-            return null;
-        }
+    private LogisticsObject getLogisticsObject(IRI logisticsObjectIRI) {
         return logisticsObjectService.findLogisticsObject(logisticsObjectIRI);
-    }
-
-    private IRI getLogisticsObjectIRI(Model model, IRI iri) {
-        return Models.objectIRI(model.filter(iri, API.hasLogisticsObject, null))
-                .orElse(null);
     }
 
     private IRI getStatus(Model model, IRI iri) {
@@ -54,18 +43,17 @@ public class ActionRequestProcessorImpl implements ActionRequestProcessor {
     }
 
     private void processAccessDelegationRequest(LogisticsObject accessDelegationRequest) {
-
     }
 
     private void processChangeRequest(LogisticsObject changeRequest) {
 
         LogisticsObject change = createChange(changeRequest.model());
-        LogisticsObject logisticsObject = getLogisticsObject(change.model(), change.iri());
+        IRI logisticsObjectIRI = change.findIRI(API.hasLogisticsObject, true);
+        LogisticsObject logisticsObject = getLogisticsObject(logisticsObjectIRI);
         if (logisticsObject == null) {
             log.warn("Change request {} do not contain logisticsObject reference.", changeRequest.iri());
             return;
         }
-
         logisticsObjectService.processChangeRequest(change, logisticsObject);
     }
 

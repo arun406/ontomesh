@@ -5,11 +5,7 @@ import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.AlreadyExistsException;
-import io.ontomesh.onerecord.server.services.ActionRequestService;
-import io.ontomesh.onerecord.server.services.AuditTrailService;
-import io.ontomesh.onerecord.server.services.LogisticsEventService;
-import io.ontomesh.onerecord.server.services.LogisticsObjectService;
-import io.ontomesh.onerecord.server.services.SnapshotService;
+import io.ontomesh.onerecord.server.services.*;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +32,10 @@ public abstract class BaseController {
 
     @Autowired
     public IdProvider idProvider;
-    public LogisticsObjectService logisticsObjectService;
+    private LogisticsObjectService logisticsObjectService;
+
+    @Autowired
+    public LogisticsObjectRevisionService logisticsObjectRevisionService;
     public SnapshotService snapshotService;
     public ActionRequestService actionRequestService;
     public LogisticsEventService eventService;
@@ -44,25 +43,6 @@ public abstract class BaseController {
 
     public BaseController() {
 
-    }
-
-    /**
-     * constructor.
-     *
-     * @param logisticsObjectService logistics object service.
-     * @param snapshotService        snapshot service.
-     * @param actionRequestService   action request service.
-     * @param eventService           event service.
-     * @param auditTrailService      audit trail service.
-     */
-    public BaseController(LogisticsObjectService logisticsObjectService,
-                          SnapshotService snapshotService, ActionRequestService actionRequestService,
-                          LogisticsEventService eventService, AuditTrailService auditTrailService) {
-        this.logisticsObjectService = logisticsObjectService;
-        this.snapshotService = snapshotService;
-        this.actionRequestService = actionRequestService;
-        this.eventService = eventService;
-        this.auditTrailService = auditTrailService;
     }
 
     /**
@@ -101,6 +81,11 @@ public abstract class BaseController {
         this.actionRequestService = actionRequestService;
     }
 
+    public BaseController(LogisticsObjectService logisticsObjectService, ActionRequestService actionRequestService) {
+        this.logisticsObjectService = logisticsObjectService;
+        this.actionRequestService = actionRequestService;
+    }
+
     /**
      * remove hasPredefinedIri IRI.
      *
@@ -108,12 +93,6 @@ public abstract class BaseController {
      */
     public void removeMarkerPredicate(LogisticsObject logisticsObject) {
         logisticsObject.model().remove(logisticsObject.iri(), OntoMesh.hasId, null);
-    }
-
-    protected String getLoType(LogisticsObject logisticsObject) {
-        Model model = logisticsObject.model();
-        IRI iri = logisticsObject.iri();
-        return RDFUtil.getType(model, iri).stringValue();
     }
 
     protected OntoMeshId getLoId(String uuid) {
@@ -126,15 +105,10 @@ public abstract class BaseController {
 
     protected void checkForDuplicateIRI(LogisticsObject logisticsObject) {
         IRI iri = logisticsObject.iri();
-        // Check for proper address path.
-//        if (!iri.toString().contains(idProvider.getLogisticsObjectBaseIRI().toString())) {
-//            throw new InvalidAddressException(iri, idProvider.getLogisticsObjectBaseIRI());
-//        }
-
         // Check if IRI is already taken.
         boolean exists = logisticsObjectService.isExists(iri);
         if (exists)
-            throw new AlreadyExistsException(iri, getLoType(logisticsObject));
+            throw new AlreadyExistsException(iri, logisticsObject.type().toString());
     }
 
     protected boolean isIdPresent(LogisticsObject logisticsObject) {
@@ -167,13 +141,14 @@ public abstract class BaseController {
 
         HttpHeaders headers = new HttpHeaders();
         LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(id.iri());
-        String revision = String.valueOf(logisticsObjectService.getRevision(logisticsObject));
+        String revision = String.valueOf(logisticsObject.revision());
         log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), revision);
         headers.setContentType(mediaType);
         headers.setContentLanguage(Locale.US);
         headers.setLastModified(Instant.now()); // TODO
         headers.setLocation(id.uri());
         headers.add("Type", logisticsObject.type().stringValue());
+        headers.add("Revision", revision);
         headers.add("Latest-Revision", revision);
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
@@ -193,8 +168,9 @@ public abstract class BaseController {
 
 
         LogisticsObject logisticsObject = this.snapshotService.findSnapshot(id.iri(), at);
-        int snapshotVersion = snapshotService.getRevision(logisticsObject);
-        Integer latestRevision = logisticsObjectService.getRevision(id.iri());
+        int snapshotVersion = logisticsObject.revision();
+//        int snapshotVersion = logisticsObjectRevisionService.getRevision(logisticsObject);
+        Integer latestRevision = logisticsObjectRevisionService.getRevision(id.iri());
 
         headers.setContentType(mediaType);
         headers.setContentLanguage(Locale.US);
@@ -204,5 +180,9 @@ public abstract class BaseController {
         headers.add("Revision", String.valueOf(snapshotVersion));
         headers.add("Latest-Revision", latestRevision.toString());
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
+    }
+
+    protected LogisticsObjectService getLogisticsObjectService() {
+        return this.logisticsObjectService;
     }
 }

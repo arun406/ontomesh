@@ -26,6 +26,8 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -84,7 +86,9 @@ public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConve
 //            IRI type = RDFUtil.getType(logisticsObject.model(), logisticsObject.iri());
             IRI type = logisticsObject.type();
             rdfString = JsonldUtil.jsonLdToString(rdfString, true, type);
-            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), JsonldUtil.getContext(),
+            Map<String, Map<String, String>> context = JsonldUtil.getContext();
+//            context = new HashMap<>();
+            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), context,
                     new JsonLdOptions());
             rdfString = JsonUtils.toPrettyString(compact);
         }

@@ -22,13 +22,20 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
-    @Value(value = "${spring.kafka.bootstrap-servers:localhost:9092}")
+    @Value(value = "${spring.kafka.bootstrap-servers:}")
     private String bootstrapAddress;
+
+    @Value(value = "${spring.kafka.client-id:client-1}")
+    private String clientId;
+
+    @Value(value = "${spring.kafka.consumer.group-id:group-1")
+    private String groupId;
 
     private Map<String, Object> getConsumerProps() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "groupId");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.CLIENT_ID_CONFIG, clientId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

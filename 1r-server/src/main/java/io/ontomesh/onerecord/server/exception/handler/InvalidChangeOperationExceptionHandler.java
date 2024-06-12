@@ -1,6 +1,5 @@
 package io.ontomesh.onerecord.server.exception.handler;
 
-import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.domain.ErrorObject;
 import io.ontomesh.onerecord.server.exception.InvalidChangeOperationException;
 import org.eclipse.rdf4j.model.IRI;
@@ -23,7 +22,7 @@ public class InvalidChangeOperationExceptionHandler extends AbstractBadRequestEx
                 .subject(errorIRI)
                 .add(RDF.TYPE, API.Error)
                 .add(API.hasTitle, Values.literal("Logistics Events can not be updated"))
-                .add(OntoMesh.hasDetails, errorDetailsIRI)
+                .add(API.hasErrorDetail, errorDetailsIRI)
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())
