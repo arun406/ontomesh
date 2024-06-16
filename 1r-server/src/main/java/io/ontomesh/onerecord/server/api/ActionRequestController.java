@@ -70,14 +70,15 @@ public class ActionRequestController extends BaseController {
     @GetMapping(value = "/{id}", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
             SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
             SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<LogisticsObject> get() {
+    public ResponseEntity<LogisticsObject> get(@PathVariable("id") String actionRequestReference) {
 
-        UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequest().build();
-        URI arURI = uriComponents.toUri();
-        log.debug("action request id {}", arURI);
-        IRI arIRI = URIUtil.toIRI(arURI);
+//        UriComponents uriComponents = ServletUriComponentsBuilder.fromCurrentRequest().build();
+//        URI arURI = uriComponents.toUri();
+//        log.debug("action request id {}", arURI);
+//        IRI arIRI = URIUtil.toIRI(arURI);
+        OntoMeshId actionRequestId = getActionRequestId(actionRequestReference);
 
-        LogisticsObject actionRequest = actionRequestService.get(arIRI);
+        LogisticsObject actionRequest = actionRequestService.get(actionRequestId.iri());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);

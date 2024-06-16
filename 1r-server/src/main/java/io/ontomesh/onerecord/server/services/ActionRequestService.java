@@ -190,7 +190,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
                 || statement.getPredicate().equals(API.hasTopic));
         return this.getRepository()
                 .findLoById(iri, predicate)
-                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "Action request with iri " + iri + " not found."));
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, String.format("Action request with iri  %s not found.", iri)));
     }
 
     /**
@@ -244,7 +244,8 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
 
         updateStatus(iri, currentStatus, newStatus);
         // update the currentStatus.
-        model.add(iri, API.hasRequestStatus, newStatus);
+        actionRequest.add(API.hasRequestStatus, newStatus);
+//        model.add(iri, API.hasRequestStatus, newStatus);
 
         this.actionRequestProcessor.process(actionRequest);
 

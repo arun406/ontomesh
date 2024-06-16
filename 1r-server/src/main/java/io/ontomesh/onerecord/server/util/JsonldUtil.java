@@ -52,6 +52,7 @@ public class JsonldUtil {
      * @param type       RDF Type.
      * @return Graph Array.
      */
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> removeGraphArray(Map<String, Object> framedJson, IRI type) {
         List<Map<String, Object>> graph = (List<Map<String, Object>>) framedJson.get("@graph");
         Map<String, Object> result = new HashMap<>();

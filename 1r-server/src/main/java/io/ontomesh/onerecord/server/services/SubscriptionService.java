@@ -28,9 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +38,13 @@ import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATI
 @Service
 public class SubscriptionService extends AbstractLogisticsObjectService {
 
+    public static final Map<IRI, NotificationEventType> notificationEventTypeMap = new HashMap<>() {{
+        put(API.REQUEST_ACCEPTED, NotificationEventType.SUBSCRIPTION_REQUEST_ACCEPTED);
+        put(API.REQUEST_REJECTED, NotificationEventType.SUBSCRIPTION_REQUEST_REJECTED);
+        put(API.REQUEST_REVOKED, NotificationEventType.SUBSCRIPTION_REQUEST_REVOKED);
+        put(API.REQUEST_FAILED, NotificationEventType.SUBSCRIPTION_REQUEST_FAILED);
+    }};
+    
     private final LogisticsEventService logisticsEventService;
 
     @Value("${onerecord.server.subscriptions.send-logistics-object-body:false}")
@@ -69,17 +74,9 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
         return List.of(APPLICATION_JSON_LD_VALUE);
     }
 
+
     public static NotificationEventType getNotificationEventType(IRI status) {
-        if (status.equals(API.REQUEST_ACCEPTED)) {
-            return NotificationEventType.SUBSCRIPTION_REQUEST_ACCEPTED;
-        } else if (status.equals(API.REQUEST_REJECTED)) {
-            return NotificationEventType.SUBSCRIPTION_REQUEST_REJECTED;
-        } else if (status.equals(API.REQUEST_REVOKED)) {
-            return NotificationEventType.SUBSCRIPTION_REQUEST_REVOKED;
-        } else if (status.equals(API.REQUEST_FAILED)) {
-            return NotificationEventType.SUBSCRIPTION_REQUEST_FAILED;
-        }
-        return NotificationEventType.SUBSCRIPTION_REQUEST_PENDING;
+        return notificationEventTypeMap.getOrDefault(status, NotificationEventType.SUBSCRIPTION_REQUEST_PENDING);
     }
 
     public static IRI getTopicIRI(Model model, IRI iri) {
@@ -106,7 +103,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     /**
      * Returns the supported logistics objects type by the one record server.
      *
-     * @return
+     * @return List of IRI
      */
     public List<IRI> includeSubscriptionEventType() {
         return Stream.of(includeSubscriptionEventType)
@@ -167,7 +164,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
      * returns the subscriptions for Logistics Object Type
      *
      * @param loType Logistics Object Type.
-     * @return
+     * @return Logistics Object
      */
     public LogisticsObject getSubscriptionsByLoType(IRI loType, IRI eventType) {
 

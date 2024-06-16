@@ -25,6 +25,7 @@ import java.io.InputStream;
 @Service
 @RequiredArgsConstructor
 public class ServerInformationService {
+    public static final String LO_BASE_ID = "http://1r.ontomesh.io/";
     private final LogisticsObjectRepository repository;
 
     @Value("classpath:serverinfo/serverinfo.json")
@@ -51,8 +52,12 @@ public class ServerInformationService {
     }
 
     public IRI getTenant() {
-        LogisticsObject serverInformation = getServerInformation("http://1r.ontomesh.io/");
+        LogisticsObject serverInformation = getServerInformation(LO_BASE_ID);
         return Models.objectIRI(serverInformation.model().filter(serverInformation.iri(), API.hasDataHolder, null))
                 .orElseThrow(() -> new MissingDataHolderException("Data holder is not defined for the server information."));
+    }
+
+    public IRI getLoBaseId() {
+        return Values.iri(LO_BASE_ID);
     }
 }

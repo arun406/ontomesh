@@ -9,8 +9,10 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.sparqlbuilder.core.query.Queries;
+import org.iata.onerecord.api.API;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -104,11 +106,11 @@ public class LogisticsObjectRepository extends BaseRepository {
     /**
      * list the Logistics Objects
      *
-     * @param type
-     * @param limit
-     * @param offset
-     * @param status
-     * @return
+     * @param type   Logistics Object Type
+     * @param limit  size
+     * @param offset offset
+     * @param status status
+     * @return List of ActionRequest
      */
     public List<ActionRequest> listLogisticsObject(IRI type, int limit, int offset, IRI status) {
         String query;
@@ -131,5 +133,34 @@ public class LogisticsObjectRepository extends BaseRepository {
                                     LocalDateTime.from(((Literal) bindings.getValue("requestedAt")).temporalAccessorValue())))
                             .toList();
         }
+    }
+
+    /**
+     * Increment the current revision of a Logistics Object.
+     *
+     * @param logisticsObjectId Logistics Object Id
+     * @param currentRevision   Current revision of Logistics Object.
+     */
+    public Literal incrementLogisticsObjectVersion(IRI logisticsObjectId, Literal currentRevision) {
+        String query = """
+                        prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                        prefix api: <https://onerecord.iata.org/ns/api#>
+                        prefix cargo: <https://onerecord.iata.org/ns/cargo#>
+                        DELETE { ?subject api:hasRevision ?current }
+                        INSERT { ?subject api:hasRevision ?new }
+                        WHERE {
+                          	?subject rdf:type cargo:Piece ;
+                            		  api:hasRevision ?current .
+                            BIND((?current + 1 ) AS ?new )
+                          	FILTER (?current = ?currentRevision)
+                        }
+                """;
+        log.info("Query : {}", query);
+        Update operation = connection.prepareUpdate(QueryLanguage.SPARQL, query);
+        operation.setBinding("subject", logisticsObjectId);
+        operation.setBinding("currentRevision", currentRevision);
+        operation.execute();
+        Statement next = connection.getStatements(logisticsObjectId, API.hasRevision, null).next();
+        return (Literal) next.getObject();
     }
 }

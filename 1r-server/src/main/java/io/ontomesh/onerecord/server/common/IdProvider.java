@@ -2,6 +2,7 @@ package io.ontomesh.onerecord.server.common;
 
 import io.ontomesh.onerecord.server.config.OneRecordProperties;
 import io.ontomesh.onerecord.server.services.ServerInformationService;
+import io.ontomesh.onerecord.server.util.URIUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -29,9 +30,10 @@ public class IdProvider {
     }
 
     private UriComponentsBuilder baseUri() {
-        return UriComponentsBuilder.newInstance().scheme(oneRecordProperties.getServer().getScheme())
-                .host(oneRecordProperties.getServer().getHost())
-                .port(oneRecordProperties.getServer().getPort());
+        return UriComponentsBuilder.newInstance().uri(URIUtil.toURI(serverInformationService.getLoBaseId()));
+//        return UriComponentsBuilder.newInstance().scheme(oneRecordProperties.getServer().getScheme())
+//                .host(oneRecordProperties.getServer().getHost())
+//                .port(oneRecordProperties.getServer().getPort());
     }
 
     private UriComponentsBuilder getActionRequestUriBase() {

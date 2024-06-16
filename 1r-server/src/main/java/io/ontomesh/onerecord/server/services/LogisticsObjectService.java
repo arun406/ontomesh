@@ -34,26 +34,24 @@ import static io.ontomesh.onerecord.server.util.RDFUtil.getObjectLiteral;
 @Service
 public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
+    private static final Map<IRI, NotificationEventType> notificationEventTypeMap = new HashMap<>() {
+        {
+            put(API.REQUEST_ACCEPTED, NotificationEventType.CHANGE_REQUEST_ACCEPTED);
+            put(API.REQUEST_REJECTED, NotificationEventType.CHANGE_REQUEST_REJECTED);
+            put(API.REQUEST_REVOKED, NotificationEventType.CHANGE_REQUEST_REVOKED);
+            put(API.REQUEST_FAILED, NotificationEventType.CHANGE_REQUEST_FAILED);
+        }
+    };
     private final SnapshotService snapshotService;
 
-    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider, LogisticsEventService logisticsEventService, SnapshotService snapshotService) {
+    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider, SnapshotService snapshotService) {
         super(repository, idProvider);
         this.snapshotService = snapshotService;
     }
 
     public static NotificationEventType getNotificationEventType(IRI status) {
-        if (status.equals(API.REQUEST_ACCEPTED)) {
-            return NotificationEventType.CHANGE_REQUEST_ACCEPTED;
-        } else if (status.equals(API.REQUEST_REJECTED)) {
-            return NotificationEventType.CHANGE_REQUEST_REJECTED;
-        } else if (status.equals(API.REQUEST_REVOKED)) {
-            return NotificationEventType.CHANGE_REQUEST_REVOKED;
-        } else if (status.equals(API.REQUEST_FAILED)) {
-            return NotificationEventType.CHANGE_REQUEST_FAILED;
-        }
-        return NotificationEventType.CHANGE_REQUEST_PENDING;
+        return notificationEventTypeMap.getOrDefault(status, NotificationEventType.CHANGE_REQUEST_PENDING);
     }
-
 
     private Map<String, IRI> getBlankNodeToIri(Model changeModel, Set<IRI> operationObjects, String operation) {
         return operationObjects.stream()
@@ -175,9 +173,8 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
      *
      * @param logisticsObject logistics object id
      */
-    private void updateLogisticObjectRevision(LogisticsObject logisticsObject) {
-        LogisticsObjectRevisionService revisionService = new LogisticsObjectRevisionService(getRepository());
-        revisionService.incrementLogisticsObjectRevision(logisticsObject);
+    private Literal updateLogisticObjectRevision(LogisticsObject logisticsObject) {
+        return getRepository().incrementLogisticsObjectVersion(logisticsObject.iri(), logisticsObject.revision());
     }
 
 
@@ -191,17 +188,17 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
         log.debug("logistics object iri :{}", logisticsObject.iri());
 
-        int changeRevision = change.revision();
-        int loRevision = logisticsObject.revision();
-        if (loRevision != changeRevision) {
+        Literal changeRevision = change.revision();
+        Literal loRevision = logisticsObject.revision();
+        if (loRevision.intValue() != changeRevision.intValue()) {
             throw new InvalidRevisionException(logisticsObject.iri());
         }
     }
 
     @Transactional
-    public void createLogisticsObject(LogisticsObject logisticsObject) {
+    public void saveLogisticsObject(LogisticsObject logisticsObject) {
         validate(logisticsObject);
-        super.createLogisticsObject(logisticsObject);
+        super.saveLogisticsObject(logisticsObject);
         // create and publish event.
         addEventToLogisticsObject(logisticsObject, NotificationEventType.LOGISTICS_OBJECT_CREATED);
     }
@@ -212,10 +209,22 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         return optionalModel.isPresent();
     }
 
+    /**
+     * Process the Change Request.
+     *
+     * @param change          Change request
+     * @param logisticsObject base logistics object
+     */
     public void processChangeRequest(LogisticsObject change, LogisticsObject logisticsObject) {
 
-        Set<IRI> changedProperties = processActionRequest(change, logisticsObject);
+        validateRevision(change, logisticsObject);
 
+        Set<IRI> changedProperties = applyChanges(change);
+
+        // increase the Logistics Object revision after successful change
+        Literal revision = updateLogisticObjectRevision(logisticsObject);
+        logisticsObject.updateRevision(revision.intValue());
+        log.debug("latest revision {}", revision);
         // create and publish event.
         addEventToLogisticsObject(logisticsObject, NotificationEventType.LOGISTICS_OBJECT_UPDATED);
 
@@ -224,13 +233,9 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     }
 
     @Transactional
-    public Set<IRI> processActionRequest(LogisticsObject change, LogisticsObject logisticsObject) {
-        log.debug("Updating [{}]", logisticsObject);
+    public Set<IRI> applyChanges(LogisticsObject change) {
 
         Model changeModel = change.model();
-
-        validateRevision(change, logisticsObject);
-
         Set<IRI> changedProperties = new HashSet<>();
         Set<Resource> affectedSubjects = new HashSet<>();
 
@@ -252,13 +257,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
                 );
             }
         });
-        // increase the Logistics Object revision after successful change
-        updateLogisticObjectRevision(logisticsObject);
-//        Model model = logisticsObject.model();
-//        IRI iri = logisticsObject.iri();
-//        Model revisionModel = model.filter(iri, API.hasRevision, null);
-//        String revision = Models.objectString(revisionModel).orElse("unknown");
-        log.debug("latest revision {}", logisticsObject.revision());
+
         return changedProperties;
     }
 

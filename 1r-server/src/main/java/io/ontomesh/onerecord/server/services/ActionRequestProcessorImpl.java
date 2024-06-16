@@ -9,6 +9,7 @@ import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
 import org.iata.onerecord.api.API;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author arun
@@ -75,7 +76,7 @@ public class ActionRequestProcessorImpl implements ActionRequestProcessor {
         LogisticsObject subscription = new LogisticsObject(subscriptionIRI, API.Subscription, subscriptionModel);
         IRI topicTypeIRI = getTopicTypeIRI(subscriptionModel, subscriptionIRI);
         if (topicTypeIRI == null) {
-            log.warn("Subscription Topic Type :{}", topicTypeIRI);
+            log.warn("Subscription Topic Type is null");
             return;
         }
         if (topicTypeIRI.equals(API.LOGISTICS_OBJECT_IDENTIFIER)) {
@@ -88,6 +89,7 @@ public class ActionRequestProcessorImpl implements ActionRequestProcessor {
      *
      * @param actionRequest Action Request.
      */
+    @Transactional
     @Override
     public void process(LogisticsObject actionRequest) {
         log.debug("Processing action request");

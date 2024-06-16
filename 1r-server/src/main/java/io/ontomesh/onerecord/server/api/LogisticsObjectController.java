@@ -1,7 +1,6 @@
 package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.common.OntoMeshId;
-import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
 import io.ontomesh.onerecord.server.services.AuditTrailService;
@@ -135,9 +134,9 @@ public class LogisticsObjectController extends BaseController {
             checkForDuplicateIRI(logisticsObject);
         }
         removeMarkerPredicate(logisticsObject);
-        addRevisionToLO(logisticsObject);
+//        addRevisionToLO(logisticsObject);
 
-        getLogisticsObjectService().createLogisticsObject(logisticsObject);
+        getLogisticsObjectService().saveLogisticsObject(logisticsObject);
 
         URI loURI = logisticsObject.uri();
         logisticsObject.print();

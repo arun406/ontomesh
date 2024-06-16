@@ -10,6 +10,7 @@ import io.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
@@ -23,6 +24,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author arun
@@ -168,7 +170,7 @@ public abstract class BaseController {
 
 
         LogisticsObject logisticsObject = this.snapshotService.findSnapshot(id.iri(), at);
-        int snapshotVersion = logisticsObject.revision();
+        Literal snapshotVersion = logisticsObject.revision();
 //        int snapshotVersion = logisticsObjectRevisionService.getRevision(logisticsObject);
         Integer latestRevision = logisticsObjectRevisionService.getRevision(id.iri());
 
@@ -177,7 +179,7 @@ public abstract class BaseController {
         headers.setLastModified(Instant.now()); // TODO
         headers.setLocation(id.uri());
         headers.add("Type", logisticsObject.type().stringValue());
-        headers.add("Revision", String.valueOf(snapshotVersion));
+        headers.add("Revision", String.valueOf(snapshotVersion.intValue()));
         headers.add("Latest-Revision", latestRevision.toString());
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }

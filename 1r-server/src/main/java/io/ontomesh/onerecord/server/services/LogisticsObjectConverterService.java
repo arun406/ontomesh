@@ -103,8 +103,7 @@ public class LogisticsObjectConverterService {
             model.add(loIRI, OntoMesh.hasId, Values.literal(true));
         }
 
-        IRI type = RDFUtil.getType(model, newIRI);
-        LogisticsObject logisticsObject = new LogisticsObject(newIRI, type, model);
+        LogisticsObject logisticsObject = new LogisticsObject(newIRI, model);
         log.info("LO iri: {} ", logisticsObject.iri());
         return logisticsObject;
     }

@@ -21,28 +21,6 @@ public class LogisticsObjectRevisionService {
         this.repository = repository;
     }
 
-    public void incrementLogisticsObjectRevision(LogisticsObject logisticsObject) {
-
-        IRI iri = logisticsObject.iri();
-        Integer currentRevisionNumber = getRevision(iri);
-        if (currentRevisionNumber == null) {
-            throw new RevisionMissingException("Invalid Logistics Object. Revision is not available.", iri);
-        }
-
-        Literal currentRevision = Values.literal(currentRevisionNumber);
-        Literal newRevision = Values.literal(currentRevisionNumber + 1);
-
-        saveOrUpdate(logisticsObject.iri(), currentRevision, newRevision);
-        logisticsObject.updateRevision(newRevision);
-    }
-
-    private void saveOrUpdate(IRI iri, Literal currentRevision, Literal newRevision) {
-        this.repository.delete(iri, API.hasRevision, currentRevision);
-        this.repository.add(iri, API.hasRevision, newRevision);
-//        // update the local object.
-//        logisticsObject.model().remove(iri, API.hasRevision, null);
-//        logisticsObject.model().add(iri, API.hasRevision, newRevision);
-    }
 
     /**
      * Latest logistics object revision from the repository by iri.

@@ -71,7 +71,7 @@ public abstract class AbstractLogisticsObjectService {
                 .orElseThrow(() -> new RuntimeException("Unable to get Logistics Object Type."));
     }
 
-    protected void createLogisticsObject(LogisticsObject logisticsObject) {
+    protected void saveLogisticsObject(LogisticsObject logisticsObject) {
         getRepository().persist(logisticsObject.model());
     }
 

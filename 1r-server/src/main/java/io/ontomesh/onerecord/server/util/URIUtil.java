@@ -23,4 +23,8 @@ public class URIUtil extends org.eclipse.rdf4j.model.util.URIUtil {
     public static IRI toIRI(URI uri) {
         return SimpleValueFactory.getInstance().createIRI(uri.toString());
     }
+
+    public static URI toURI(IRI iri) {
+        return getURI(iri.stringValue());
+    }
 }
