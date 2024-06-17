@@ -8,20 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.query.*;
-import org.eclipse.rdf4j.sparqlbuilder.core.query.Queries;
 import org.iata.onerecord.api.API;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -90,7 +85,7 @@ public class LogisticsObjectRepository extends BaseRepository {
                      }
                 """;
 
-        TupleQuery tupleQuery = connection.prepareTupleQuery(query);
+        TupleQuery tupleQuery = getConnection().prepareTupleQuery(query);
         try (TupleQueryResult evaluate = tupleQuery.evaluate()) {
             while (evaluate.hasNext()) {
                 BindingSet next = evaluate.next();
@@ -122,7 +117,7 @@ public class LogisticsObjectRepository extends BaseRepository {
 
         log.info("query: {}", query);
 
-        TupleQuery tupleQuery = connection.prepareTupleQuery(query);
+        TupleQuery tupleQuery = getConnection().prepareTupleQuery(query);
 
         try (TupleQueryResult result = tupleQuery.evaluate()) {
             List<BindingSet> list = QueryResults.asList(result);
@@ -156,11 +151,11 @@ public class LogisticsObjectRepository extends BaseRepository {
                         }
                 """;
         log.info("Query : {}", query);
-        Update operation = connection.prepareUpdate(QueryLanguage.SPARQL, query);
+        Update operation = getConnection().prepareUpdate(QueryLanguage.SPARQL, query);
         operation.setBinding("subject", logisticsObjectId);
         operation.setBinding("currentRevision", currentRevision);
         operation.execute();
-        Statement next = connection.getStatements(logisticsObjectId, API.hasRevision, null).next();
+        Statement next = getConnection().getStatements(logisticsObjectId, API.hasRevision, null).next();
         return (Literal) next.getObject();
     }
 }

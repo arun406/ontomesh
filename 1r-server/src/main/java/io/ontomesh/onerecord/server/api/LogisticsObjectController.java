@@ -2,12 +2,7 @@ package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.ActionRequestService;
-import io.ontomesh.onerecord.server.services.AuditTrailService;
-import io.ontomesh.onerecord.server.services.LogisticsObjectService;
-import io.ontomesh.onerecord.server.services.LogisticsObjectValidationService;
-import io.ontomesh.onerecord.server.services.SnapshotService;
-import io.ontomesh.onerecord.server.services.SubscriptionService;
+import io.ontomesh.onerecord.server.services.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -17,15 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.Instant;
@@ -157,8 +144,7 @@ public class LogisticsObjectController extends BaseController {
      * @return void
      */
     @PatchMapping(path = "/{id}", consumes = {APPLICATION_JSON_LD_VALUE},
-            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE,
-                    TEXT_TURTLE_VALUE})
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<Void> updateLogisticObject(@RequestBody LogisticsObject change,
                                                      @PathVariable("id") String loReferenceId) {
 

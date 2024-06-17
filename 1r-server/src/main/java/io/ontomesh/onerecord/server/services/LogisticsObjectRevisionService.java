@@ -1,13 +1,9 @@
 package io.ontomesh.onerecord.server.services;
 
-import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.exception.RevisionMissingException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.iata.onerecord.api.API;
 import org.springframework.stereotype.Service;

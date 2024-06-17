@@ -1,12 +1,8 @@
 package io.ontomesh.onerecord.server.repository;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.DynamicModelFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.QueryResults;
@@ -19,12 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+@Getter
 @Slf4j
-@Data
 public abstract class BaseRepository {
 
     @Autowired
-    public RepositoryConnection connection;
+    private RepositoryConnection connection;
 
     /**
      * @param statements        statements

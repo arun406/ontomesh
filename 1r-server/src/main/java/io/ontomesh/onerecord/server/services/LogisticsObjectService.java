@@ -8,11 +8,7 @@ import io.ontomesh.onerecord.server.exception.InvalidRevisionException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Model;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.util.ModelCollector;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
@@ -215,6 +211,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
      * @param change          Change request
      * @param logisticsObject base logistics object
      */
+    @Transactional
     public void processChangeRequest(LogisticsObject change, LogisticsObject logisticsObject) {
 
         validateRevision(change, logisticsObject);

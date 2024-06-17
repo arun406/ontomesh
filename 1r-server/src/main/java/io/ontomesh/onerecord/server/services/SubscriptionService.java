@@ -44,7 +44,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
         put(API.REQUEST_REVOKED, NotificationEventType.SUBSCRIPTION_REQUEST_REVOKED);
         put(API.REQUEST_FAILED, NotificationEventType.SUBSCRIPTION_REQUEST_FAILED);
     }};
-    
+
     private final LogisticsEventService logisticsEventService;
 
     @Value("${onerecord.server.subscriptions.send-logistics-object-body:false}")
@@ -266,7 +266,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     public List<IRI> getSubscribersForLoId(IRI loId) {
         List<IRI> subscribers = new ArrayList<>();
 
-        TupleQuery tupleQuery = this.getRepository().connection.prepareTupleQuery("PREFIX api:  <https://onerecord.iata.org/ns/api#>\n" +
+        TupleQuery tupleQuery = this.getRepository().getConnection().prepareTupleQuery("PREFIX api:  <https://onerecord.iata.org/ns/api#>\n" +
                 "\n" +
                 "SELECT  ?subscriber \n" +
                 "WHERE\n" +
@@ -306,7 +306,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
                 "}";
 
         log.info("tuple query {}", tupleQueryString);
-        TupleQuery tupleQuery = this.getRepository().connection.prepareTupleQuery(tupleQueryString);
+        TupleQuery tupleQuery = this.getRepository().getConnection().prepareTupleQuery(tupleQueryString);
         TupleQueryResult evaluate = tupleQuery.evaluate();
         while (evaluate.hasNext()) {
             BindingSet next = evaluate.next();
