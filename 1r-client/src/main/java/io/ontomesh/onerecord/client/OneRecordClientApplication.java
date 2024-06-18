@@ -28,17 +28,5 @@ public class OneRecordClientApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("EXECUTING : command line runner");
-//        Model model = new ModelBuilder()
-//                .setNamespace("api", "https://onerecord.iata.org/ns/cargo#")
-//                .setNamespace("cargo", "https://onerecord.iata.org/ns/cargo#")
-//                .subject(idProvider.createInternalIri().iri())
-//                .add(RDF.TYPE, Values.iri("api:Notification"))
-//                .add("api:hasEventType", Values.iri("https://1r.example.com/logistics-objects/1a8ded38-1804-467c-a369-81a411416b7c"))
-//                .add("api:hasEventType", Values.iri("api:LOGISTICS_OBJECT_CREATED"))
-//                .add("api:isTriggeredBy", Values.iri("https://1r.example.com/action-requests/599fea49-7287-42af-b441-1fa618d2aaed"))
-//                .add("api:hasLogisticsObjectType", Values.iri("https://onerecord.iata.org/ns/cargo#Piece"))
-//                .build();
-
-//        notificationClientService.sendNotification(model);
     }
 }

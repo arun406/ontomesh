@@ -38,7 +38,6 @@ public abstract class BaseController {
     public AuditTrailService auditTrailService;
 
     public BaseController() {
-
     }
 
     /**
@@ -115,16 +114,6 @@ public abstract class BaseController {
                 .booleanValue();
     }
 
-
-    /**
-     * Add revision statement logistics object.
-     *
-     * @param logisticsObject logistics object.
-     */
-    public void addRevisionToLO(LogisticsObject logisticsObject) {
-        logisticsObject.model().add(logisticsObject.iri(), API.hasRevision, Values.literal(1));
-    }
-
     /**
      * returns the latest logisticsObject
      *
@@ -165,7 +154,6 @@ public abstract class BaseController {
 
         LogisticsObject logisticsObject = this.snapshotService.findSnapshot(id.iri(), at);
         Literal snapshotVersion = logisticsObject.revision();
-//        int snapshotVersion = logisticsObjectRevisionService.getRevision(logisticsObject);
         Integer latestRevision = logisticsObjectRevisionService.getRevision(id.iri());
 
         headers.setContentType(mediaType);

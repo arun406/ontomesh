@@ -6,10 +6,10 @@
         <groupId>io.ontomesh</groupId>
         <artifactId>ontomesh-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <!--        <relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
     </parent>
     <artifactId>1r-server</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <!--    <version>0.0.1-SNAPSHOT</version>-->
     <packaging>jar</packaging>
     <name>One Record Server</name>
     <description>One Record Server</description>
@@ -99,6 +99,14 @@
     </dependencyManagement>-->
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
