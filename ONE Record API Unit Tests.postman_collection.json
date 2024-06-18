@@ -76,7 +76,8 @@
 									"});\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -85,7 +86,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -104,9 +106,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/",
+							"raw": "{{loBase}}/",
 							"host": [
-								"{{baseUrl}}"
+								"{{loBase}}"
 							],
 							"path": [
 								""
@@ -160,7 +162,8 @@
 											"    pm.collectionVariables.set(\"historicalCreation\",date);\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -169,7 +172,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -198,9 +202,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects",
+									"raw": "{{loBase}}/logistics-objects",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects"
@@ -380,7 +384,9 @@
 											"// Inject jsonld.js\r",
 											"var self = {}\r",
 											"async function frame(json) {\r",
-											"    return await jsonld.frame(json, {});\r",
+											"    return await jsonld.compact(json, {\r",
+											"        \r",
+											"    });\r",
 											"}\r",
 											"eval(pm.collectionVariables.get('jsonCode'));\r",
 											"\r",
@@ -426,6 +432,7 @@
 											"    } else {\r",
 											"        jsonData = result;\r",
 											"    }\r",
+											"    console.log(jsonData);\r",
 											"    var handlingInstructions = \"https://onerecord.iata.org/ns/cargo#handlingInstructions\"\r",
 											"    pm.test(\"Response contains @id \", () => {\r",
 											"        pm.expect(jsonData).to.have.property(\"@id\");\r",
@@ -487,7 +494,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -496,7 +504,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -510,9 +519,9 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -1693,7 +1702,8 @@
 											"    pm.collectionVariables.set(\"patchPieceRevision\", 1);\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1702,7 +1712,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1731,9 +1742,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects",
+									"raw": "{{loBase}}/logistics-objects",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects"
@@ -1776,7 +1787,8 @@
 											"    pm.collectionVariables.set(\"addWeightCR\", pm.response.headers.get(\"Location\").split(\"/\").pop());\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1785,7 +1797,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1814,9 +1827,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticObjectId",
+									"raw": "{{loBase}}/logistics-objects/:logisticObjectId",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -1844,7 +1857,8 @@
 											"    pm.response.to.have.status(204);\r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1853,7 +1867,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1874,7 +1889,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{pieceId}}\"\n    },\n    \"api:hasDescription\": \"Update goods description and coload\",\n    \"api:hasOperation\": [{\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:ADD\" },\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#goodsDescription\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                \"api:hasValue\": \"ONE Record Advertisement Materials\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:DELETE\" },\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                \"api:hasValue\": \"false\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:ADD\" },\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                \"api:hasValue\": \"true\"\n            }]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"{{pieceRevision}}\"\n    }\n}\n",
+									"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{loBase}}/logistics-objects/{{pieceId}}\"\n    },\n    \"api:hasDescription\": \"Update goods description and coload\",\n    \"api:hasOperation\": [{\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:ADD\" },\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#goodsDescription\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                \"api:hasValue\": \"ONE Record Advertisement Materials\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:DELETE\" },\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                \"api:hasValue\": \"false\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:ADD\" },\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                \"api:hasValue\": \"true\"\n            }]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"{{pieceRevision}}\"\n    }\n}\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1882,9 +1897,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/action-requests/:changeRequest?status=REQUEST_ACCEPTED",
+									"raw": "{{loBase}}/action-requests/:changeRequest?status=REQUEST_ACCEPTED",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"action-requests",
@@ -1916,7 +1931,7 @@
 											"// Inject jsonld.js\r",
 											"var self = {}\r",
 											"async function frame(json) {\r",
-											"    return await jsonld.frame(json, {});\r",
+											"    return await jsonld.compact(json, {});\r",
 											"}\r",
 											"eval(pm.collectionVariables.get('jsonCode'));\r",
 											"\r",
@@ -1959,7 +1974,7 @@
 											"    }\r",
 											"\r",
 											"    pm.test(\"Response @id contains {{baseUrl}}/logistics-objects \", () => {\r",
-											"        var expectedValue = pm.variables.get(\"loBase\") + \"/action-requests/\";\r",
+											"        var expectedValue = pm.variables.get(\"baseUrl\") + \"/action-requests/\";\r",
 											"        pm.expect(jsonData['@id']).to.include(expectedValue);\r",
 											"    });\r",
 											"    pm.test(\"Response contains @type \", () => {\r",
@@ -2367,15 +2382,6 @@
 										"type": "text"
 									}
 								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{loBase}}/logistics-objects/{{pieceId}}\"\n    },\n    \"api:hasDescription\": \"Update goods description and coload\",\n    \"api:hasOperation\": [{\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:ADD\" },\n            \"api:s\": \"{{loBase}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#goodsDescription\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                \"api:hasValue\": \"ONE Record Advertisement Materials\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:DELETE\" },\n            \"api:s\": \"{{loBase}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                \"api:hasValue\": \"false\"\n            }]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": { \"@id\": \"api:ADD\" },\n            \"api:s\": \"{{loBase}}/logistics-objects/{{pieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#coload\",\n            \"api:o\": [{\n                \"@type\": \"api:OperationObject\",\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#boolean\",\n                \"api:hasValue\": \"true\"\n            }]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"{{pieceRevision}}\"\n    }\n}\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
 								"url": {
 									"raw": "{{loBase}}/action-requests/:changeRequest?status=REQUEST_ACCEPTED",
 									"host": [
@@ -2556,7 +2562,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -2565,7 +2572,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -2579,9 +2587,9 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId?embedded=true",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId?embedded=true",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -2636,7 +2644,8 @@
 											"\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -2645,7 +2654,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -2666,7 +2676,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\r\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\r\n    },\r\n    \"@type\": \"api:Change\",\r\n    \"api:hasLogisticsObject\": {\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{patchPieceId}}\"\r\n    },\r\n    \"api:hasDescription\": \"delete grossWeight\",\r\n    \"api:hasOperation\": [\r\n        {\r\n            \"@type\": \"api:Operation\",\r\n            \"api:op\": {\r\n                \"@id\": \"api:DELETE\"\r\n            },\r\n            \"api:s\": \"{{internalNodeId}}\",\r\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\r\n            \"api:o\": [{\r\n                \"@type\": \"api:OperationObject\",\r\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\r\n                \"api:hasValue\": \"KGM\"\r\n            }]\r\n        },\r\n        {\r\n            \"@type\": \"api:Operation\",\r\n            \"api:op\": {\r\n                \"@id\": \"api:DELETE\"\r\n            },\r\n            \"api:s\": \"{{internalNodeId}}\",\r\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#numericalValue\",\r\n            \"api:o\": [{\r\n                \"@type\": \"api:OperationObject\",\r\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\r\n                \"api:hasValue\": \"25.0\"\r\n            }]\r\n        },\r\n        {\r\n            \"@type\": \"api:Operation\",\r\n            \"api:op\": {\r\n                \"@id\": \"api:DELETE\"\r\n            },\r\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{patchPieceId}}\",\r\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\r\n            \"api:o\": [{\r\n                \"@type\": \"api:OperationObject\",\r\n                \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#Value\",\r\n                \"api:hasValue\": \"{{internalNodeId}}\"\r\n            }]\r\n        }\r\n    ],\r\n    \"api:hasRevision\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\r\n        \"@value\": \"{{patchPieceRevision}}\"\r\n    }\r\n}",
+									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\r\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\r\n    },\r\n    \"@type\": \"api:Change\",\r\n    \"api:hasLogisticsObject\": {\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{patchPieceId}}\"\r\n    },\r\n    \"api:hasDescription\": \"delete grossWeight\",\r\n    \"api:hasOperation\": [\r\n        {\r\n            \"@type\": \"api:Operation\",\r\n            \"api:op\": {\r\n                \"@id\": \"api:DELETE\"\r\n            },\r\n            \"api:s\": \"{{internalNodeId}}\",\r\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\r\n            \"api:o\": [{\r\n                \"@type\": \"api:OperationObject\",\r\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\r\n                \"api:hasValue\": \"KGM\"\r\n            }]\r\n        },\r\n        {\r\n            \"@type\": \"api:Operation\",\r\n            \"api:op\": {\r\n                \"@id\": \"api:DELETE\"\r\n            },\r\n            \"api:s\": \"{{internalNodeId}}\",\r\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#numericalValue\",\r\n            \"api:o\": [{\r\n                \"@type\": \"api:OperationObject\",\r\n                \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\r\n                \"api:hasValue\": \"25.0\"\r\n            }]\r\n        },\r\n        {\r\n            \"@type\": \"api:Operation\",\r\n            \"api:op\": {\r\n                \"@id\": \"api:DELETE\"\r\n            },\r\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{patchPieceId}}\",\r\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\r\n            \"api:o\": [{\r\n                \"@type\": \"api:OperationObject\",\r\n                \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#Value\",\r\n                \"api:hasValue\": \"{{internalNodeId}}\"\r\n            }]\r\n        }\r\n    ],\r\n    \"api:hasRevision\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\r\n        \"@value\": \"3\"\r\n    }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -2674,9 +2684,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticObjectId",
+									"raw": "{{loBase}}/logistics-objects/:logisticObjectId",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -2704,7 +2714,8 @@
 											"    pm.response.to.have.status(204);\r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -2713,7 +2724,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -2742,9 +2754,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/action-requests/:changeRequest?status=REQUEST_ACCEPTED",
+									"raw": "{{loBase}}/action-requests/:changeRequest?status=REQUEST_ACCEPTED",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"action-requests",
@@ -4216,7 +4228,8 @@
 											"    pm.collectionVariables.set(\"historicalCreation\",date);\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -4225,7 +4238,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -4254,9 +4268,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects",
+									"raw": "{{loBase}}/logistics-objects",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects"
@@ -4368,7 +4382,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -4377,7 +4392,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -4398,9 +4414,9 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{baseUrl}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_IDENTIFIER&topic={{baseUrl}}/logistics-objects/{{pieceId}}",
+									"raw": "{{loBase}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_IDENTIFIER&topic={{baseUrl}}/logistics-objects/{{pieceId}}",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"subscriptions"
@@ -4515,7 +4531,8 @@
 											"    });\r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -4524,7 +4541,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -4545,9 +4563,9 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{baseUrl}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE&topic=https://onerecord.iata.org/ns/cargo%23Shipment",
+									"raw": "{{loBase}}/subscriptions?topicType=https://onerecord.iata.org/ns/api%23LOGISTICS_OBJECT_TYPE&topic=https://onerecord.iata.org/ns/cargo%23Shipment",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"subscriptions"
@@ -5627,13 +5645,22 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/action-requests/",
+									"raw": "{{baseUrl}}/action-requests?page=0&size=10",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"action-requests",
-										""
+										"action-requests"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "10"
+										}
 									]
 								}
 							},
