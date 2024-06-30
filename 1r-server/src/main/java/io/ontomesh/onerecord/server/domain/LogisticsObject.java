@@ -7,6 +7,7 @@ import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.iata.onerecord.api.API;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 
@@ -109,9 +110,10 @@ public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) 
 
     }
 
+    @Transactional
     public void updateRevision(int newRevision) {
-        model().remove(iri, API.hasRevision, null);
-        model().add(iri, API.hasRevision, Values.literal(newRevision));
+        add(API.hasRevision, null);
+        remove(API.hasRevision, Values.literal(newRevision));
     }
 
 }

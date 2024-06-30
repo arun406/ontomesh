@@ -38,7 +38,7 @@ rdf4j:
       enabled: true
     repository:
       remote:
-        manager-url: http://localhost:9090/rdf4j-server
+        manager-url: http://Aruns-MacBook-Air.local:7200/
         name: ontomesh
         password: admin
         username: admin

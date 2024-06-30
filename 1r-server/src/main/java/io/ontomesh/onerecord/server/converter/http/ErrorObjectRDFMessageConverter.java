@@ -1,9 +1,10 @@
-package io.ontomesh.onerecord.server.converter;
+package io.ontomesh.onerecord.server.converter.http;
 
 import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
 import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
+import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.domain.ErrorObject;
 import io.ontomesh.onerecord.server.util.JsonldUtil;
 import io.ontomesh.onerecord.server.util.RDFUtil;

@@ -1,8 +1,7 @@
 package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.common.OntoMeshId;
-import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
-import io.ontomesh.onerecord.server.domain.LogisticsObject;
+import io.ontomesh.onerecord.server.domain.LogisticsEvent;
 import io.ontomesh.onerecord.server.services.LogisticsEventService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +17,11 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Locale;
 
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
+
 @Slf4j
 @RestController
-@RequestMapping("/logistics-objects/{loId}/logistics-events")
+@RequestMapping("/logistics-objects/{logisticsObjectId}/logistics-events")
 public class LogisticsEventController extends BaseController {
 
 
@@ -39,14 +40,17 @@ public class LogisticsEventController extends BaseController {
      * @param httpServletRequest
      * @return
      */
-    @GetMapping(path = "/{id}", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
-            SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-            SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    private ResponseEntity<LogisticsObject> getLogisticsEvent(HttpServletRequest httpServletRequest) {
+    @GetMapping(path = "/{logisticsEventId}", produces = {APPLICATION_JSON_LD_VALUE,
+            APPLICATION_TURTLE_VALUE,
+            TEXT_TURTLE_VALUE})
+    private ResponseEntity<LogisticsEvent> getLogisticsEvent(HttpServletRequest httpServletRequest,
+                                                             @PathVariable("logisticsObjectId") String logisticsObjectId,
+                                                             @PathVariable("logisticsEventId") String logisticsEventId) {
 
-        IRI requestIRI = Values.iri(httpServletRequest.getRequestURL().toString());
-        log.debug("Request IRI {}", requestIRI);
-        LogisticsObject logisticsEvent = this.eventService.getLogisticsEvent(requestIRI);
+//        IRI requestIRI = Values.iri(httpServletRequest.getRequestURL().toString());
+//        log.debug("Request IRI {}", requestIRI);
+        OntoMeshId id = getLogisticsEventId(logisticsObjectId, logisticsEventId);
+        LogisticsEvent logisticsEvent = this.eventService.getLogisticsEvent(id.iri());
 
         //Last-Modified, Type, Location, Content-Type, Content-Language
         HttpHeaders headers = new HttpHeaders();
@@ -59,6 +63,10 @@ public class LogisticsEventController extends BaseController {
         return ResponseEntity.ok().headers(headers).body(logisticsEvent);
     }
 
+    private OntoMeshId getLogisticsEventId(String logisticsObjectId, String logisticsEventId) {
+        return idProvider.getUriForLogisticsEventId(logisticsObjectId, logisticsEventId);
+    }
+
     /**
      * Queries the logistic events.
      *
@@ -67,17 +75,17 @@ public class LogisticsEventController extends BaseController {
      * @param eventType
      * @return
      */
-    @GetMapping(produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
-            SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-            SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    private ResponseEntity<LogisticsObject> getLogisticsEvents(HttpServletRequest httpServletRequest,
-                                                               @PathVariable("loId") String loReferenceId,
-                                                               @RequestParam(required = false, name = "eventType") String eventType) {
+    @GetMapping(produces = {APPLICATION_JSON_LD_VALUE,
+            APPLICATION_TURTLE_VALUE,
+            TEXT_TURTLE_VALUE})
+    private ResponseEntity<LogisticsEvent> getLogisticsEvents(HttpServletRequest httpServletRequest,
+                                                              @PathVariable("logisticsObjectId") String loReferenceId,
+                                                              @RequestParam(required = false, name = "eventType") String eventType) {
         URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
         log.debug("Request URI {}", requestURI);
         OntoMeshId loId = getLoId(loReferenceId);
 
-        LogisticsObject logisticsObject = this.eventService
+        LogisticsEvent logisticsObject = this.eventService
                 .getEventsByLogisticsObjectIRI(loId.iri(), requestURI, eventType);
 
         //Last-Modified, Type, Location, Content-Type, Content-Language
@@ -96,19 +104,15 @@ public class LogisticsEventController extends BaseController {
      * @param httpServletRequest
      * @return
      */
-    @PostMapping(consumes =
-            {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE},
-            produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE, SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-                    SemanticWebMediaType.TEXT_TURTLE_VALUE})
-    public ResponseEntity<Void> saveLogisticsEvents(@RequestBody LogisticsObject logisticsEvent,
+    @PostMapping(consumes = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE},
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
+    public ResponseEntity<Void> saveLogisticsEvents(@RequestBody LogisticsEvent logisticsEvent,
+                                                    @PathVariable("logisticsObjectId") String logisticsObjectId,
                                                     HttpServletRequest httpServletRequest) {
 
-        StringBuffer requestURL = httpServletRequest.getRequestURL();
-        String loId = requestURL.substring(0, requestURL.lastIndexOf("/logistics-events"));
-        IRI loIRI = Values.iri(loId);
+        OntoMeshId loId = getLoId(logisticsObjectId);
         // validate loId.
-        IRI logisticsEventIRI = this.eventService.saveLogisticsEvent(loIRI, CARGO.LogisticsEvent, logisticsEvent);
+        IRI logisticsEventIRI = this.eventService.saveLogisticsEvent(loId.iri(), logisticsEvent);
         log.debug("Logistics Event IRI {}", logisticsEventIRI);
 
         HttpHeaders headers = new HttpHeaders();

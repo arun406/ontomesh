@@ -37,21 +37,22 @@ public abstract class BaseRepository {
             }
             newStatements.add(statement);
             Value value = statement.getObject();
-            if (value.isIRI()) {
-                // add @type when by default.
-                RepositoryResult<Statement> result = connection.getStatements((Resource) value, RDF.TYPE, null);
-                if (result.hasNext()) {
-                    Statement next = result.next();
-                    if (next != null) {
-                        newStatements.add(next);
-                    }
+            if (!value.isIRI()) {
+                return;
+            }
+            // add @type when by default.
+            RepositoryResult<Statement> result = connection.getStatements((Resource) value, RDF.TYPE, null);
+            if (result.hasNext()) {
+                Statement next = result.next();
+                if (next != null) {
+                    newStatements.add(next);
                 }
-                if (continueTraversal.test(statement)) {
-                    RepositoryResult<Statement> bNodeStatements = connection
-                            .getStatements((Resource) value, null, null);
+            }
+            if (continueTraversal.test(statement)) {
+                RepositoryResult<Statement> bNodeStatements = connection
+                        .getStatements((Resource) value, null, null);
 
-                    traverse(bNodeStatements.stream().toList(), newStatements, continueTraversal);
-                }
+                traverse(bNodeStatements.stream().toList(), newStatements, continueTraversal);
             }
         });
 

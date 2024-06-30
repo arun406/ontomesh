@@ -31,6 +31,9 @@ public abstract class AbstractLogisticsObjectService {
         this.idProvider = idProvider;
     }
 
+    public IRI getTenant() {
+        return this.idProvider.tenant();
+    }
 
     protected int isTypePredicate(IRI iri1) {
         return iri1.toString().compareTo(RDF.TYPE.toString());
@@ -89,12 +92,12 @@ public abstract class AbstractLogisticsObjectService {
         }
     }
 
-    /**
-     * @param logisticsObject       logistics object.
-     * @param notificationEventType event type.
-     */
-    protected void addEventToLogisticsObject(LogisticsObject logisticsObject, NotificationEventType notificationEventType) {
+//    /**
+//     * @param logisticsObject       logistics object.
+//     * @param notificationEventType event type.
+//     */
+//    protected void addEventToLogisticsObject(LogisticsObject logisticsObject, NotificationEventType notificationEventType) {
 //        logisticsEventService.addEventToLogisticsObject(logisticsObject.iri(), notificationEventType);
-    }
+//    }
 
 }

@@ -6,11 +6,10 @@ import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
-import io.ontomesh.onerecord.server.domain.LogisticsObject;
+import io.ontomesh.onerecord.server.domain.LogisticsEvent;
 import io.ontomesh.onerecord.server.event.EventProducer;
 import io.ontomesh.onerecord.server.exception.LinkedObjectNotMatchException;
 import io.ontomesh.onerecord.server.exception.LinkedObjectReferenceMissingException;
-import io.ontomesh.onerecord.server.exception.LogisticsEventNotFoundException;
 import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
 
 @Slf4j
 @Service
@@ -73,10 +71,10 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     /**
      * Persists the Model.
      *
-     * @param model model tobe persisted in the database.
+     * @param event model tobe persisted in the database.
      */
-    private void saveEvent(Model model) {
-        getRepository().persist(model);
+    private void saveEvent(LogisticsEvent event) {
+        getRepository().persist(event.model());
     }
 
     /**
@@ -85,7 +83,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param logisticsObjectIRI Logistics Object IRI.
      * @param event              Logistics Event.
      */
-    private void validate(IRI logisticsObjectIRI, LogisticsObject event) {
+    private void validate(IRI logisticsObjectIRI, LogisticsEvent event) {
 
         // Check existence of LogisticsObject.
         validate(logisticsObjectIRI);
@@ -96,7 +94,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
             throw new LinkedObjectReferenceMissingException("Linked Object Reference is missing.");
         }
         log.debug("linked object id: {} ", linkedObjectId);
-        if (!linkedObjectId.stringValue().equals(logisticsObjectIRI.stringValue())) {
+        if (!linkedObjectId.equals(logisticsObjectIRI)) {
             throw new LinkedObjectNotMatchException("Logistics Object Id and Linked Object reference is not matching.");
         }
     }
@@ -121,85 +119,101 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param eventType notification event type.
      */
     @Transactional
-    public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType) {
-
+    public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent,
+                                          IRI tenant, boolean link) {
         log.debug("Adding {} event to logistics object {} ", eventType.label(), loId);
-        IdProvider idProvider = getIdProvider();
-        OntoMeshId eventId = idProvider.createUniqueLogisticsEvent(loId);
-        IRI eventCodeIRI = idProvider.createInternalIri().iri();
-
-        Model eventCodeModel = new ModelBuilder()
-                .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
-                .subject(eventCodeIRI)
-                .add(RDF.TYPE, CARGO.CodeListElement)
-                .add(CARGO.code, eventType.label())
-                .add(CARGO.codeListName, eventType.name())
-                .build();
-
-        Model eventTimeTypeModel = new ModelBuilder()
-                .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
-                .subject(CARGO.ACTUAL)
-                .add(RDF.TYPE, CARGO.EventTimeType).build();
-
-        getRepository().persist(eventTimeTypeModel);
-        getRepository().persist(eventCodeModel);
-
-        IRI tenant = idProvider.tenant();
-        Model event = new EventBuilder(eventId.iri(), loId, getType(loId),
-                eventType.name(), true, tenant, eventCodeIRI, CARGO.ACTUAL)
-                .build();
-
+        if (logisticsEvent == null) {
+            logisticsEvent = createEventModel(loId, eventType, tenant);
+        }
         // save the LogisticsEvent
-        saveEvent(event);
+        saveEvent(logisticsEvent);
+        if (link) {
+            linkToLogisticsObject(loId, logisticsEvent.iri());
+        }
+        publishLogisticsEvent(logisticsEvent, tenant);
+    }
 
-        linkToLogisticsObject(loId, eventId.iri());
-        LogisticsObject logisticsEvent = this.getLogisticsEvent(eventId.iri());
+
+    public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType) {
+        addEventToLogisticsObject(loId, eventType, null, getTenant(), false);
+    }
+
+    public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent) {
+        addEventToLogisticsObject(loId, eventType, logisticsEvent, getTenant(), false);
+    }
+
+    public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent, boolean link) {
+        addEventToLogisticsObject(loId, eventType, logisticsEvent, getTenant(), link);
+    }
+
+    private void publishLogisticsEvent(LogisticsEvent logisticsEvent, IRI tenant) {
         String eventString = new ModelToStringConverter(RDFFormat.TURTLE).convert(logisticsEvent.model());
-        // publish the logistics event
 
+        // publish the logistics event
         BiConsumer<SendResult<String, String>, Throwable> action = (SendResult<String, String> result, Throwable ex) -> {
             if (ex == null) {
-                log.debug("Sent event =[{}] with offset=[{}]",
-                        eventId.iri().stringValue(), result.getRecordMetadata().offset());
-                getRepository().delete(eventId.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew);
+                log.debug("Sent event =[{}] with offset=[{}]", logisticsEvent.iri().stringValue(), result.getRecordMetadata().offset());
                 // update the event status.
-                getRepository().add(eventId.iri(), OntoMesh.hasEventStatus, EventStatus.PUBLISHED.label());
+                getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, EventStatus.PUBLISHED.label());
             } else {
-                log.debug("Unable to send event=[{}}] due to {}: ",
-                        eventId.iri().stringValue(), ex.getMessage());
-                getRepository().delete(eventId.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew);
+                log.debug("Unable to send event=[{}}] due to {}: ", logisticsEvent.iri().stringValue(), ex.getMessage());
                 // update the event status.
-                getRepository().add(eventId.iri(), OntoMesh.hasEventStatus, EventStatus.FAILED.label());
+                getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, EventStatus.FAILED.label());
             }
         };
 
         this.eventProducer.send(eventString, tenant, action);
     }
 
+    public LogisticsEvent createEventModel(IRI loId, NotificationEventType eventType, IRI tenant) {
+        IdProvider idProvider = getIdProvider();
+        OntoMeshId eventId = idProvider.createUniqueLogisticsEvent(loId);
+        IRI eventCodeIRI = idProvider.createInternalIri().iri();
+        ModelBuilder builder = new ModelBuilder().setNamespace(API.PREFIX, API.NAMESPACE)
+                .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
+                .subject(eventId.iri())
+                .add(RDF.TYPE, CARGO.LogisticsEvent)
+                .add(CARGO.creationDate, LocalDateTime.now())
+                .add(CARGO.eventDate, LocalDateTime.now())//TODO : revisit
+                .add(CARGO.eventName, eventType.name())
+                .add(CARGO.partialEventIndicator, false)
+                .add(CARGO.eventFor, loId)
+                .add(CARGO.recordingOrganization, tenant)
+                .add(OntoMesh.isInternal, Values.literal(true))
+                .add(CARGO.eventCode, eventCodeIRI)
+                .subject(eventCodeIRI)  //switch to eventCode
+                .add(RDF.TYPE, CARGO.CodeListElement)
+                .add(CARGO.code, eventType.label().stringValue())
+                .add(CARGO.codeListName, eventType.getCodeListName())
+                .subject(eventId.iri())
+                .add(CARGO.eventTimeType, CARGO.ACTUAL)
+                .subject(CARGO.ACTUAL)
+                .add(RDF.TYPE, CARGO.EventTimeType);
+
+        Model model = builder.build();
+
+        return new LogisticsEvent(eventId.iri(), model);
+    }
+
     /**
      * Saves The Logistics Event and Links to Logistics Object.
      *
      * @param logisticsObjectIRI Logistics Object IRI.
-     * @param loType
      * @param event              Logistics Event.
      * @return
      */
-    public IRI saveLogisticsEvent(IRI logisticsObjectIRI, IRI loType, LogisticsObject event) {
+    public IRI saveLogisticsEvent(IRI logisticsObjectIRI, LogisticsEvent event) {
 
         // validate.
         validate(logisticsObjectIRI, event);
-
         // save the model.
-        saveEvent(event.model());
-
-        linkToLogisticsObject(logisticsObjectIRI, event.iri());
-
-        addEventToLogisticsObject(logisticsObjectIRI, NotificationEventType.LOGISTICS_EVENT_RECEIVED);
-
+        saveEvent(event);
+//        linkToLogisticsObject(logisticsObjectIRI, event.iri());
+        addEventToLogisticsObject(logisticsObjectIRI, NotificationEventType.LOGISTICS_EVENT_RECEIVED, event, true);
         return event.iri();
     }
 
-    public LogisticsObject getEventsByLogisticsObjectIRI(IRI logisticsObjectIRI, URI id, String eventType) {
+    public LogisticsEvent getEventsByLogisticsObjectIRI(IRI logisticsObjectIRI, URI id, String eventType) {
 
         // validate logistics object.
         ModelBuilder builder = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
@@ -213,7 +227,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         for (Statement statement : statementList) {
             if (statement.getObject().isIRI()) {
                 log.debug("Logistics Event IRI {}", statement.getObject());
-                LogisticsObject logisticsEvent = getLogisticsEvent((IRI) statement.getObject());
+                LogisticsEvent logisticsEvent = getLogisticsEvent((IRI) statement.getObject());
                 if (StringUtils.hasText(eventType) &&
                         !getLogisticsEventType(logisticsEvent.iri(), logisticsEvent.model(), eventType)) {
                     continue;
@@ -229,7 +243,8 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         }
         builder.add(id.toString(), OntoMesh.hasTotalItems, counter);
         Model model = builder.build();
-        return new LogisticsObject(Values.iri(id.toString()), OntoMesh.Collection, model);
+//        return new LogisticsEvent(Values.iri(id.toString()), OntoMesh.Collection, model);
+        return new LogisticsEvent(Values.iri(id.toString()), model);
     }
 
     /**
@@ -238,17 +253,20 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param logisticEventIRI Logistics Event IRI.
      * @return Logistics Event
      */
-    public LogisticsObject getLogisticsEvent(IRI logisticEventIRI) {
+    public LogisticsEvent getLogisticsEvent(IRI logisticEventIRI) {
 
-        Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(CARGO.eventFor));
+//        Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(CARGO.eventFor));
+//
+//        Optional<LogisticsEvent> logisticsObjectOptional = this.getRepository()
+//                .findEventsByLogisticsObjectId(logisticEventIRI, predicate);
 
-        Optional<LogisticsObject> logisticsObjectOptional = this.getRepository()
-                .findLoById(logisticEventIRI, predicate);
+//        if (logisticsObjectOptional.isEmpty()) {
+//            throw new LogisticsEventNotFoundException("Logistics events not found.");
+//        }
 
-        if (logisticsObjectOptional.isEmpty()) {
-            throw new LogisticsEventNotFoundException("Logistics events not found.");
-        }
-        return logisticsObjectOptional.get();
+        Model model = getRepository().findEventModelById(logisticEventIRI);
+
+        return new LogisticsEvent(logisticEventIRI, model);
     }
 
 }

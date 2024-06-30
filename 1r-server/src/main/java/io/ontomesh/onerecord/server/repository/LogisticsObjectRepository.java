@@ -2,11 +2,13 @@ package io.ontomesh.onerecord.server.repository;
 
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.ActionRequest;
+import io.ontomesh.onerecord.server.domain.LogisticsEvent;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.*;
 import org.iata.onerecord.api.API;
@@ -17,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+
+import static java.lang.StringTemplate.STR;
 
 @Component
 @Slf4j
@@ -51,6 +55,38 @@ public class LogisticsObjectRepository extends BaseRepository {
                 OFFSET %d
             """;
 
+    public Model findEventModelById(IRI id) {
+        String query = STR
+                ."""
+                    PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>
+                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                    CONSTRUCT { <\{ id }> ?p ?o ;
+                                  cargo:eventFor ?lo ;
+                                  cargo:recordingOrganization ?recordingOrganization ;
+                                  cargo:eventTimeType ?eventTimeType ;
+                                  cargo:eventCode ?code .
+                                  ?code rdf:type ?codeType.
+                                  ?lo rdf:type ?loType .
+                                  ?recordingOrganization rdf:type ?recordingOrganizationType .
+                                  ?eventTimeType rdf:type ?eventTimeTypeType .
+                    }
+                    FROM <http://www.ontotext.com/explicit>
+                    WHERE {
+                          <\{ id }> ?p ?o ;
+                          cargo:eventFor ?lo ;
+                          cargo:recordingOrganization ?recordingOrganization ;
+                          cargo:eventTimeType ?eventTimeType ;
+                          cargo:eventCode ?code .
+                          ?code rdf:type ?codeType.
+                          ?lo rdf:type ?loType .
+                          ?recordingOrganization rdf:type ?recordingOrganizationType .
+                          ?eventTimeType rdf:type ?eventTimeTypeType .
+                    }
+                 """;
+        GraphQueryResult queryResult = getConnection().prepareGraphQuery(query).evaluate();
+        return QueryResults.asModel(queryResult);
+    }
+
     /**
      * @param iri
      * @return
@@ -69,6 +105,11 @@ public class LogisticsObjectRepository extends BaseRepository {
                     IRI type = RDFUtil.getType(model, iri);
                     return new LogisticsObject(iri, type, model);
                 });
+    }
+
+    public Optional<LogisticsEvent> findEventsByLogisticsObjectId(IRI iri, Predicate<Statement> continueRecursionIf) {
+        return findByIRI(iri, continueRecursionIf)
+                .map(model -> new LogisticsEvent(iri, model));
     }
 
     public List<IRI> logisticsObjectTypes() {
@@ -120,6 +161,7 @@ public class LogisticsObjectRepository extends BaseRepository {
         TupleQuery tupleQuery = getConnection().prepareTupleQuery(query);
 
         try (TupleQueryResult result = tupleQuery.evaluate()) {
+//            QueryResults.asModel(result.iterator());
             List<BindingSet> list = QueryResults.asList(result);
             return
                     list.stream()

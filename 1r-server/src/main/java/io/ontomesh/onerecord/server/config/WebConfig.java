@@ -1,6 +1,6 @@
 package io.ontomesh.onerecord.server.config;
 
-import io.ontomesh.onerecord.server.converter.LogisticsObjectRDFMessageConverter;
+import io.ontomesh.onerecord.server.converter.http.LogisticsObjectRDFMessageConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;

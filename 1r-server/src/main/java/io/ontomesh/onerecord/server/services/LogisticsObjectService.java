@@ -39,10 +39,12 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         }
     };
     private final SnapshotService snapshotService;
+    private final LogisticsEventService eventService;
 
-    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider, SnapshotService snapshotService) {
+    public LogisticsObjectService(LogisticsObjectRepository repository, IdProvider idProvider, SnapshotService snapshotService, LogisticsEventService eventService) {
         super(repository, idProvider);
         this.snapshotService = snapshotService;
+        this.eventService = eventService;
     }
 
     public static NotificationEventType getNotificationEventType(IRI status) {
@@ -196,7 +198,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         validate(logisticsObject);
         super.saveLogisticsObject(logisticsObject);
         // create and publish event.
-        addEventToLogisticsObject(logisticsObject, NotificationEventType.LOGISTICS_OBJECT_CREATED);
+        addEventToLogisticsObject(NotificationEventType.LOGISTICS_OBJECT_CREATED, logisticsObject.iri());
     }
 
     @Transactional
@@ -223,11 +225,12 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         logisticsObject.updateRevision(revision.intValue());
         log.debug("latest revision {}", revision);
         // create and publish event.
-        addEventToLogisticsObject(logisticsObject, NotificationEventType.LOGISTICS_OBJECT_UPDATED);
+        addEventToLogisticsObject(NotificationEventType.LOGISTICS_OBJECT_UPDATED, logisticsObject.iri());
 
         LogisticsObject snapshot = snapshotService.createSnapshot(logisticsObject);
         log.info("Snapshot with {} is created successfully.", snapshot.iri());
     }
+
 
     @Transactional
     public Set<IRI> applyChanges(LogisticsObject change) {
@@ -260,5 +263,9 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
     public List<IRI> logisticsObjectTypes() {
         return this.getRepository().logisticsObjectTypes();
+    }
+
+    private void addEventToLogisticsObject(NotificationEventType notificationEventType, IRI iri) {
+        eventService.addEventToLogisticsObject(iri, notificationEventType);
     }
 }

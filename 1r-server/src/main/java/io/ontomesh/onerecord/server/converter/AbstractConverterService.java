@@ -1,14 +1,12 @@
-package io.ontomesh.onerecord.server.services;
+package io.ontomesh.onerecord.server.converter;
 
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
-import io.ontomesh.onerecord.server.converter.InputStreamToModelConverter;
-import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -17,39 +15,27 @@ import org.eclipse.rdf4j.model.util.ModelCollector;
 import org.eclipse.rdf4j.model.util.Statements;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
 import java.net.URI;
 
+@Getter
 @Slf4j
-@Service
-@RequiredArgsConstructor
-public class LogisticsObjectConverterService {
+public abstract class AbstractConverterService {
 
-    private final IdProvider idProvider;
-    private final BlankNodeReplacingStatementHandler statementHandler;
-    private final HttpServletRequest httpServletRequest;
+    @Autowired
+    private IdProvider idProvider;
+    @Autowired
+    private BlankNodeReplacingStatementHandler statementHandler;
+    @Autowired
+    private HttpServletRequest httpServletRequest;
 
-    private OntoMeshId createUniqueUri() {
-        String url = getURL();
-        log.debug("URL : {} ", url);
-        boolean isLogisticsEvent = url.contains("/logistics-events");
-        if (isLogisticsEvent) {
-            return idProvider.createUniqueLogisticsEventUri(URI.create(url));
-        } else {
-            return idProvider.createUniqueLoUri();
-        }
-    }
-
-//    private IRI createUri() {
-//        return idProvider.createUniqueUri().iri();
-//        idProvider.createUniqueLogisticsEventUri(URI.create(url));
-//    }
-
-    private String getURL() {
+    protected String getURL() {
         return httpServletRequest.getRequestURL().toString();
     }
+
+    public abstract OntoMeshId createUniqueUri();
 
     private Model replaceRootIri(Model model, IRI oldRootIri, IRI newLoIri) {
         return model.stream().map(statement -> {
@@ -76,14 +62,11 @@ public class LogisticsObjectConverterService {
     }
 
     /**
-     * Creates the LogisticsObject
-     *
-     * @param inputStream rdf stream.
-     * @param rdfFormat   RDF Format
-     * @return Logistics Object
+     * @param inputStream
+     * @param rdfFormat
+     * @return
      */
-    public LogisticsObject getLogisticsObject(InputStream inputStream, RDFFormat rdfFormat) {
-
+    protected Tuple getTuple(InputStream inputStream, RDFFormat rdfFormat) {
         Model model = new InputStreamToModelConverter(rdfFormat, statementHandler).convert(inputStream);
         if (model == null) {
             return null;
@@ -102,25 +85,15 @@ public class LogisticsObjectConverterService {
             // Adding marker
             model.add(loIRI, OntoMesh.hasId, Values.literal(true));
         }
-
-        LogisticsObject logisticsObject = new LogisticsObject(newIRI, model);
-        log.info("LO iri: {} ", logisticsObject.iri());
-        return logisticsObject;
+        return new Tuple(model, newIRI);
     }
 
-
-//    /**
-//     * @param inputStream input stream
-//     * @return
-//     * @throws IOException
-//     */
-//    public Model getModel(InputStream inputStream, RDFFormat rdfFormat) throws IOException {
-//        RDFParser rdfParser = getParser(rdfFormat);
-//        rdfParser.parse(inputStream);
-//        return statementHandler.getModel();
-//    }
-//
-//    private RDFParser getParser(RDFFormat rdfFormat) {
-//        return RDFUtil.getParser(rdfFormat, statementHandler);
-//    }
+    /**
+     * Local Record to hold the data
+     *
+     * @param model
+     * @param newIRI
+     */
+    protected record Tuple(Model model, IRI newIRI) {
+    }
 }

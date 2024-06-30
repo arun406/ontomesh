@@ -2,6 +2,7 @@ package io.ontomesh.onerecord.server.domain;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Value;
 
 import java.net.URI;
@@ -20,4 +21,6 @@ public interface ILogisticsObject {
     boolean add(IRI var1, Value var2);
 
     boolean remove(IRI var1, Value var2);
+
+    Model model();
 }
