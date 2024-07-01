@@ -8,7 +8,6 @@ import io.ontomesh.onerecord.server.converter.LogisticsObjectConverterService;
 import io.ontomesh.onerecord.server.domain.ILogisticsObject;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.util.JsonldUtil;
-import io.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.rio.RDFFormat;
@@ -47,18 +46,5 @@ public class LogisticsObjectRDFMessageConverter extends AbstractHttpMessageConve
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
         return LogisticsObject.class.isAssignableFrom(clazz) && isValid(mediaType);
-    }
-
-    @Override
-    protected String convertToRDFString(LogisticsObject logisticsObject) throws IOException {
-        MediaType mediaType = getAcceptMediaType();
-        String rdfString = convertToString(mediaType, logisticsObject.model());
-        if (mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
-            rdfString = JsonldUtil.jsonLdToString(rdfString, true, logisticsObject.type());
-            Map<String, Map<String, String>> context = JsonldUtil.getContext();
-            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), context, new JsonLdOptions());
-            rdfString = JsonUtils.toPrettyString(compact);
-        }
-        return rdfString;
     }
 }

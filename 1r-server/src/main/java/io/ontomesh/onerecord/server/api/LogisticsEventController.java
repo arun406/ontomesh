@@ -2,6 +2,7 @@ package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsEvent;
+import io.ontomesh.onerecord.server.domain.LogisticsEvents;
 import io.ontomesh.onerecord.server.services.LogisticsEventService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -78,15 +79,13 @@ public class LogisticsEventController extends BaseController {
     @GetMapping(produces = {APPLICATION_JSON_LD_VALUE,
             APPLICATION_TURTLE_VALUE,
             TEXT_TURTLE_VALUE})
-    private ResponseEntity<LogisticsEvent> getLogisticsEvents(HttpServletRequest httpServletRequest,
-                                                              @PathVariable("logisticsObjectId") String loReferenceId,
-                                                              @RequestParam(required = false, name = "eventType") String eventType) {
-        URI requestURI = URI.create(httpServletRequest.getRequestURL().toString());
-        log.debug("Request URI {}", requestURI);
+    private ResponseEntity<LogisticsEvents> getLogisticsEvents(HttpServletRequest httpServletRequest,
+                                                               @PathVariable("logisticsObjectId") String loReferenceId,
+                                                               @RequestParam(required = false, name = "eventType") String eventType) {
         OntoMeshId loId = getLoId(loReferenceId);
 
-        LogisticsEvent logisticsObject = this.eventService
-                .getEventsByLogisticsObjectIRI(loId.iri(), requestURI, eventType);
+        LogisticsEvents events = this.eventService
+                .getEventsByLogisticsObjectIRI(loId.iri(), eventType);
 
         //Last-Modified, Type, Location, Content-Type, Content-Language
         HttpHeaders headers = new HttpHeaders();
@@ -94,7 +93,7 @@ public class LogisticsEventController extends BaseController {
         headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
         headers.setLastModified(Instant.now());
 
-        return ResponseEntity.ok().headers(headers).body(logisticsObject);
+        return ResponseEntity.ok().headers(headers).body(events);
     }
 
     /**

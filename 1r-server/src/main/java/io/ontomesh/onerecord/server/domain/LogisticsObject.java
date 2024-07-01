@@ -2,14 +2,13 @@ package io.ontomesh.onerecord.server.domain;
 
 import io.ontomesh.onerecord.server.exception.RevisionMissingException;
 import io.ontomesh.onerecord.server.util.RDFUtil;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
-import org.eclipse.rdf4j.rio.RDFFormat;
 import org.iata.onerecord.api.API;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.net.URI;
 
 /**
  * Main Domain object to represent the Logistics Object.
@@ -18,7 +17,7 @@ import java.net.URI;
  * @param type
  * @param model
  */
-public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) implements ILogisticsObject {
+public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) implements IVersionedLogisticsObject {
 
     // define constructor
     public LogisticsObject(IRI iri, IRI type, Model model, Literal revision) {
@@ -48,53 +47,11 @@ public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) 
         this(iri, type, model, Models.objectLiteral(model.filter(iri, API.hasRevision, null)).orElse(Values.literal(1)));
     }
 
-
-    // validate the parameters and raise the exception if properties are not valid.
-    // define an interface
     @Override
     public String toString() {
-        return "LogisticsObject{" +
-                "iri=" + iri +
-                ", type=" + type +
-                '}';
+        return STR."LogisticsObject{iri=\{iri}, type=\{type}\{'}'}";
     }
 
-    @Override
-    public URI uri() {
-        return URI.create(iri.toString());
-    }
-
-    @Override
-    public void print() {
-        // printing using default format
-        RDFUtil.print(this);
-    }
-
-    public void print(RDFFormat format) {
-        RDFUtil.print(this, format);
-    }
-
-    @Override
-    public IRI findIRI(IRI predicate, boolean raiseException) {
-        return RDFUtil.getObjectIRI(this.model, this.iri, predicate, raiseException);
-    }
-
-    public Value findValue(IRI predicate) {
-        return this.model.filter(this.iri, predicate, null).stream()
-                .findFirst()
-                .map(Statement::getObject)
-                .orElse(null);
-    }
-
-    @Override
-    public boolean add(IRI predicate, Value value) {
-        return model.add(this.iri, predicate, value);
-    }
-
-    @Override
-    public boolean remove(IRI predicate, Value value) {
-        return model.remove(this.iri, predicate, value);
-    }
 
     /**
      * returns the logistics object revision from the logistics model.
@@ -115,5 +72,4 @@ public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) 
         add(API.hasRevision, null);
         remove(API.hasRevision, Values.literal(newRevision));
     }
-
 }

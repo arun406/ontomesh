@@ -6,12 +6,13 @@ import com.github.jsonldjava.utils.JsonUtils;
 import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.domain.ILogisticsObject;
+import io.ontomesh.onerecord.server.domain.LogisticsEvents;
 import io.ontomesh.onerecord.server.util.JsonldUtil;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.iata.onerecord.cargo.CARGO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
@@ -86,9 +87,19 @@ public abstract class AbstractHttpMessageConverter<E extends ILogisticsObject>
 
     @Override
     protected void writeInternal(E e, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        String rdfString = convertToRDFString(e);
+        String rdfString = convertToRDFString(e.model(), e.type());
         StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
     }
 
-    protected abstract String convertToRDFString(E e) throws IOException;
+    protected String convertToRDFString(Model model, IRI type) throws IOException {
+        MediaType mediaType = getAcceptMediaType();
+        String rdfString = convertToString(mediaType, model);
+        if (mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
+            rdfString = JsonldUtil.jsonLdToString(rdfString, true, type);
+            Map<String, Map<String, String>> context = JsonldUtil.getContext();
+            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), context, new JsonLdOptions());
+            return JsonUtils.toPrettyString(compact);
+        }
+        return rdfString;
+    }
 }

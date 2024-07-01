@@ -60,27 +60,19 @@ public class LogisticsObjectRepository extends BaseRepository {
                 ."""
                     PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>
                     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                    CONSTRUCT { <\{ id }> ?p ?o ;
-                                  cargo:eventFor ?lo ;
-                                  cargo:recordingOrganization ?recordingOrganization ;
-                                  cargo:eventTimeType ?eventTimeType ;
-                                  cargo:eventCode ?code .
-                                  ?code rdf:type ?codeType.
-                                  ?lo rdf:type ?loType .
-                                  ?recordingOrganization rdf:type ?recordingOrganizationType .
-                                  ?eventTimeType rdf:type ?eventTimeTypeType .
-                    }
-                    FROM <http://www.ontotext.com/explicit>
-                    WHERE {
+                    CONSTRUCT WHERE {
                           <\{ id }> ?p ?o ;
                           cargo:eventFor ?lo ;
                           cargo:recordingOrganization ?recordingOrganization ;
                           cargo:eventTimeType ?eventTimeType ;
                           cargo:eventCode ?code .
-                          ?code rdf:type ?codeType.
                           ?lo rdf:type ?loType .
                           ?recordingOrganization rdf:type ?recordingOrganizationType .
-                          ?eventTimeType rdf:type ?eventTimeTypeType .
+                          ?eventTimeType rdf:type cargo:EventTimeType .
+
+                          ?code rdf:type ?codeType .
+                          ?code cargo:code ?codeValue .
+                          ?code cargo:codeListName ?codeListName .
                     }
                  """;
         GraphQueryResult queryResult = getConnection().prepareGraphQuery(query).evaluate();

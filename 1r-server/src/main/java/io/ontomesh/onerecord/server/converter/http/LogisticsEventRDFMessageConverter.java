@@ -9,6 +9,7 @@ import io.ontomesh.onerecord.server.domain.ILogisticsObject;
 import io.ontomesh.onerecord.server.domain.LogisticsEvent;
 import io.ontomesh.onerecord.server.util.JsonldUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -45,18 +46,5 @@ public class LogisticsEventRDFMessageConverter extends AbstractHttpMessageConver
     @Override
     protected ILogisticsObject convert(InputStream inputStream, RDFFormat rdfFormat) {
         return converterService.getLogisticEvent(inputStream, rdfFormat);
-    }
-
-    @Override
-    protected String convertToRDFString(LogisticsEvent event) throws IOException {
-        MediaType mediaType = getAcceptMediaType();
-        String rdfString = convertToString(mediaType, event.model());
-        if (mediaType.isCompatibleWith(SemanticWebMediaType.APPLICATION_JSON_LD)) {
-            rdfString = JsonldUtil.jsonLdToString(rdfString, true, event.getType());
-            Map<String, Map<String, String>> context = JsonldUtil.getContext();
-            Object compact = JsonLdProcessor.compact(JsonUtils.fromString(rdfString), context, new JsonLdOptions());
-            rdfString = JsonUtils.toPrettyString(compact);
-        }
-        return rdfString;
     }
 }

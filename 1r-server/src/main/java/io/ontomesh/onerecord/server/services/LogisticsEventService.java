@@ -7,9 +7,11 @@ import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.domain.LogisticsEvent;
+import io.ontomesh.onerecord.server.domain.LogisticsEvents;
 import io.ontomesh.onerecord.server.event.EventProducer;
 import io.ontomesh.onerecord.server.exception.LinkedObjectNotMatchException;
 import io.ontomesh.onerecord.server.exception.LinkedObjectReferenceMissingException;
+import io.ontomesh.onerecord.server.exception.LogisticsEventNotFoundException;
 import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ import org.springframework.util.StringUtils;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 @Slf4j
@@ -53,9 +56,6 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         this.eventProducer = eventProducer;
     }
 
-    private boolean getLogisticsEventType(IRI iri, Model model, String eventType) {
-        return !model.filter(iri, CARGO.eventCode, Values.literal(eventType)).isEmpty();
-    }
 
     /**
      * Links event to logistics object.
@@ -213,15 +213,18 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         return event.iri();
     }
 
-    public LogisticsEvent getEventsByLogisticsObjectIRI(IRI logisticsObjectIRI, URI id, String eventType) {
+    public LogisticsEvents getEventsByLogisticsObjectIRI(IRI logisticsObjectIRI, String eventType) {
 
         // validate logistics object.
+        IRI id = getIdProvider().getLogisticsEventId(logisticsObjectIRI).iri();
         ModelBuilder builder = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
-                .subject(id.toString())
+                .subject(id)
                 .add(RDF.TYPE, OntoMesh.Collection);
+
         RepositoryResult<Statement> repositoryResult = this.getRepository()
                 .getStatements(logisticsObjectIRI, OntoMesh.hasLogisticsEvents, null);
+
         List<Statement> statementList = repositoryResult.stream().toList();
         int counter = 0;
         for (Statement statement : statementList) {
@@ -229,7 +232,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
                 log.debug("Logistics Event IRI {}", statement.getObject());
                 LogisticsEvent logisticsEvent = getLogisticsEvent((IRI) statement.getObject());
                 if (StringUtils.hasText(eventType) &&
-                        !getLogisticsEventType(logisticsEvent.iri(), logisticsEvent.model(), eventType)) {
+                        !Objects.equals(logisticsEvent.getLogisticsEventCode(), eventType)) {
                     continue;
                 }
                 counter++;
@@ -243,8 +246,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         }
         builder.add(id.toString(), OntoMesh.hasTotalItems, counter);
         Model model = builder.build();
-//        return new LogisticsEvent(Values.iri(id.toString()), OntoMesh.Collection, model);
-        return new LogisticsEvent(Values.iri(id.toString()), model);
+        return new LogisticsEvents(Values.iri(id.toString()), model);
     }
 
     /**
@@ -255,17 +257,10 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      */
     public LogisticsEvent getLogisticsEvent(IRI logisticEventIRI) {
 
-//        Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(CARGO.eventFor));
-//
-//        Optional<LogisticsEvent> logisticsObjectOptional = this.getRepository()
-//                .findEventsByLogisticsObjectId(logisticEventIRI, predicate);
-
-//        if (logisticsObjectOptional.isEmpty()) {
-//            throw new LogisticsEventNotFoundException("Logistics events not found.");
-//        }
-
         Model model = getRepository().findEventModelById(logisticEventIRI);
-
+        if (model.isEmpty()) {
+            throw new LogisticsEventNotFoundException(logisticEventIRI);
+        }
         return new LogisticsEvent(logisticEventIRI, model);
     }
 

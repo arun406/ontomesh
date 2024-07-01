@@ -46,6 +46,12 @@ public class IdProvider {
                 .path("/logistics-events/");
     }
 
+    public OntoMeshId getLogisticsEventId(IRI logisticsObjectId) {
+        UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
+                .uri(URI.create(logisticsObjectId.stringValue())).path("/");
+        return OntoMeshId.fromUri(builder.path("/logistics-events/").build().toUri());
+    }
+
     private UriComponentsBuilder getLoUriBase() {
         return baseUri()
                 .path("/logistics-objects/");
