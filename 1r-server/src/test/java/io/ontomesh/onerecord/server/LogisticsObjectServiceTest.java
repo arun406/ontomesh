@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 @Slf4j
 @SpringBootTest
 public class LogisticsObjectServiceTest {
@@ -28,5 +30,10 @@ public class LogisticsObjectServiceTest {
         Literal literal = repository.incrementLogisticsObjectVersion(logisticsObjectIRI, currentRevision);
         Assertions.assertEquals(literal.intValue(), nextRevision.intValue());
 
+    }
+
+    @Test
+    public void listLogisticsObjectsByType() {
+        List<IRI> iris = repository.listAllLogisticsObjects(Values.iri("https://onerecord.iata.org/ns/cargo#Shipment"), 20, 0);
     }
 }

@@ -6,6 +6,7 @@ import io.ontomesh.onerecord.server.services.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
 import org.iata.onerecord.api.API;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
 
@@ -35,6 +38,24 @@ public class LogisticsObjectController extends BaseController {
                                      SnapshotService snapshotService, AuditTrailService auditTrailService,
                                      ActionRequestService actionRequestService) {
         super(logisticsObjectService, snapshotService, actionRequestService, auditTrailService);
+    }
+
+    @GetMapping()
+    private ResponseEntity<List<String>> getLogisticsObjects(@RequestParam(value = "type", required = false) IRI type,
+                                                             @RequestParam(value = "limit", defaultValue = "20") int limit,
+                                                             @RequestParam(value = "offset", defaultValue = "0") int offset) {
+
+        List<IRI> iriList = this.getLogisticsObjectService().listAllLogisticsObjects(type, limit, offset);
+        if (iriList != null) {
+            return ResponseEntity.ok()
+                    .body(iriList.stream().map(Object::toString).collect(Collectors.toList()));
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentLanguage(Locale.US);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .build();
     }
 
     @GetMapping(path = "/{loId}/subscriptions",

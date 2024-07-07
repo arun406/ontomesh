@@ -1,22 +1,14 @@
 package io.ontomesh.onerecord.server.converter.http;
 
-import com.github.jsonldjava.core.JsonLdOptions;
-import com.github.jsonldjava.core.JsonLdProcessor;
-import com.github.jsonldjava.utils.JsonUtils;
-import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.converter.LogisticsObjectConverterService;
 import io.ontomesh.onerecord.server.domain.ILogisticsObject;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.util.JsonldUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 @Slf4j
 @Component

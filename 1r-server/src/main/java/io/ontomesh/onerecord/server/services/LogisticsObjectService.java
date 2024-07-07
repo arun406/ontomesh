@@ -9,16 +9,20 @@ import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.base.CoreDatatype;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.ModelCollector;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.iata.onerecord.api.API;
+import org.iata.onerecord.cargo.CARGO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -196,6 +200,10 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     @Transactional
     public void saveLogisticsObject(LogisticsObject logisticsObject) {
         validate(logisticsObject);
+
+        // Add Audit: creationDate
+        logisticsObject.add(CARGO.creationDate, SimpleValueFactory.getInstance().createLiteral(Instant.now()));
+
         super.saveLogisticsObject(logisticsObject);
         // create and publish event.
         addEventToLogisticsObject(NotificationEventType.LOGISTICS_OBJECT_CREATED, logisticsObject.iri());
@@ -267,5 +275,9 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
     private void addEventToLogisticsObject(NotificationEventType notificationEventType, IRI iri) {
         eventService.addEventToLogisticsObject(iri, notificationEventType);
+    }
+
+    public List<IRI> listAllLogisticsObjects(IRI type, int limit, int offset) {
+        return this.getRepository().listAllLogisticsObjects(type, limit, offset);
     }
 }

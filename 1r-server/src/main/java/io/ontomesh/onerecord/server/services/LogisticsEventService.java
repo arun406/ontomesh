@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -73,7 +72,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      *
      * @param event model tobe persisted in the database.
      */
-    private void saveEvent(LogisticsEvent event) {
+    private void persist(LogisticsEvent event) {
         getRepository().persist(event.model());
     }
 
@@ -125,8 +124,8 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         if (logisticsEvent == null) {
             logisticsEvent = createEventModel(loId, eventType, tenant);
         }
-        // save the LogisticsEvent
-        saveEvent(logisticsEvent);
+        // persist the LogisticsEvent
+        persist(logisticsEvent);
         if (link) {
             linkToLogisticsObject(loId, logisticsEvent.iri());
         }
@@ -207,7 +206,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         // validate.
         validate(logisticsObjectIRI, event);
         // save the model.
-        saveEvent(event);
+        persist(event);
 //        linkToLogisticsObject(logisticsObjectIRI, event.iri());
         addEventToLogisticsObject(logisticsObjectIRI, NotificationEventType.LOGISTICS_EVENT_RECEIVED, event, true);
         return event.iri();

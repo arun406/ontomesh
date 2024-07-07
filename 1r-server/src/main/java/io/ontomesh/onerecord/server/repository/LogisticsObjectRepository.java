@@ -19,12 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.lang.StringTemplate.STR;
 
 @Component
 @Slf4j
 public class LogisticsObjectRepository extends BaseRepository {
+
 
     String queryWithStatus = """
                 prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -34,7 +36,7 @@ public class LogisticsObjectRepository extends BaseRepository {
                     ?id rdf:type <%s> ;
                        api:hasRequestStatus ?status ;
                        api:isRequestedAt ?requestedAt .
-                       FILTER (?status = <%s> ) .
+                       FILTER (!BOUND(?STATUS) || ?status = ?STATUS)
                 }
                 ORDER BY (?requestedAt)
                 LIMIT %d
@@ -61,7 +63,7 @@ public class LogisticsObjectRepository extends BaseRepository {
                     PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>
                     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                     CONSTRUCT WHERE {
-                          <\{ id }> ?p ?o ;
+                          <\{id}> ?p ?o ;
                           cargo:eventFor ?lo ;
                           cargo:recordingOrganization ?recordingOrganization ;
                           cargo:eventTimeType ?eventTimeType ;
@@ -142,18 +144,15 @@ public class LogisticsObjectRepository extends BaseRepository {
      */
     public List<ActionRequest> listLogisticsObject(IRI type, int limit, int offset, IRI status) {
         String query;
-        if (status != null) {
-            query = queryWithStatus.formatted(type.toString(), status.toString(), limit, offset);
-        } else {
-            query = queryWithOutStatus.formatted(type.toString(), limit, offset);
-        }
+        query = queryWithStatus.formatted(type.toString(), status.toString(), limit, offset);
 
         log.info("query: {}", query);
 
         TupleQuery tupleQuery = getConnection().prepareTupleQuery(query);
-
+        if (status != null) {
+            tupleQuery.setBinding("STATUS", status);
+        }
         try (TupleQueryResult result = tupleQuery.evaluate()) {
-//            QueryResults.asModel(result.iterator());
             List<BindingSet> list = QueryResults.asList(result);
             return
                     list.stream()
@@ -191,5 +190,43 @@ public class LogisticsObjectRepository extends BaseRepository {
         operation.execute();
         Statement next = getConnection().getStatements(logisticsObjectId, API.hasRevision, null).next();
         return (Literal) next.getObject();
+    }
+
+    /**
+     * @param loType
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<IRI> listAllLogisticsObjects(IRI loType, int limit, int offset) {
+
+        final String LIST_LOGISTICS_OBJECT_BY_TYPE = STR
+                ."""
+                PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                SELECT  distinct ?id
+                WHERE {
+                    ?id rdf:type ?class .
+                    ?class rdf:subClassOf* ?mid .
+                    ?mid rdfs:subClassOf* cargo:LogisticsObject .
+                    FILTER (!BOUND(?LO_TYPE) || ?class = ?LO_TYPE)
+                }
+                order by ?id
+                limit \{limit} offset \{offset}
+            """;
+
+        TupleQuery tupleQuery = getConnection().prepareTupleQuery(LIST_LOGISTICS_OBJECT_BY_TYPE);
+        tupleQuery.setIncludeInferred(false);
+        if (loType != null)
+            tupleQuery.setBinding("LO_TYPE", loType);
+        try (TupleQueryResult result = tupleQuery.evaluate()) {
+            List<BindingSet> list = QueryResults.asList(result);
+            if (list == null) {
+                return null;
+            }
+            return list.stream().map(bindings -> (IRI) bindings.getValue("id"))
+                    .collect(Collectors.toList());
+        }
     }
 }
