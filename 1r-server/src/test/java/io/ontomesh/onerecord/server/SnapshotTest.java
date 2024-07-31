@@ -2,8 +2,8 @@ package io.ontomesh.onerecord.server;
 
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
-import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.converter.LogisticsObjectConverterService;
+import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.SnapshotService;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;

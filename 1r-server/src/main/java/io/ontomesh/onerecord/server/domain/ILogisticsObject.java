@@ -1,7 +1,10 @@
 package io.ontomesh.onerecord.server.domain;
 
 import io.ontomesh.onerecord.server.util.RDFUtil;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 
 import java.net.URI;
 

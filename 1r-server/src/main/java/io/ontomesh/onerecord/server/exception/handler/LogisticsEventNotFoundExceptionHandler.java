@@ -2,7 +2,6 @@ package io.ontomesh.onerecord.server.exception.handler;
 
 import io.ontomesh.onerecord.server.domain.ErrorObject;
 import io.ontomesh.onerecord.server.exception.LogisticsEventNotFoundException;
-import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.ModelBuilder;

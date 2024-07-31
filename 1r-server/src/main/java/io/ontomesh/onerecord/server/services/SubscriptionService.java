@@ -168,7 +168,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
      */
     public LogisticsObject getSubscriptionsByLoType(IRI loType, IRI eventType) {
 
-        final String subject = loType.stringValue() + "/subscriptions";
+        final String subject = STR."\{loType.stringValue()}/subscriptions";
 
         ModelBuilder builder = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
@@ -215,7 +215,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
      */
     public LogisticsObject getSubscriptionsByLoId(IRI logisticsObjectIRI) {
 
-        final String subject = logisticsObjectIRI.stringValue() + "/subscriptions";
+        final String subject = STR."\{logisticsObjectIRI.stringValue()}/subscriptions";
         // validate logistics object.
         ModelBuilder builder = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
@@ -266,17 +266,20 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     public List<IRI> getSubscribersForLoId(IRI loId) {
         List<IRI> subscribers = new ArrayList<>();
 
-        TupleQuery tupleQuery = this.getRepository().getConnection().prepareTupleQuery("PREFIX api:  <https://onerecord.iata.org/ns/api#>\n" +
-                "\n" +
-                "SELECT  ?subscriber \n" +
-                "WHERE\n" +
-                "{\n" +
-                "  ?actionrequest \t<http://www.w3.org/1999/02/22-rdf-syntax-ns#type><https://onerecord.iata.org/ns/api#SubscriptionRequest> .\n" +
-                "  ?actionrequest api:hasSubscription ?subscription .\n" +
-                "  ?subscription api:hasTopic ?logisticsobject .\n" +
-                "  ?subscription api:hasSubscriber ?subscriber . \n" +
-                "  FILTER(?logisticsobject = <" + loId.stringValue() + ">)\n" +
-                "}");
+        TupleQuery tupleQuery = this.getRepository().getConnection().prepareTupleQuery(STR
+                ."""
+                    PREFIX api:  <https://onerecord.iata.org/ns/api#>
+
+                    SELECT  ?subscriber
+                    WHERE
+                    {
+                      ?actionrequest <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> api:SubscriptionRequest .
+                      ?actionrequest api:hasSubscription ?subscription .
+                      ?subscription api:hasTopic ?logisticsobject .
+                      ?subscription api:hasSubscriber ?subscriber .
+                      FILTER(?logisticsobject = <\{loId.stringValue()}>)
+                                    }
+                """);
 //        tupleQuery.setBinding(logisticsObject.getVarName(), loId);
         TupleQueryResult evaluate = tupleQuery.evaluate();
         while (evaluate.hasNext()) {
@@ -292,18 +295,20 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     public List<IRI> getSubscribers(IRI hasTopic, IRI hasTopicType) {
         List<IRI> subscribers = new ArrayList<>();
 
-        String tupleQueryString = "PREFIX api:  <https://onerecord.iata.org/ns/api#>\n" +
-                "\n" +
-                "SELECT  ?subscriber \n" +
-                "WHERE\n" +
-                "{\n" +
-                "  ?actionrequest \t<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://onerecord.iata.org/ns/api#SubscriptionRequest> .\n" +
-                "  ?actionrequest api:hasSubscription ?subscription .\n" +
-                "  ?subscription api:hasTopic ?logisticsobject .\n" +
-                "  ?subscription api:hasTopicType  ?topicType  .\n" +
-                "  ?subscription api:hasSubscriber ?subscriber . \n" +
-                "  FILTER(?logisticsobject = <" + hasTopic.stringValue() + "> && ?topicType = <" + hasTopicType.stringValue() + "> )\n" +
-                "}";
+        String tupleQueryString = STR."""
+                                PREFIX api:  <https://onerecord.iata.org/ns/api#>
+
+                                SELECT  ?subscriber
+                                WHERE
+                                {
+                                  ?actionrequest <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> api:SubscriptionRequest> .
+                                  ?actionrequest api:hasSubscription ?subscription .
+                                  ?subscription api:hasTopic ?logisticsobject .
+                                  ?subscription api:hasTopicType  ?topicType  .
+                                  ?subscription api:hasSubscriber ?subscriber .
+                                  FILTER(?logisticsobject = <\{hasTopic.stringValue()}> && ?topicType = <\{hasTopicType.stringValue()}> )
+                                }
+                                """;
 
         log.info("tuple query {}", tupleQueryString);
         TupleQuery tupleQuery = this.getRepository().getConnection().prepareTupleQuery(tupleQueryString);

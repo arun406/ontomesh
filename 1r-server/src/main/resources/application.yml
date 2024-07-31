@@ -31,9 +31,9 @@ organizations: '[{name=Test Airline, type=airline, identifier=http://localhost:8
 rdf4j:
   spring:
     operationlog:
-      enabled: true
+      enabled: false
       jmx:
-        enabled: true
+        enabled: false
     pool:
       enabled: true
     repository:
@@ -53,6 +53,10 @@ server:
   port: ${SERVER_PORT:8085}
 
 spring:
+  output:
+    ansi:
+      enabled: ALWAYS
+
   kafka:
     bootstrap-servers: localhost:9092
     client-id: client-01

@@ -7,7 +7,6 @@ import io.ontomesh.onerecord.server.services.LogisticsEventService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.util.Values;
 import org.iata.onerecord.cargo.CARGO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

@@ -9,7 +9,6 @@ import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.*;
-import org.eclipse.rdf4j.model.base.CoreDatatype;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.ModelCollector;
 import org.eclipse.rdf4j.model.util.Models;
@@ -22,7 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -202,7 +202,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         validate(logisticsObject);
 
         // Add Audit: creationDate
-        logisticsObject.add(CARGO.creationDate, SimpleValueFactory.getInstance().createLiteral(Instant.now()));
+        logisticsObject.add(CARGO.creationDate, SimpleValueFactory.getInstance().createLiteral(OffsetDateTime.now(ZoneOffset.UTC)));
 
         super.saveLogisticsObject(logisticsObject);
         // create and publish event.

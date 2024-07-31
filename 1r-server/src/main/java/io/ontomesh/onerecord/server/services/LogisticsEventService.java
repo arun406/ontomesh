@@ -1,6 +1,5 @@
 package io.ontomesh.onerecord.server.services;
 
-import io.ontomesh.onerecord.server.api.enums.EventStatus;
 import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
@@ -37,10 +36,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
+import static io.ontomesh.onerecord.server.api.enums.EventStatus.FAILED;
+import static io.ontomesh.onerecord.server.api.enums.EventStatus.PUBLISHED;
+
 @Slf4j
 @Service
 public class LogisticsEventService extends AbstractLogisticsObjectService {
-    private final EventProducer eventProducer;
+
+    public static final IRI oldValue = OntoMesh.hasEventStatusNew;
+    private final Producer eventProducer;
 
     /**
      * constructor
@@ -133,18 +137,38 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     }
 
 
+    /**
+     * @param loId
+     * @param eventType
+     */
     public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType) {
         addEventToLogisticsObject(loId, eventType, null, getTenant(), false);
     }
 
+    /**
+     * @param loId
+     * @param eventType
+     * @param logisticsEvent
+     */
     public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent) {
         addEventToLogisticsObject(loId, eventType, logisticsEvent, getTenant(), false);
     }
 
-    public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent, boolean link) {
+    /**
+     * @param loId
+     * @param eventType
+     * @param logisticsEvent
+     * @param link
+     */
+    public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent,
+                                          boolean link) {
         addEventToLogisticsObject(loId, eventType, logisticsEvent, getTenant(), link);
     }
 
+    /**
+     * @param logisticsEvent
+     * @param tenant
+     */
     private void publishLogisticsEvent(LogisticsEvent logisticsEvent, IRI tenant) {
         String eventString = new ModelToStringConverter(RDFFormat.TURTLE).convert(logisticsEvent.model());
 
@@ -152,18 +176,22 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         BiConsumer<SendResult<String, String>, Throwable> action = (SendResult<String, String> result, Throwable ex) -> {
             if (ex == null) {
                 log.debug("Sent event =[{}] with offset=[{}]", logisticsEvent.iri().stringValue(), result.getRecordMetadata().offset());
-                // update the event status.
-                getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, EventStatus.PUBLISHED.label());
+                getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, PUBLISHED.label());
             } else {
                 log.debug("Unable to send event=[{}}] due to {}: ", logisticsEvent.iri().stringValue(), ex.getMessage());
-                // update the event status.
-                getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, EventStatus.FAILED.label());
+                getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, FAILED.label());
             }
         };
 
         this.eventProducer.send(eventString, tenant, action);
     }
 
+    /**
+     * @param loId
+     * @param eventType
+     * @param tenant
+     * @return
+     */
     public LogisticsEvent createEventModel(IRI loId, NotificationEventType eventType, IRI tenant) {
         IdProvider idProvider = getIdProvider();
         OntoMeshId eventId = idProvider.createUniqueLogisticsEvent(loId);
@@ -177,6 +205,9 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
                 .add(CARGO.eventName, eventType.name())
                 .add(CARGO.partialEventIndicator, false)
                 .add(CARGO.eventFor, loId)
+                .subject(loId)
+                .add(RDF.TYPE, super.getType(loId))
+                .subject(eventId.iri())
                 .add(CARGO.recordingOrganization, tenant)
                 .add(OntoMesh.isInternal, Values.literal(true))
                 .add(CARGO.eventCode, eventCodeIRI)
@@ -193,6 +224,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
 
         return new LogisticsEvent(eventId.iri(), model);
     }
+
 
     /**
      * Saves The Logistics Event and Links to Logistics Object.
@@ -212,6 +244,11 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         return event.iri();
     }
 
+    /**
+     * @param logisticsObjectIRI
+     * @param eventType
+     * @return
+     */
     public LogisticsEvents getEventsByLogisticsObjectIRI(IRI logisticsObjectIRI, String eventType) {
 
         // validate logistics object.

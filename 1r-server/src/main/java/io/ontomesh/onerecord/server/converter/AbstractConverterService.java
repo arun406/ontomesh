@@ -18,7 +18,6 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
-import java.net.URI;
 
 @Getter
 @Slf4j

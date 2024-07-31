@@ -1,16 +1,14 @@
 package io.ontomesh.onerecord.server.domain;
 
-import io.ontomesh.onerecord.server.exception.RevisionMissingException;
 import io.ontomesh.onerecord.server.util.RDFUtil;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.iata.onerecord.api.API;
 import org.iata.onerecord.cargo.CARGO;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.net.URI;
 
 /**
  * Main Domain object to represent the Logistics Object.

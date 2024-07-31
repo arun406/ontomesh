@@ -1,0 +1,31 @@
+package io.ontomesh.events.processor.config;
+
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.http.HTTPRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@EnableTransactionManagement
+@Configuration
+public class DatabaseConfig {
+
+    @Value("${rdf4j.spring.repository.remote.manager-url:http://localhost:9090/rdf4j-server/}")
+    private String rdf4jServer;
+
+    @Value("${rdf4j.spring.repository.remote.name:ontomesh01}")
+    private String repositoryID;
+
+    @Bean
+    public Repository repository() {
+        return new HTTPRepository(rdf4jServer, repositoryID);
+    }
+
+    @Bean
+    public RepositoryConnection getConnection() {
+        RepositoryConnection connection = repository().getConnection();
+        return connection;
+    }
+}

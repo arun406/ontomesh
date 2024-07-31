@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
+        <version>3.3.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>io.ontomesh</groupId>
@@ -17,18 +17,19 @@
     <properties>
         <java.version>21</java.version>
         <!--        <spring-cloud.version>2022.0.4</spring-cloud.version>-->
-        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
         <rdf4j.version>4.3.11</rdf4j.version>
         <vocab-builder-maven-plugin.version>1.2</vocab-builder-maven-plugin.version>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
-        <jackson-bom.version>2.16.0</jackson-bom.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <!--        <jackson-bom.version>2.16.0</jackson-bom.version>-->
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
     <modules>
         <module>mail-adapter</module>
         <module>1r-server</module>
         <module>1r-client</module>
+        <module>1r-event-processor</module>
     </modules>
 
     <dependencyManagement>
@@ -40,10 +41,22 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
+            <!--<dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-bom</artifactId>
                 <version>${rdf4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>-->
+            <!--<dependency>
+                <groupId>org.eclipse.rdf4j</groupId>
+                <artifactId>rdf4j-spring</artifactId>
+                <version>${rdf4j.version}</version>
+            </dependency>-->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -62,4 +75,27 @@
             </snapshots>
         </repository>
     </repositories>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

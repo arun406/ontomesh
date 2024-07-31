@@ -27,7 +27,7 @@ public class OneRecordNotificationClientTest {
     public void sendNotification() {
 
         Model model = new ModelBuilder()
-                .setNamespace("api", "https://onerecord.iata.org/ns/cargo#")
+                .setNamespace("api", "https://onerecord.iata.org/ns/api#")
                 .setNamespace("cargo", "https://onerecord.iata.org/ns/cargo#")
                 .subject(idProvider.createInternalIri().iri())
                 .add(RDF.TYPE, Values.iri("api:Notification"))
