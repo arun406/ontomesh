@@ -1,11 +1,13 @@
 package io.ontomesh.onerecord.client.service;
 
-import io.ontomesh.onerecord.client.provider.IdProvider;
+import io.ontomesh.core.BaseIdProvider;
+import io.ontomesh.core.rdf.converter.ModelToStringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,9 +17,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class OneRecordNotificationClientTest {
 
     @Autowired
-    private IdProvider idProvider;
+    private BaseIdProvider idProvider;
     @Autowired
-    private NotificationClientService notificationClientService;
+    private NotificationClient notificationClient;
 
     @Test
     void contextLoads() {
@@ -29,7 +31,7 @@ public class OneRecordNotificationClientTest {
         Model model = new ModelBuilder()
                 .setNamespace("api", "https://onerecord.iata.org/ns/api#")
                 .setNamespace("cargo", "https://onerecord.iata.org/ns/cargo#")
-                .subject(idProvider.createInternalIri().iri())
+                .subject(idProvider.createInternalIri())
                 .add(RDF.TYPE, Values.iri("api:Notification"))
                 .add("api:hasLogisticsObject", Values.iri("https://1r.example.com/logistics-objects/1a8ded38-1804-467c-a369-81a411416b7c"))
                 .add("api:hasEventType", Values.iri("api:LOGISTICS_OBJECT_CREATED"))
@@ -37,7 +39,11 @@ public class OneRecordNotificationClientTest {
                 .add("api:hasLogisticsObjectType", Values.iri("https://onerecord.iata.org/ns/cargo#Piece"))
                 .build();
 
-        notificationClientService.sendNotification(model);
+        ModelToStringConverter converter = new ModelToStringConverter(RDFFormat.JSONLD);
+
+        String notificationMessage = converter.convert(model);
+
+        notificationClient.sendNotification("http://1r.ontomesh.io:8085", notificationMessage);
     }
 
 }

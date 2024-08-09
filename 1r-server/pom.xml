@@ -11,8 +11,8 @@
     <artifactId>1r-server</artifactId>
     <!--    <version>0.0.1-SNAPSHOT</version>-->
     <packaging>jar</packaging>
-    <name>One Record Server</name>
-    <description>One Record Server</description>
+    <name>IATA One Record Server</name>
+    <description>IATA One Record Server</description>
 
     <dependencies>
         <dependency>
@@ -77,6 +77,11 @@
             <artifactId>spring-kafka-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.ontomesh</groupId>
+            <artifactId>ontomesh-core</artifactId>
+        </dependency>
+
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -87,13 +92,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>-->
-            <dependency>
+            <!--<dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-bom</artifactId>
                 <version>${rdf4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
+            </dependency>-->
             <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-spring</artifactId>
@@ -103,7 +108,7 @@
     </dependencyManagement>
     <build>
         <plugins>
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
@@ -122,7 +127,7 @@
                         </exclude>
                     </excludes>
                 </configuration>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>io.github.radkovo</groupId>
                 <artifactId>vocab-builder-maven-plugin</artifactId>

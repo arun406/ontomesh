@@ -14,11 +14,6 @@ public record OntoMeshId(IRI iri, URI uri) {
 
     public static final String ONTOMESH_NAMESPACE = "ontomesh:";
 
-    public OntoMeshId(IRI iri, URI uri) {
-        this.iri = iri;
-        this.uri = uri;
-    }
-
     public static OntoMeshId fromUri(URI uri) {
         return new OntoMeshId(Values.iri(uri.toString()), uri);
     }
@@ -68,11 +63,6 @@ public record OntoMeshId(IRI iri, URI uri) {
 
     public static boolean findParentOnly(Statement statement) {
         return false;
-    }
-
-    public static boolean isNotLogisticsObject() {
-//        return !iri.getNamespace().equals(logisticsObjectBaseIRI.stringValue());
-        return true;
     }
 
     public static boolean isActionRequest(IRI iri) {

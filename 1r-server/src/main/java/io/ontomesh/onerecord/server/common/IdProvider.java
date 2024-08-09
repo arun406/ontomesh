@@ -1,7 +1,7 @@
 package io.ontomesh.onerecord.server.common;
 
-import io.ontomesh.onerecord.server.config.OneRecordProperties;
-import io.ontomesh.onerecord.server.services.ServerInformationService;
+import io.ontomesh.core.BaseIdProvider;
+import io.ontomesh.core.properties.ServerProperties;
 import io.ontomesh.onerecord.server.util.URIUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -16,24 +16,20 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class IdProvider {
+public class IdProvider extends BaseIdProvider {
 
     private final String rootPath;
-    private final OneRecordProperties oneRecordProperties;
-    private final ServerInformationService serverInformationService;
+    private final ServerProperties serverProperties;
 
-    public IdProvider(@Value("${server.servlet.context-path:/}") String rootPath, OneRecordProperties oneRecordProperties,
-                      HttpServletRequest httpServletRequest, ServerInformationService serverInformationService) {
+    public IdProvider(@Value("${server.servlet.context-path:/}") String rootPath, ServerProperties serverProperties,
+                      HttpServletRequest httpServletRequest) {
+        super(serverProperties.getInternalIriScheme());
         this.rootPath = rootPath;
-        this.oneRecordProperties = oneRecordProperties;
-        this.serverInformationService = serverInformationService;
+        this.serverProperties = serverProperties;
     }
 
     private UriComponentsBuilder baseUri() {
-        return UriComponentsBuilder.newInstance().uri(URIUtil.toURI(serverInformationService.getLoBaseId()));
-//        return UriComponentsBuilder.newInstance().scheme(oneRecordProperties.getServer().getScheme())
-//                .host(oneRecordProperties.getServer().getHost())
-//                .port(oneRecordProperties.getServer().getPort());
+        return UriComponentsBuilder.newInstance().uri(URIUtil.toURI(Values.iri(serverProperties.getUrl())));
     }
 
     private UriComponentsBuilder getActionRequestUriBase() {
@@ -62,9 +58,9 @@ public class IdProvider {
                 .path("/subscriptions/");
     }
 
-    public OntoMeshId createInternalIri() {
-        return OntoMeshId.fromIri(Values.iri(oneRecordProperties.getServer().getInternalIriScheme() + ":" + UUID.randomUUID()));
-    }
+//    public OntoMeshId createInternalIri() {
+//        return OntoMeshId.fromIri(Values.iri(STR."\{serverProperties.getInternalIriScheme()}:\{UUID.randomUUID()}"));
+//    }
 
     public OntoMeshId createUniqueLoUri() {
         return OntoMeshId.fromUri(getLoUriBase().path(UUID.randomUUID().toString()).build().toUri());
@@ -118,8 +114,4 @@ public class IdProvider {
         return Values.iri(this.getLoUriBase().build().toString());
     }
 
-
-    public IRI tenant() {
-        return this.serverInformationService.getTenant();
-    }
 }

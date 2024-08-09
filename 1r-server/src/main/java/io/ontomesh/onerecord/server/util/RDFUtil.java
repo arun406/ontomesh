@@ -1,8 +1,8 @@
 package io.ontomesh.onerecord.server.util;
 
+import io.ontomesh.core.rdf.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.common.LogOutputStream;
 import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
-import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import lombok.extern.slf4j.Slf4j;

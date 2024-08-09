@@ -7,6 +7,6 @@ import java.util.function.BiConsumer;
 
 public interface Producer {
 
-    void send(String message, IRI tenantId,
+    void send(String key, String message, IRI tenantId,
               BiConsumer<? super SendResult<String, String>, ? super Throwable> action);
 }

@@ -1,5 +1,6 @@
 package io.ontomesh.onerecord.server.services;
 
+import io.ontomesh.core.properties.SubscriptionProperties;
 import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
@@ -24,7 +25,7 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.iata.onerecord.api.API;
 import org.iata.onerecord.cargo.CARGO;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -46,23 +47,15 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     }};
 
     private final LogisticsEventService logisticsEventService;
-
-    @Value("${onerecord.server.subscriptions.send-logistics-object-body:false}")
-    private boolean sendLogisticsObjectBody;
-
-    @Value("${onerecord.server.subscriptions.subscribe-to-logistics-events:true}")
-    private boolean subscribeToLogisticsEvents;
-
-    @Value("${onerecord.server.subscriptions.notify-request-status-change:true}")
-    private boolean notifyRequestStatusChange;
-
-    @Value("${onerecord.server.subscriptions.include-subscription-event-type:}")
-    private String[] includeSubscriptionEventType;
+    private final ServerInformationService serverInformationService;
+    @Autowired
+    private SubscriptionProperties subscriptionProperties;
 
     public SubscriptionService(LogisticsObjectRepository repository, IdProvider idProvider,
-                               LogisticsEventService logisticsEventService) {
+                               LogisticsEventService logisticsEventService, ServerInformationService serverInformationService) {
         super(repository, idProvider);
         this.logisticsEventService = logisticsEventService;
+        this.serverInformationService = serverInformationService;
     }
 
     private static IRI getTopicTypeIRI(Model model, IRI iri) {
@@ -106,7 +99,7 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
      * @return List of IRI
      */
     public List<IRI> includeSubscriptionEventType() {
-        return Stream.of(includeSubscriptionEventType)
+        return Stream.of(subscriptionProperties.getIncludeSubscriptionEventType())
                 .map(Values::iri)
                 .collect(Collectors.toList());
     }
@@ -124,12 +117,12 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
         ModelBuilder modelBuilder = new ModelBuilder()
                 .subject(subscriptionIRI)
                 .add(RDF.TYPE, API.Subscription)
-                .add(API.hasSubscriber, getIdProvider().tenant())
+                .add(API.hasSubscriber, serverInformationService.getTenant())
                 .add(API.hasTopic, topic)
                 .add(API.hasTopicType, topicType)
-                .add(API.notifyRequestStatusChange, Values.literal(notifyRequestStatusChange))
+                .add(API.notifyRequestStatusChange, Values.literal(subscriptionProperties.isNotifyRequestStatusChange()))
                 .add(API.expiresAt, Values.literal(Instant.now().toString(), CoreDatatype.XSD.DATETIME))
-                .add(API.sendLogisticsObjectBody, Values.literal(sendLogisticsObjectBody));
+                .add(API.sendLogisticsObjectBody, Values.literal(subscriptionProperties.isSendLogisticsObjectBody()));
 
         contentTypes()
                 .forEach(contentType -> modelBuilder.add(API.hasContentType, Values.literal(contentType)));

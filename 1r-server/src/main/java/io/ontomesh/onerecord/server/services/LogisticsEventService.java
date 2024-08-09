@@ -1,10 +1,10 @@
 package io.ontomesh.onerecord.server.services;
 
+import io.ontomesh.core.rdf.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
-import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.domain.LogisticsEvent;
 import io.ontomesh.onerecord.server.domain.LogisticsEvents;
 import io.ontomesh.onerecord.server.event.EventProducer;
@@ -26,7 +26,6 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.iata.onerecord.api.API;
 import org.iata.onerecord.cargo.CARGO;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -34,7 +33,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 
 import static io.ontomesh.onerecord.server.api.enums.EventStatus.FAILED;
 import static io.ontomesh.onerecord.server.api.enums.EventStatus.PUBLISHED;
@@ -45,6 +43,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
 
     public static final IRI oldValue = OntoMesh.hasEventStatusNew;
     private final Producer eventProducer;
+    private final ServerInformationService serverInformationService;
 
     /**
      * constructor
@@ -54,9 +53,11 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param eventProducer An event producer.
      */
     protected LogisticsEventService(LogisticsObjectRepository repository,
-                                    IdProvider idProvider, EventProducer eventProducer) {
+                                    IdProvider idProvider, EventProducer eventProducer,
+                                    ServerInformationService serverInformationService) {
         super(repository, idProvider);
         this.eventProducer = eventProducer;
+        this.serverInformationService = serverInformationService;
     }
 
 
@@ -133,6 +134,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         if (link) {
             linkToLogisticsObject(loId, logisticsEvent.iri());
         }
+        // publish the event to middle ware
         publishLogisticsEvent(logisticsEvent, tenant);
     }
 
@@ -142,7 +144,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param eventType
      */
     public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType) {
-        addEventToLogisticsObject(loId, eventType, null, getTenant(), false);
+        addEventToLogisticsObject(loId, eventType, null, serverInformationService.getTenant(), false);
     }
 
     /**
@@ -151,7 +153,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param logisticsEvent
      */
     public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent) {
-        addEventToLogisticsObject(loId, eventType, logisticsEvent, getTenant(), false);
+        addEventToLogisticsObject(loId, eventType, logisticsEvent, serverInformationService.getTenant(), false);
     }
 
     /**
@@ -162,7 +164,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      */
     public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent,
                                           boolean link) {
-        addEventToLogisticsObject(loId, eventType, logisticsEvent, getTenant(), link);
+        addEventToLogisticsObject(loId, eventType, logisticsEvent, serverInformationService.getTenant(), link);
     }
 
     /**
@@ -170,20 +172,17 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @param tenant
      */
     private void publishLogisticsEvent(LogisticsEvent logisticsEvent, IRI tenant) {
-        String eventString = new ModelToStringConverter(RDFFormat.TURTLE).convert(logisticsEvent.model());
 
-        // publish the logistics event
-        BiConsumer<SendResult<String, String>, Throwable> action = (SendResult<String, String> result, Throwable ex) -> {
-            if (ex == null) {
-                log.debug("Sent event =[{}] with offset=[{}]", logisticsEvent.iri().stringValue(), result.getRecordMetadata().offset());
-                getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, PUBLISHED.label());
-            } else {
-                log.debug("Unable to send event=[{}}] due to {}: ", logisticsEvent.iri().stringValue(), ex.getMessage());
+        String eventString = new ModelToStringConverter(RDFFormat.JSONLD)
+                .convert(logisticsEvent.model());
+
+        this.eventProducer.send(logisticsEvent.iri().stringValue(), eventString, tenant, (result, throwable) -> {
+            if (throwable != null) {
                 getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, FAILED.label());
+                return;
             }
-        };
-
-        this.eventProducer.send(eventString, tenant, action);
+            getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, PUBLISHED.label());
+        });
     }
 
     /**
@@ -195,7 +194,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     public LogisticsEvent createEventModel(IRI loId, NotificationEventType eventType, IRI tenant) {
         IdProvider idProvider = getIdProvider();
         OntoMeshId eventId = idProvider.createUniqueLogisticsEvent(loId);
-        IRI eventCodeIRI = idProvider.createInternalIri().iri();
+        IRI eventCodeIRI = idProvider.createInternalIri();
         ModelBuilder builder = new ModelBuilder().setNamespace(API.PREFIX, API.NAMESPACE)
                 .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .subject(eventId.iri())

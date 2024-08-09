@@ -1,6 +1,6 @@
 package io.ontomesh.onerecord.server.converter;
 
-import io.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
+import io.ontomesh.core.rdf.handler.BlankNodeReplacingStatementHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.rio.RDFFormat;

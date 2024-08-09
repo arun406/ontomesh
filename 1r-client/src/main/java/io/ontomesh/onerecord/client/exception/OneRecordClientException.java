@@ -10,5 +10,4 @@ public class OneRecordClientException extends RuntimeException {
     public OneRecordClientException(String message) {
         super(message);
     }
-
 }

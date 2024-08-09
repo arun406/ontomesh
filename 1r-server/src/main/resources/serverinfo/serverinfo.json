@@ -15,7 +15,6 @@
   ],
   "api:hasSupportedContentType": [
     "application/ld+json",
-    "application/x-turtle",
     "text/turtle"
   ],
   "api:hasSupportedLanguage": [

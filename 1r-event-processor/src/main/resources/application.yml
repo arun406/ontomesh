@@ -1,10 +1,7 @@
-logging:
-  level:
-    org.eclipse.rdf4j.spring: ERROR
-    root: INFO
 server:
   port: ${SERVER_PORT:9095}
 
+#---------- RDF4J repository configuration ------------#
 rdf4j:
   spring:
     pool:
@@ -16,20 +13,23 @@ rdf4j:
         password: admin
         username: admin
 
-spring:
-  config:
-    import: 'optional:configserver:'
+#----------------- ONERECORD Configuration --------------------#
+onerecord:
+  server:
+    internalIriScheme: ontomesh
 
-  kafka:
-    bootstrap-servers: localhost:9092
-    client-id: client-event-processor
-    consumer:
-      group-id: group-01
+#-----------------Spring configuration -----------------------#
+spring:
+
   output:
     ansi:
       enabled: ALWAYS
   application:
     name: 1r-event-processor
+
+  config:
+    import: 'optional:configserver:'
+  #--------- Spring cloud stream configurations ------------#
   cloud:
     stream:
       function:
@@ -38,10 +38,36 @@ spring:
           eventProcessor-out-0: output
       bindings:
         input:
-          destination: "logistics-events"
-          group: "events-in-group"
-          content-type: plain/text
+          destination: logistics-events
+          group: logistics-group-01
+          consumer:
+            use-native-decoding: true
         output:
-          destination: "events-out"
-          group: "events-out-group"
-#          content-type: plain/text
+          destination: notifications
+          content-type: text/plain
+          producer:
+            use-native-encoding: true
+      #-------- Kafka binder configuration ------------#
+      #https://docs.spring.io/spring-cloud-stream/reference/kafka/kafka-binder/config-options.html
+      kafka:
+        bindings:
+          output:
+            producer:
+              configuration:
+                "key.serializer": org.apache.kafka.common.serialization.StringSerializer
+                "value.serializer": org.apache.kafka.common.serialization.StringSerializer
+          input:
+            consumer:
+              enableDlq: true
+              dlqName: logistics-events-dlq
+              dqlProducerProperties:
+                configuration:
+                  value.serializer: org.apache.kafka.common.serialization.StringSerializer
+              configuration:
+                "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
+                "value.deserializer": org.apache.kafka.common.serialization.StringDeserializer
+
+        binder:
+          brokers: localhost:9092
+          configuration:
+            commit.interval.ms: 10000

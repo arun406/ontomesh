@@ -1,0 +1,68 @@
+package io.ontomesh.onerecord.client.http;
+
+import io.netty.channel.ChannelOption;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.transport.logging.AdvancedByteBufFormat;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
+import static io.ontomesh.onerecord.client.http.OneRecordClientLogger.logRequest;
+import static io.ontomesh.onerecord.client.http.OneRecordClientLogger.logResponse;
+
+
+@Slf4j
+public class OneRecordWebClient {
+
+    /**
+     * constructor
+     */
+    private OneRecordWebClient() {
+    }
+
+    /**
+     * Creates the Default Client.
+     *
+     * @param baseUrl
+     * @return
+     */
+    public static WebClient createDefaultClient(String baseUrl) {
+
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .responseTimeout(Duration.ofMillis(5000))
+                .wiretap(HttpClient.class.getCanonicalName(),
+                        LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL)
+                .doOnConnected(connection -> {
+                    connection.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
+                            .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS));
+                });
+
+        return WebClient.builder()
+                .baseUrl(baseUrl)
+                .codecs(clientCodecConfigurer -> {
+                    clientCodecConfigurer.defaultCodecs().maxInMemorySize(1024 * 1024);
+                })
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .defaultHeaders(httpHeaders -> {
+                    MediaType mediaType = new MediaType("application", "ld+json");
+                    httpHeaders.setContentType(mediaType);
+                    httpHeaders.setContentLanguage(Locale.US);
+                    httpHeaders.setAccept(List.of(mediaType));
+                })
+                .filters(exchangeFilterFunctions -> {
+                    exchangeFilterFunctions.add(logRequest());
+                    exchangeFilterFunctions.add(logResponse());
+                })
+                .build();
+    }
+}

@@ -29,18 +29,18 @@ public class EventProducer implements Producer {
     }
 
     /**
+     * @param key
      * @param message
      * @param tenantId
      * @param action
      */
-    public void send(String message, IRI tenantId,
+    public void send(String key, String message, IRI tenantId,
                      BiConsumer<? super SendResult<String, String>, ? super Throwable> action) {
         ProducerRecord<String, String> producerRecord;
-        producerRecord = new ProducerRecord<>(logisticsEventTopic, message);
+        producerRecord = new ProducerRecord<>(logisticsEventTopic, key, message);
 
         producerRecord
                 .headers()
-//                .add(MessageHeaders.ID, UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8))
                 .add(MessageHeaders.CONTENT_TYPE, "text/plain".getBytes(StandardCharsets.UTF_8));
 
         CompletableFuture<SendResult<String, String>> future =

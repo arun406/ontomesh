@@ -4,8 +4,9 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
 import com.google.common.base.Charsets;
+import io.ontomesh.core.properties.ServerProperties;
+import io.ontomesh.core.rdf.handler.BlankNodeReplacingStatementHandler;
 import io.ontomesh.onerecord.server.common.IdProvider;
-import io.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.util.Values;
@@ -32,13 +33,16 @@ class OneRecordServerApplicationTests {
     private final RDFParser rdfParser = Rio.createParser(RDFFormat.JSONLD);
 
     @Autowired
+    private ServerProperties serverProperties;
+
+    @Autowired
     private IdProvider idProvider;
 
     BlankNodeReplacingStatementHandler statementHandler;
 
     public void init() {
         System.out.println("init");
-        statementHandler = new BlankNodeReplacingStatementHandler(idProvider);
+        statementHandler = new BlankNodeReplacingStatementHandler(serverProperties.getInternalIriScheme());
         rdfParser.setRDFHandler(statementHandler);
     }
 

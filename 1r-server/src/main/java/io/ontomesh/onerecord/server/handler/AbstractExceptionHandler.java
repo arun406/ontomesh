@@ -24,8 +24,8 @@ public abstract class AbstractExceptionHandler<T> {
     }
 
     public ErrorObject handle(T exception) {
-        IRI errorIRI = idProvider.createInternalIri().iri();
-        IRI errorDetailsIRI = idProvider.createInternalIri().iri();
+        IRI errorIRI = idProvider.createInternalIri();
+        IRI errorDetailsIRI = idProvider.createInternalIri();
         Model errorModel = getErrorModel(exception, errorIRI, errorDetailsIRI, getHttpStatus());
         return new ErrorObject(errorIRI, errorModel, getHttpStatus());
     }

@@ -1,14 +1,17 @@
+#----------------- LOGGING Configuration --------------------#
 logging:
   level:
     io.ontomesh.onerecord.server: DEBUG
     org.eclipse.rdf4j.spring: ERROR
     org.eclipse.rdf4j.spring.operationlog.log.slf4: ERROR
     root: INFO
+
+#----------------- ONERECORD Configuration --------------------#
 onerecord:
   client:
     events-topic: logistics-events
     events-topic-group-id: group-id-01
-    id: 'null'
+    id: client-01
   server:
     host: ${SERVER_HOST:1r.ontomesh.io}
     internalIriScheme: ontomesh
@@ -16,32 +19,35 @@ onerecord:
     scheme: ${PROTOCOL:http}
     url: ${SERVER_URL:http://1r.ontomesh.io/}
     subscriptions:
-      include-subscription-event-type: https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED, https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED, https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED
       notify-request-status-change: false
       send-logistics-object-body: false
       subscribe-to-logistics-events: false
-org:
-  eclipse:
-    rdf4j:
-      repository:
-        debug: true
+      include-subscription-event-type:
+        - https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED
+        - https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED
+        - https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED
+
 organizations: '[{name=Test Airline, type=airline, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
     {name=Test GHA, type=gha, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
     {name=Test Forwarder, type=forwarder, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbdb}]'
+
+
+
+#----------------- RDF4J Configuration --------------------#
 rdf4j:
   spring:
-    operationlog:
-      enabled: false
-      jmx:
-        enabled: false
-    pool:
-      enabled: true
     repository:
       remote:
         manager-url: http://Aruns-MacBook-Air.local:7200/
         name: ontomesh
         password: admin
         username: admin
+    operationlog:
+      enabled: false
+      jmx:
+        enabled: false
+    pool:
+      enabled: true
     resultcache:
       enabled: true
     tx:
@@ -49,9 +55,8 @@ rdf4j:
     uuidsource:
       predictable:
         enabled: true
-server:
-  port: ${SERVER_PORT:8085}
 
+#----------------- SPRINGBOOT Configuration --------------------#
 spring:
   output:
     ansi:
@@ -65,3 +70,6 @@ spring:
 
   config:
     import: 'optional:configserver:'
+
+server:
+  port: ${SERVER_PORT:8085}

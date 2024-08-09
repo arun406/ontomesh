@@ -30,10 +30,6 @@ public abstract class AbstractLogisticsObjectService {
         this.idProvider = idProvider;
     }
 
-    public IRI getTenant() {
-        return this.idProvider.tenant();
-    }
-
     protected int isTypePredicate(IRI iri1) {
         return iri1.toString().compareTo(RDF.TYPE.toString());
     }

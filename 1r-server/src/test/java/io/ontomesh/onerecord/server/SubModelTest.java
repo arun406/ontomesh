@@ -3,7 +3,7 @@ package io.ontomesh.onerecord.server;
 import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.utils.JsonUtils;
-import io.ontomesh.onerecord.server.converter.ModelToStringConverter;
+import io.ontomesh.core.rdf.converter.ModelToStringConverter;
 import io.ontomesh.onerecord.server.util.JsonldUtil;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;

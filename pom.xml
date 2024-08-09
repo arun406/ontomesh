@@ -5,27 +5,26 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.1</version>
+        <version>3.3.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>io.ontomesh</groupId>
     <artifactId>ontomesh-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Ontomesh</name>
+    <name>Ontomesh Root</name>
     <packaging>pom</packaging>
     <description>Ontomesh</description>
     <properties>
         <java.version>21</java.version>
-        <!--        <spring-cloud.version>2022.0.4</spring-cloud.version>-->
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <rdf4j.version>4.3.11</rdf4j.version>
         <vocab-builder-maven-plugin.version>1.2</vocab-builder-maven-plugin.version>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
-        <!--        <jackson-bom.version>2.16.0</jackson-bom.version>-->
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
     </properties>
     <modules>
+        <module>ontomesh-core</module>
         <module>mail-adapter</module>
         <module>1r-server</module>
         <module>1r-client</module>
@@ -41,13 +40,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!--<dependency>
+            <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-bom</artifactId>
                 <version>${rdf4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>-->
+            </dependency>
             <!--<dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-spring</artifactId>
@@ -60,10 +59,15 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>io.ontomesh</groupId>
+                <artifactId>ontomesh-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <pluginRepositories>
-        <!--        <pluginRepository></pluginRepository>-->
+
     </pluginRepositories>
     <repositories>
         <repository>
@@ -82,18 +86,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <skipTests>true</skipTests>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

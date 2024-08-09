@@ -25,7 +25,7 @@ public class DefaultStatementHandler extends AbstractRDFHandler {
 
     private Resource mapBNode(BNode bNode) {
         return iriMap.computeIfAbsent(
-                bNode.stringValue(), s -> idProvider.createInternalIri().iri()
+                bNode.stringValue(), s -> idProvider.createInternalIri()
         );
     }
 

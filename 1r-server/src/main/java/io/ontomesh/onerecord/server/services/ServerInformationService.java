@@ -1,5 +1,6 @@
 package io.ontomesh.onerecord.server.services;
 
+import io.ontomesh.core.properties.ServerProperties;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.MissingDataHolderException;
 import io.ontomesh.onerecord.server.exception.ServerInfoNotFoundException;
@@ -13,6 +14,7 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 import org.iata.onerecord.api.API;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,10 @@ import java.io.InputStream;
 @Service
 @RequiredArgsConstructor
 public class ServerInformationService {
-    public static final String LO_BASE_ID = "http://1r.ontomesh.io/";
+
+    @Autowired
+    private ServerProperties serverProperties;
+
     private final LogisticsObjectRepository repository;
 
     @Value("classpath:serverinfo/serverinfo.json")
@@ -52,12 +57,9 @@ public class ServerInformationService {
     }
 
     public IRI getTenant() {
-        LogisticsObject serverInformation = getServerInformation(LO_BASE_ID);
+        LogisticsObject serverInformation = getServerInformation(serverProperties.getUrl());
         return Models.objectIRI(serverInformation.model().filter(serverInformation.iri(), API.hasDataHolder, null))
                 .orElseThrow(() -> new MissingDataHolderException("Data holder is not defined for the server information."));
     }
 
-    public IRI getLoBaseId() {
-        return Values.iri(LO_BASE_ID);
-    }
 }

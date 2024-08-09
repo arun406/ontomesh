@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @EnableTransactionManagement
 @SpringBootApplication
-@ComponentScan({"io.ontomesh.onerecord.server"})
+@ComponentScan({"io.ontomesh.onerecord.server", "io.ontomesh.core"})
 @Import(value = {RDF4JConfig.class, TxConfig.class, DatabaseConfig.class})
 public class OneRecordServerApplication {
 

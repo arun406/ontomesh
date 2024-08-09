@@ -1,9 +1,10 @@
 package io.ontomesh.onerecord.server.converter;
 
+import io.ontomesh.core.properties.ServerProperties;
+import io.ontomesh.core.rdf.handler.BlankNodeReplacingStatementHandler;
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
-import io.ontomesh.onerecord.server.handler.BlankNodeReplacingStatementHandler;
 import io.ontomesh.onerecord.server.util.RDFUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
@@ -25,8 +26,10 @@ public abstract class AbstractConverterService {
 
     @Autowired
     private IdProvider idProvider;
+
     @Autowired
-    private BlankNodeReplacingStatementHandler statementHandler;
+    private ServerProperties serverProperties;
+
     @Autowired
     private HttpServletRequest httpServletRequest;
 
@@ -66,10 +69,15 @@ public abstract class AbstractConverterService {
      * @return
      */
     protected Tuple getTuple(InputStream inputStream, RDFFormat rdfFormat) {
-        Model model = new InputStreamToModelConverter(rdfFormat, statementHandler).convert(inputStream);
+        BlankNodeReplacingStatementHandler blankNodeReplacingStatementHandler =
+                new BlankNodeReplacingStatementHandler(serverProperties.getInternalIriScheme());
+
+        Model model = new InputStreamToModelConverter(rdfFormat, blankNodeReplacingStatementHandler).convert(inputStream);
+
         if (model == null) {
             return null;
         }
+
         IRI loIRI = RDFUtil.getRootIri(model);
         log.info("root iri: {}", loIRI);
 

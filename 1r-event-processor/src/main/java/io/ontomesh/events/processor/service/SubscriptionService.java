@@ -6,14 +6,14 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-@Component
 @Slf4j
+@Service
 public class SubscriptionService {
 
     public static final IRI INCLUDE_SUBSCRIPTION_EVENT_TYPE = Values.iri("https://onerecord.iata.org/ns/api#includeSubscriptionEventType");

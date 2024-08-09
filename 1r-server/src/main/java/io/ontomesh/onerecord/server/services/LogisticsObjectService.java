@@ -66,7 +66,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
                 .collect(Collectors.toMap(
                         Function.identity(),
                         this::resolveAddOperationIri,
-                        (iri, iri2) -> iri
+                        (iri, _) -> iri
                 ));
     }
 
@@ -155,7 +155,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
             // if not exactly one triple is deleted throw an exception, this cancels the transaction and
             // nothing is changed
             if (deletedTriples != 1) {
-                throw new RuntimeException("Number of affected triples should be 1 but was " + deletedTriples);
+                throw new RuntimeException(STR."Number of affected triples should be 1 but was \{deletedTriples}");
             }
         }
     }
@@ -163,7 +163,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
     private IRI resolveAddOperationIri(String value) {
         IRI iri;
         if (value.startsWith("_:")) {
-            iri = getIdProvider().createInternalIri().iri();
+            iri = getIdProvider().createInternalIri();
         } else {
             iri = Values.iri(value);
         }
@@ -226,7 +226,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
         validateRevision(change, logisticsObject);
 
-        Set<IRI> changedProperties = applyChanges(change);
+        applyChanges(change);
 
         // increase the Logistics Object revision after successful change
         Literal revision = updateLogisticObjectRevision(logisticsObject);
