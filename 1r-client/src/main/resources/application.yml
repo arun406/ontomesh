@@ -1,5 +1,5 @@
 server:
-  port: 9090
+  port: ${ONERECORD_CLIENT_PORT:9090}
 
 logging:
   level:
@@ -14,9 +14,41 @@ spring:
     stream:
       function:
         bindings:
-          notificationConsumer-in-0: input
+          consumeNotification-in-0: input
       bindings:
         input:
           destination: notifications
           group: notification-group-01
+
+      kafka:
+        binder:
+          brokers: localhost:9092
+          defaultBrokerPort: 9092
+          #Default empty
+          configuration:
+          #Default 10
+          healthTimeout: 20
+          #Default
+          requiredAcks: 1
+          #Default 1
+          replicationFactor: 1
+          #Default is true
+          autoCreateTopics: true
+        bindings:
+          input:
+            consumer:
+              autoCommitOffset: false
+              ackEachRecord: false
+              startOffset:
+              standardHeaders: both
+              configuration:
+                commit.interval.ms: 1000
+                max.poll.records: 10
+              #                default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+              #                default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+              enableDlq: true
+              dlqName: ontomesh.onerecord.client.notifications.dql
+              dlqProducerProperties:
+
+
 

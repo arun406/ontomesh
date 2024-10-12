@@ -34,8 +34,8 @@ spring:
     stream:
       function:
         bindings:
-          eventProcessor-in-0: input
-          eventProcessor-out-0: output
+          processEvents-in-0: input
+          processEvents-out-0: output
       bindings:
         input:
           destination: logistics-events

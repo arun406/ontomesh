@@ -6,6 +6,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.util.Values;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +19,14 @@ import java.util.function.Consumer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ *
+ */
 @Slf4j
 @Configuration
-public class LogisticsEventConsumer {
+@EnableAutoConfiguration
+public class LogisticsEventConsumerConfiguration {
+
     @Autowired
     private StreamBridge streamBridge;
 
@@ -28,7 +34,7 @@ public class LogisticsEventConsumer {
     private NotificationService notificationService;
 
     @Bean
-    public Consumer<Message<String>> eventProcessor() {
+    public Consumer<Message<String>> processEvents() {
         return (Message<String> message) -> {
             String payload = message.getPayload();
             String contentType = getContentType(message.getHeaders());
@@ -49,7 +55,6 @@ public class LogisticsEventConsumer {
     private static @NotNull String getContentType(MessageHeaders headers) {
         Object header = headers.get(MessageHeaders.CONTENT_TYPE);
         String contentType = new String((byte[]) header, UTF_8);
-//        contentType = "text/turtle"; //TODO
         contentType = "application/ld+json";
         return contentType;
     }

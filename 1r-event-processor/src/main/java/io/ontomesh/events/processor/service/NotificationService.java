@@ -79,18 +79,12 @@ public class NotificationService {
             // convert to Model
             Model eventModel = stringToModelConverter.convert(eventPayload);
             // read lo id, lo type and event type.
-//            Set<Resource> subjects = eventModel.subjects();
-//            for (Resource subject : subjects) {
-//                IRI iri = Models.subjectIRI(eventModel.filter(subject, RDF.TYPE, LOGISTICS_EVENT)).orElse(null);
-//                if (iri != null) {
+
             loId = Models.objectIRI(eventModel.filter(subject, EVENT_FOR, null)).orElse(null);
             eventCode = Models.objectIRI(eventModel.filter(subject, EVENT_CODE, null)).orElse(null);
             loType = Models.objectIRI(eventModel.filter(loId, RDF.TYPE, null)).orElse(null);
             // get subscriptions
             subscribersMap = subscriptionService.listSubscribers(loId, loType, eventCode);
-//                    break;
-//                }
-//            }
         }
 
         if (!subscribersMap.isEmpty()) {
@@ -151,10 +145,11 @@ public class NotificationService {
      * @return
      */
     private Message<String> createNotificatonMessage(IRI subject, Notification notification) {
-        String modelAsString = modelToStringConverter.convert(notification.notification());
+
+        String modelAsString = modelToStringConverter.convert(notification.model());
 
         return MessageBuilder.withPayload(modelAsString)
-                .setHeader("spring.cloud.stream.sendto.destination", notification.topic())
+//                .setHeader("spring.cloud.stream.sendto.destination", model.topic())
                 .setHeader("protocol", ProtocolType.EMAIL.getValue())
                 .setHeader(KafkaHeaders.KEY, subject.stringValue())
                 .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN)
@@ -167,8 +162,8 @@ public class NotificationService {
      * Notification Holder
      *
      * @param topic
-     * @param notification
+     * @param model
      */
-    record Notification(String topic, Model notification) {
+    record Notification(String topic, Model model) {
     }
 }
