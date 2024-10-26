@@ -1,6 +1,5 @@
 package io.ontomesh.onerecord.client.service;
 
-import io.ontomesh.core.BaseIdProvider;
 import io.ontomesh.core.rdf.converter.ModelToStringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.Model;
@@ -12,17 +11,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
+
 @Slf4j
 @SpringBootTest
 public class OneRecordNotificationClientTest {
 
     @Autowired
-    private BaseIdProvider idProvider;
-    @Autowired
     private NotificationClient notificationClient;
 
     @Test
     void contextLoads() {
+
     }
 
     @Test
@@ -31,7 +31,7 @@ public class OneRecordNotificationClientTest {
         Model model = new ModelBuilder()
                 .setNamespace("api", "https://onerecord.iata.org/ns/api#")
                 .setNamespace("cargo", "https://onerecord.iata.org/ns/cargo#")
-                .subject(idProvider.createInternalIri())
+                .subject(Values.iri("ontomesh" + ":" + UUID.randomUUID()))
                 .add(RDF.TYPE, Values.iri("api:Notification"))
                 .add("api:hasLogisticsObject", Values.iri("https://1r.example.com/logistics-objects/1a8ded38-1804-467c-a369-81a411416b7c"))
                 .add("api:hasEventType", Values.iri("api:LOGISTICS_OBJECT_CREATED"))

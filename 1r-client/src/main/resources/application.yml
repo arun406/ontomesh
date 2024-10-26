@@ -1,5 +1,5 @@
 server:
-  port: ${ONERECORD_CLIENT_PORT:9090}
+  port: ${ONERECORD_CLIENT_PORT:9095}
 
 logging:
   level:

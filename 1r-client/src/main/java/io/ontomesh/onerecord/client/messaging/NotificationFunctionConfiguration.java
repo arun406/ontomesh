@@ -19,7 +19,7 @@ public class NotificationFunctionConfiguration {
     @Bean
     public Consumer<Message<String>> consumeNotification() {
         return (Message<String> message) -> {
-//            processor.process(message);
+            processor.process(message);
         };
     }
 

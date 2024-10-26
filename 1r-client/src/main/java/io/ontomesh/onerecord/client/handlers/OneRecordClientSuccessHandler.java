@@ -9,7 +9,6 @@ public class OneRecordClientSuccessHandler {
 
     public Mono<? extends Throwable> handleSuccess(ClientResponse response) {
         log.info("status code : {}", response);
-
         return Mono.empty();
     }
 }
