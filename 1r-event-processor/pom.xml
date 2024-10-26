@@ -392,6 +392,12 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- Make sure `mvn spring-boot:build-image` uses the Java version defined in this project -->
+                    <image>
+                        <env>
+                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
+                        </env>
+                    </image>
                 </configuration>
             </plugin>
             <plugin>

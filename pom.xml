@@ -25,7 +25,7 @@
     </properties>
     <modules>
         <module>ontomesh-core</module>
-        <module>mail-adapter</module>
+        <!--        <module>mail-adapter</module>-->
         <module>1r-server</module>
         <module>1r-client</module>
         <module>1r-event-processor</module>
