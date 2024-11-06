@@ -183,7 +183,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -194,7 +193,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": false,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",\n            \"cargo:handlingInstructionsType\": \"SPH\",\n            \"cargo:description\": \"Valuable Cargo\",\n            \"cargo:handlingInstructionsTypeCode\": \"VAL\"\n        }\n    ]\n}",
+									"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\n    },\n    \"@type\": \"cargo:Piece\",\n    \"cargo:coload\": true,\n    \"cargo:handlingInstructions\": [\n        {\n            \"@type\": \"cargo:HandlingInstructions\",\n            \"cargo:handlingInstructionsType\": \"SPH\",\n            \"cargo:description\": \"Valuable Cargo\",\n            \"cargo:handlingInstructionsTypeCode\": \"VAL\"\n        }\n    ]\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -320,7 +319,8 @@
 											"    pm.collectionVariables.set(\"shipmentCreationTime\", Date.now());\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -329,7 +329,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -339,7 +340,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -358,9 +358,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects",
+									"raw": "{{loBase}}/logistics-objects",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects"
@@ -538,6 +538,319 @@
 							"response": []
 						},
 						{
+							"name": "List Types",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Inject jsonld.js\r",
+											"var self = {}\r",
+											"async function frame(json) {\r",
+											"    return await jsonld.compact(json, {\r",
+											"        \r",
+											"    });\r",
+											"}\r",
+											"eval(pm.collectionVariables.get('jsonCode'));\r",
+											"\r",
+											"//Test status code\r",
+											"pm.test(\"Status code is 200\", () => {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"//Test response headers\r",
+											"pm.test(\"Type header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Type\");\r",
+											"});\r",
+											"//Test type header\r",
+											"pm.test(\"Check type header\", () => {\r",
+											"    pm.expect(pm.response.headers.filter(header=>header.key.includes(\"Type\")).map(header=>header.value)).to.include(\"https://onerecord.iata.org/ns/cargo#Piece\");\r",
+											"});\r",
+											"pm.test(\"Content-Type header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Content-Type\");\r",
+											"});\r",
+											"pm.test(\"Content-Language header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Content-Language\");\r",
+											"});\r",
+											"pm.test(\"Revision header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Revision\");\r",
+											"});\r",
+											"pm.test(\"Latest-Revision header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Latest-Revision\");\r",
+											"});\r",
+											"pm.test(\"Last-Modified header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Last-Modified\");\r",
+											"});\r",
+											"//Test response payload\r",
+											"var jsonData = pm.response.json();\r",
+											"\r",
+											"const framedJson = frame(jsonData);\r",
+											"framedJson.then(function (result) {\r",
+											"\r",
+											"    if (result['@graph']) {\r",
+											"        result['@graph'].forEach((element) => {\r",
+											"            if (element['@id'] == pm.request.url.toString()) {\r",
+											"                jsonData = element;\r",
+											"            }\r",
+											"        })\r",
+											"    } else {\r",
+											"        jsonData = result;\r",
+											"    }\r",
+											"    console.log(jsonData);\r",
+											"    var handlingInstructions = \"https://onerecord.iata.org/ns/cargo#handlingInstructions\"\r",
+											"    pm.test(\"Response contains @id \", () => {\r",
+											"        pm.expect(jsonData).to.have.property(\"@id\");\r",
+											"    });\r",
+											"    pm.test(\"Response @id contains {{baseUrl}}/logistics-objects \", () => {\r",
+											"        var expectedValue = pm.variables.get(\"baseUrl\") + \"/logistics-objects/\";\r",
+											"        pm.expect(jsonData['@id']).to.include(expectedValue);\r",
+											"    });\r",
+											"    pm.test(\"Response contains @type \", () => {\r",
+											"        pm.expect(jsonData).to.have.property(\"@type\");\r",
+											"    });\r",
+											"    pm.test(\"Response value @type \", () => {\r",
+											"        pm.expect(jsonData['@type']).to.includes(\"https://onerecord.iata.org/ns/cargo#Piece\");\r",
+											"    });\r",
+											"    var coload = \"https://onerecord.iata.org/ns/cargo#coload\"\r",
+											"    pm.test(\"Response contains coload\", () => {\r",
+											"        pm.expect(jsonData).to.have.property(coload);\r",
+											"    });\r",
+											"    pm.test(\"Response value coload \", () => {\r",
+											"        pm.expect(jsonData[coload]['@type']).to.eql('http://www.w3.org/2001/XMLSchema#boolean');\r",
+											"        pm.expect(jsonData[coload]['@value']).to.eql('false');\r",
+											"    });\r",
+											"    pm.test(\"Response contains handlingInstructions \", () => {\r",
+											"        pm.expect(jsonData).to.have.property(handlingInstructions);\r",
+											"    });\r",
+											"\r",
+											"    pm.test(\"Response contains handlingInstructions-@id\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(\"@id\");\r",
+											"    });\r",
+											"    pm.test(\"Response contains handlingInstructions-@type\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(\"@type\");\r",
+											"    });\r",
+											"    var description = 'https://onerecord.iata.org/ns/cargo#description'\r",
+											"    pm.test(\"Response contains handlingInstructions-description\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(description);\r",
+											"    });\r",
+											"    pm.test(\"Response value handlingInstructions-description\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions][description]).to.eql('Valuable Cargo');\r",
+											"    });\r",
+											"    var handlingInstructionsType = 'https://onerecord.iata.org/ns/cargo#handlingInstructionsType'\r",
+											"    pm.test(\"Response contains handlingInstructions-handlingInstructionsType\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(handlingInstructionsType);\r",
+											"    });\r",
+											"    pm.test(\"Response value handlingInstructions-handlingInstructionsType\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions][handlingInstructionsType]).to.eql('SPH');\r",
+											"    });\r",
+											"    var handlingInstructionsTypeCode = 'https://onerecord.iata.org/ns/cargo#handlingInstructionsTypeCode'\r",
+											"    pm.test(\"Response contains handlingInstructions-handlingInstructionsTypeCode\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(handlingInstructionsTypeCode);\r",
+											"    });\r",
+											"    pm.test(\"Response value handlingInstructions-handlingInstructionsTypeCode\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions][handlingInstructionsTypeCode]).to.eql('VAL');\r",
+											"    });\r",
+											"})\r",
+											"\r",
+											"//Update variables\r",
+											"pm.collectionVariables.set(\"pieceRevision\", pm.response.headers.get(\"Latest-Revision\"));\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/ld+json; version=2.0.0-dev",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{loBase}}/logistics-objects/supported-types",
+									"host": [
+										"{{loBase}}"
+									],
+									"path": [
+										"logistics-objects",
+										"supported-types"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "list all logistics objects",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Inject jsonld.js\r",
+											"var self = {}\r",
+											"async function frame(json) {\r",
+											"    return await jsonld.compact(json, {\r",
+											"        \r",
+											"    });\r",
+											"}\r",
+											"eval(pm.collectionVariables.get('jsonCode'));\r",
+											"\r",
+											"//Test status code\r",
+											"pm.test(\"Status code is 200\", () => {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"//Test response headers\r",
+											"pm.test(\"Type header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Type\");\r",
+											"});\r",
+											"//Test type header\r",
+											"pm.test(\"Check type header\", () => {\r",
+											"    pm.expect(pm.response.headers.filter(header=>header.key.includes(\"Type\")).map(header=>header.value)).to.include(\"https://onerecord.iata.org/ns/cargo#Piece\");\r",
+											"});\r",
+											"pm.test(\"Content-Type header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Content-Type\");\r",
+											"});\r",
+											"pm.test(\"Content-Language header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Content-Language\");\r",
+											"});\r",
+											"pm.test(\"Revision header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Revision\");\r",
+											"});\r",
+											"pm.test(\"Latest-Revision header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Latest-Revision\");\r",
+											"});\r",
+											"pm.test(\"Last-Modified header is present\", () => {\r",
+											"    pm.response.to.have.header(\"Last-Modified\");\r",
+											"});\r",
+											"//Test response payload\r",
+											"var jsonData = pm.response.json();\r",
+											"\r",
+											"const framedJson = frame(jsonData);\r",
+											"framedJson.then(function (result) {\r",
+											"\r",
+											"    if (result['@graph']) {\r",
+											"        result['@graph'].forEach((element) => {\r",
+											"            if (element['@id'] == pm.request.url.toString()) {\r",
+											"                jsonData = element;\r",
+											"            }\r",
+											"        })\r",
+											"    } else {\r",
+											"        jsonData = result;\r",
+											"    }\r",
+											"    console.log(jsonData);\r",
+											"    var handlingInstructions = \"https://onerecord.iata.org/ns/cargo#handlingInstructions\"\r",
+											"    pm.test(\"Response contains @id \", () => {\r",
+											"        pm.expect(jsonData).to.have.property(\"@id\");\r",
+											"    });\r",
+											"    pm.test(\"Response @id contains {{baseUrl}}/logistics-objects \", () => {\r",
+											"        var expectedValue = pm.variables.get(\"baseUrl\") + \"/logistics-objects/\";\r",
+											"        pm.expect(jsonData['@id']).to.include(expectedValue);\r",
+											"    });\r",
+											"    pm.test(\"Response contains @type \", () => {\r",
+											"        pm.expect(jsonData).to.have.property(\"@type\");\r",
+											"    });\r",
+											"    pm.test(\"Response value @type \", () => {\r",
+											"        pm.expect(jsonData['@type']).to.includes(\"https://onerecord.iata.org/ns/cargo#Piece\");\r",
+											"    });\r",
+											"    var coload = \"https://onerecord.iata.org/ns/cargo#coload\"\r",
+											"    pm.test(\"Response contains coload\", () => {\r",
+											"        pm.expect(jsonData).to.have.property(coload);\r",
+											"    });\r",
+											"    pm.test(\"Response value coload \", () => {\r",
+											"        pm.expect(jsonData[coload]['@type']).to.eql('http://www.w3.org/2001/XMLSchema#boolean');\r",
+											"        pm.expect(jsonData[coload]['@value']).to.eql('false');\r",
+											"    });\r",
+											"    pm.test(\"Response contains handlingInstructions \", () => {\r",
+											"        pm.expect(jsonData).to.have.property(handlingInstructions);\r",
+											"    });\r",
+											"\r",
+											"    pm.test(\"Response contains handlingInstructions-@id\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(\"@id\");\r",
+											"    });\r",
+											"    pm.test(\"Response contains handlingInstructions-@type\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(\"@type\");\r",
+											"    });\r",
+											"    var description = 'https://onerecord.iata.org/ns/cargo#description'\r",
+											"    pm.test(\"Response contains handlingInstructions-description\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(description);\r",
+											"    });\r",
+											"    pm.test(\"Response value handlingInstructions-description\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions][description]).to.eql('Valuable Cargo');\r",
+											"    });\r",
+											"    var handlingInstructionsType = 'https://onerecord.iata.org/ns/cargo#handlingInstructionsType'\r",
+											"    pm.test(\"Response contains handlingInstructions-handlingInstructionsType\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(handlingInstructionsType);\r",
+											"    });\r",
+											"    pm.test(\"Response value handlingInstructions-handlingInstructionsType\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions][handlingInstructionsType]).to.eql('SPH');\r",
+											"    });\r",
+											"    var handlingInstructionsTypeCode = 'https://onerecord.iata.org/ns/cargo#handlingInstructionsTypeCode'\r",
+											"    pm.test(\"Response contains handlingInstructions-handlingInstructionsTypeCode\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions]).to.have.property(handlingInstructionsTypeCode);\r",
+											"    });\r",
+											"    pm.test(\"Response value handlingInstructions-handlingInstructionsTypeCode\", () => {\r",
+											"        pm.expect(jsonData[handlingInstructions][handlingInstructionsTypeCode]).to.eql('VAL');\r",
+											"    });\r",
+											"})\r",
+											"\r",
+											"//Update variables\r",
+											"pm.collectionVariables.set(\"pieceRevision\", pm.response.headers.get(\"Latest-Revision\"));\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/ld+json; version=2.0.0-dev",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{loBase}}/logistics-objects",
+									"host": [
+										"{{loBase}}"
+									],
+									"path": [
+										"logistics-objects"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Get a not Existing Logistics Object",
 							"event": [
 								{
@@ -597,7 +910,8 @@
 											"    });\r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -606,7 +920,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -627,9 +942,9 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -1211,7 +1526,8 @@
 											"    pm.collectionVariables.set(\"historicalChange\",date);\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1220,7 +1536,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1230,7 +1547,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -1249,9 +1565,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticObjectId",
+									"raw": "{{loBase}}/logistics-objects/:logisticObjectId",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -1276,7 +1592,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1285,7 +1602,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1295,7 +1613,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -1314,9 +1631,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/action-requests/:changeRequest?status=REQUEST_ACCEPTED",
+									"raw": "{{loBase}}/action-requests/:changeRequest?status=REQUEST_ACCEPTED",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"action-requests",
@@ -1399,7 +1716,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1408,7 +1726,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1427,9 +1746,9 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId/audit-trail",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId/audit-trail",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -1455,7 +1774,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1524,7 +1844,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1543,9 +1864,9 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId?at=20190926T075830Z",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId?at=20190926T075830Z",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -1579,7 +1900,8 @@
 											"    date = isoTimestamp.replaceAll('-','').replaceAll(':',\"\").split(\".\").shift() + \"Z\";\r",
 											"    pm.collectionVariables.set(\"historicalChange\",date);"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1624,7 +1946,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1643,9 +1966,9 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId?at={{historicalChange}}",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId?at={{historicalChange}}",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -1723,7 +2046,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -1808,7 +2130,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -1878,7 +2199,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -2665,7 +2985,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -2735,7 +3054,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -2844,7 +3162,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -2853,7 +3172,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -2863,7 +3183,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -2882,9 +3201,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticObjectId",
+									"raw": "{{loBase}}/logistics-objects/:logisticObjectId",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -3018,7 +3337,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -3027,7 +3347,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -3041,9 +3362,9 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -3254,7 +3575,8 @@
 											"    pm.expect(pm.response.headers.get(\"Type\")).to.eql(\"https://onerecord.iata.org/ns/cargo#LogisticsEvent\");  \r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -3263,7 +3585,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -3278,7 +3601,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json",
-										"name": "Content-Type",
 										"type": "text"
 									}
 								],
@@ -3292,9 +3614,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId/logistics-events",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId/logistics-events",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -3376,6 +3698,88 @@
 									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId/logistics-events",
 									"host": [
 										"{{baseUrl}}"
+									],
+									"path": [
+										"logistics-objects",
+										":logisticsObjectId",
+										"logistics-events"
+									],
+									"variable": [
+										{
+											"key": "logisticsObjectId",
+											"value": "{{shipmentId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Shipment Arrival Event",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", () => {\r",
+											"  pm.response.to.have.status(201);\r",
+											"});\r",
+											"pm.test(\"Location header is present\", () => {\r",
+											"  pm.response.to.have.header(\"Location\");\r",
+											"});\r",
+											"pm.test(\"Type header is present\", () => {\r",
+											"  pm.response.to.have.header(\"Type\");\r",
+											"});\r",
+											"//Test type header\r",
+											"pm.test(\"Check type\",() => {\r",
+											"    pm.expect(pm.response.headers.get(\"Type\")).to.eql(\"https://onerecord.iata.org/ns/cargo#LogisticsEvent\");  \r",
+											"});\r",
+											"\r",
+											"//Save variables for running GET tests\r",
+											"pm.collectionVariables.set(\"LEId\", pm.response.headers.get(\"Location\").split(\"/\").pop());"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/ld+json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/ld+json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"ARR\",\r\n        \"cargo:codeListName\": \"Arrival\"\r\n    },\r\n    \"cargo:eventName\": \"Consignment arrived on a specific flight\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },\r\n    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId/logistics-events",
+									"host": [
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
@@ -3904,7 +4308,8 @@
 											"    });\r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -3913,7 +4318,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -3939,15 +4345,14 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId/logistics-events/",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId/logistics-events",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
 										":logisticsObjectId",
-										"logistics-events",
-										""
+										"logistics-events"
 									],
 									"variable": [
 										{
@@ -4044,7 +4449,8 @@
 											"});\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -4053,7 +4459,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -4079,15 +4486,14 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects/:logisticsObjectId/logistics-events/?eventType=DEP",
+									"raw": "{{loBase}}/logistics-objects/:logisticsObjectId/logistics-events?eventType=DEP",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects",
 										":logisticsObjectId",
-										"logistics-events",
-										""
+										"logistics-events"
 									],
 									"query": [
 										{
@@ -4144,7 +4550,8 @@
 											"    pm.collectionVariables.set(\"extCompany\", pm.response.headers.get(\"Location\").split(\"/\").pop());\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -4153,7 +4560,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -4163,7 +4571,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -4182,9 +4589,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects",
+									"raw": "{{loBase}}/logistics-objects",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects"
@@ -4249,7 +4656,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -4835,7 +5241,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -4844,7 +5251,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -4854,7 +5262,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -4873,9 +5280,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/subscriptions",
+									"raw": "{{loBase}}/subscriptions",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"subscriptions"
@@ -4914,7 +5321,8 @@
 											"\r",
 											"pm.collectionVariables.set(\"ARId\", pm.response.headers.get(\"Location\").split(\"/\").pop());"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -4923,7 +5331,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -4933,7 +5342,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -4952,9 +5360,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/subscriptions",
+									"raw": "{{loBase}}/subscriptions",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"subscriptions"
@@ -5703,7 +6111,8 @@
 											"});\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -5712,7 +6121,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -5722,7 +6132,6 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -5741,9 +6150,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/action-requests/:actionRequestId?status=REQUEST_ACCEPTED",
+									"raw": "{{loBase}}/action-requests/:actionRequestId?status=REQUEST_ACCEPTED",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"action-requests",
@@ -5758,7 +6167,7 @@
 									"variable": [
 										{
 											"key": "actionRequestId",
-											"value": "{{actionRequest}}"
+											"value": "{{ARId}}"
 										}
 									]
 								}
@@ -5892,9 +6301,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects",
+									"raw": "{{loBase}}/logistics-objects",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects"
@@ -5971,9 +6380,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/subscriptions",
+									"raw": "{{loBase}}/subscriptions",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"subscriptions"
@@ -6004,9 +6413,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/notifications",
+							"raw": "{{loBase}}/notifications",
 							"host": [
-								"{{baseUrl}}"
+								"{{loBase}}"
 							],
 							"path": [
 								"notifications"
@@ -6035,9 +6444,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/notifications",
+							"raw": "{{loBase}}/notifications",
 							"host": [
-								"{{baseUrl}}"
+								"{{loBase}}"
 							],
 							"path": [
 								"notifications"
@@ -6066,9 +6475,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/notifications",
+							"raw": "{{loBase}}/notifications",
 							"host": [
-								"{{baseUrl}}"
+								"{{loBase}}"
 							],
 							"path": [
 								"notifications"
@@ -6097,9 +6506,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/notifications",
+							"raw": "{{loBase}}/notifications",
 							"host": [
-								"{{baseUrl}}"
+								"{{loBase}}"
 							],
 							"path": [
 								"notifications"
@@ -6128,9 +6537,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/notifications",
+							"raw": "{{loBase}}/notifications",
 							"host": [
-								"{{baseUrl}}"
+								"{{loBase}}"
 							],
 							"path": [
 								"notifications"
