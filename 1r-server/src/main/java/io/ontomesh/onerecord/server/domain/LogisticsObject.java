@@ -49,7 +49,8 @@ public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) 
 
     @Override
     public String toString() {
-        return STR."LogisticsObject{iri=\{iri}, type=\{type}\{'}'}";
+//        return STR."LogisticsObject{iri=\{iri}, type=\{type}\{'}'}";
+        return String.format("LogisticsObject{iri=%s, type=%s{}}", iri, type);
     }
 
 

@@ -56,25 +56,24 @@ public class LogisticsObjectRepository extends BaseRepository {
             """;
 
     public Model findEventModelById(IRI id) {
-        String query = STR
-                ."""
-                    PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>
-                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                    CONSTRUCT WHERE {
-                          <\{id}> ?p ?o ;
-                          cargo:eventFor ?lo ;
-                          cargo:recordingOrganization ?recordingOrganization ;
-                          cargo:eventTimeType ?eventTimeType ;
-                          cargo:eventCode ?code .
-                          ?lo rdf:type ?loType .
-                          ?recordingOrganization rdf:type ?recordingOrganizationType .
-                          ?eventTimeType rdf:type cargo:EventTimeType .
+        String query = String.format(
+                        "   PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>" +
+                        "   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+                        "   CONSTRUCT WHERE { " +
+                        "      <%s> ?p ?o ; " +
+                        "      cargo:eventFor ?lo ; " +
+                        "      cargo:recordingOrganization ?recordingOrganization ; " +
+                        "      cargo:eventTimeType ?eventTimeType ; " +
+                        "      cargo:eventCode ?code . " +
+                        "      ?lo rdf:type ?loType . " +
+                        "      ?recordingOrganization rdf:type ?recordingOrganizationType . " +
+                        "      ?eventTimeType rdf:type cargo:EventTimeType . " +
 
-                          ?code rdf:type ?codeType .
-                          ?code cargo:code ?codeValue .
-                          ?code cargo:codeListName ?codeListName .
-                    }
-                 """;
+                        "      ?code rdf:type ?codeType . " +
+                        "      ?code cargo:code ?codeValue . " +
+                        "      ?code cargo:codeListName ?codeListName . " +
+                        " } "
+                , id);
         GraphQueryResult queryResult = getConnection().prepareGraphQuery(query).evaluate();
         return QueryResults.asModel(queryResult);
     }
@@ -198,21 +197,21 @@ public class LogisticsObjectRepository extends BaseRepository {
      */
     public List<IRI> listAllLogisticsObjects(IRI loType, int limit, int offset) {
 
-        final String LIST_LOGISTICS_OBJECT_BY_TYPE = STR
-                ."""
-                PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>
-                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                SELECT  distinct ?id
-                WHERE {
-                    ?id rdf:type ?class .
-                    ?class rdf:subClassOf* ?mid .
-                    ?mid rdfs:subClassOf* cargo:LogisticsObject .
-                    FILTER (!BOUND(?LO_TYPE) || ?class = ?LO_TYPE)
-                }
-                order by ?id
-                limit \{limit} offset \{offset}
-            """;
+        final String LIST_LOGISTICS_OBJECT_BY_TYPE = String
+                .format(
+               " PREFIX cargo: <https://onerecord.iata.org/ns/cargo#> " +
+               " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+               " PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+               " SELECT  distinct ?id " +
+               " WHERE { " +
+               "     ?id rdf:type ?class . " +
+               "     ?class rdf:subClassOf* ?mid . " +
+               "     ?mid rdfs:subClassOf* cargo:LogisticsObject . " +
+               "     FILTER (!BOUND(?LO_TYPE) || ?class = ?LO_TYPE) " +
+               " } " +
+               " order by ?id " +
+               " limit %d offset %d} "
+            , limit, offset);
 
         TupleQuery tupleQuery = getConnection().prepareTupleQuery(LIST_LOGISTICS_OBJECT_BY_TYPE);
         tupleQuery.setIncludeInferred(false);

@@ -66,7 +66,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
                 .collect(Collectors.toMap(
                         Function.identity(),
                         this::resolveAddOperationIri,
-                        (iri, _) -> iri
+                        (iri, x) -> iri
                 ));
     }
 
@@ -155,7 +155,7 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
             // if not exactly one triple is deleted throw an exception, this cancels the transaction and
             // nothing is changed
             if (deletedTriples != 1) {
-                throw new RuntimeException(STR."Number of affected triples should be 1 but was \{deletedTriples}");
+                throw new RuntimeException(String.format("Number of affected triples should be 1 but was %s", deletedTriples));
             }
         }
     }

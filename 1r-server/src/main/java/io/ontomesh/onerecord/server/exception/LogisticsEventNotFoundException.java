@@ -9,7 +9,7 @@ public class LogisticsEventNotFoundException extends RuntimeException {
     private IRI iri;
 
     public LogisticsEventNotFoundException(IRI iri) {
-        super(STR."Logistics event not found with IRI \{iri}");
+        super(String.format("Logistics event not found with IRI %s", iri));
         this.iri = iri;
     }
 

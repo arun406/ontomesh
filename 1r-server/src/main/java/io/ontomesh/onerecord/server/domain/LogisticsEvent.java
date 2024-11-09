@@ -44,7 +44,7 @@ public record LogisticsEvent(IRI iri, Model model, Literal revision) implements 
 
     @Override
     public String toString() {
-        return STR."LogisticsObject{iri=\{iri}\{'}'}";
+        return String.format("LogisticsObject{iri=%s{}}", iri);
     }
 
 

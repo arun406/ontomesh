@@ -163,7 +163,7 @@ public class RDFUtil {
                 || mediaType.isCompatibleWith(SemanticWebMediaType.TEXT_TURTLE)) {
             return RDFFormat.TURTLE;
         }
-        throw new RuntimeException(STR."Content-Type or Accept  '\{mediaType}'is not supported");
+        throw new RuntimeException(String.format("Content-Type or Accept  '%s' is not supported",mediaType));
     }
 
     public static RDFFormat getDefaultFormat() {
@@ -268,10 +268,12 @@ public class RDFUtil {
 
         // if more
         if (subjectIris.size() != 1) {
-            throw new InvalidApiRequestException(STR."Invalid number of IRIs found, expected 1 got: \{subjectIris.stream()
-                    .map(IRI::stringValue)
-                    .collect(Collectors.joining(",", "[", "]"))}"
-            );
+            throw new InvalidApiRequestException(String.format(
+                    "Invalid number of IRIs found, expected 1 got: %s",
+                    subjectIris.stream()
+                            .map(IRI::stringValue)
+                            .collect(Collectors.joining(",", "[", "]"))))
+            ;
         }
 
         return subjectIris.iterator().next();
