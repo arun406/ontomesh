@@ -1,6 +1,7 @@
 package io.ontomesh.onerecord.server.services;
 
 import io.ontomesh.onerecord.server.api.enums.NotificationEventType;
+import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.ActionRequest;
@@ -26,6 +27,8 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
+
+import static org.iata.onerecord.api.API.SubscriptionRequest;
 
 @Slf4j
 @Service
@@ -83,7 +86,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
         IRI logisticsObjectIRI;
         NotificationEventType notificationEventType;
 
-        if (!type.equals(API.SubscriptionRequest)) {
+        if (!type.equals(SubscriptionRequest)) {
             logisticsObjectIRI = getLogisticsObjetIRI(model, iri);
             if (type.equals(API.ChangeRequest)) {
                 notificationEventType = LogisticsObjectService.getNotificationEventType(status);
@@ -112,7 +115,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
         IRI actionRequestType = RDFUtil.getType(model, iri);
         if (actionRequestType.stringValue().equals(API.ChangeRequest.stringValue())) {
             return API.CHANGE_REQUEST_REVOKED;
-        } else if (actionRequestType.stringValue().equals(API.SubscriptionRequest.stringValue())) {
+        } else if (actionRequestType.stringValue().equals(SubscriptionRequest.stringValue())) {
             return API.SUBSCRIPTION_REQUEST_REVOKED;
         } else if (actionRequestType.stringValue().equals(API.AccessDelegationRequest.stringValue()))
             return API.ACCESS_DELEGATION_REQUEST_REVOKED;
@@ -136,7 +139,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
 
     private void validateActionRequestType(IRI type) {
         if (!Arrays.asList(API.ChangeRequest.stringValue(),
-                API.SubscriptionRequest.stringValue(),
+                SubscriptionRequest.stringValue(),
                 API.AccessDelegationRequest.stringValue()).contains(type.stringValue())) {
             throw new RuntimeException(String.format("Invalid Action Request Type %s", type.stringValue()));
         }
@@ -149,8 +152,8 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
      * @param type    action request type.
      */
     @Transactional
-    public IRI createActionRequest(LogisticsObject request, IRI type) {
-        validateActionRequestType(type);
+    public IRI createActionRequest(LogisticsObject request, RequestType type) {
+//        validateActionRequestType(type);
         Model requestModel = request.model();
         IRI actionRequestID = getIdProvider().createUniqueActionRequestUri().iri();
         IRI requestedBy = getIdProvider().createUniqueLoUri().iri();
@@ -159,20 +162,26 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
                 .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
                 .subject(actionRequestID)
-                .add(RDF.TYPE, type)
+                .add(RDF.TYPE, type.getIri())
                 .add(API.isRequestedAt, Date.from(Instant.now()))
                 .add(API.hasRequestStatus, API.REQUEST_PENDING)
                 .add(API.isRequestedBy, requestedBy)
                 .subject(request.iri())
                 .build();
 
-        if (API.SubscriptionRequest.equals(type)) {
-            actionRequestModel.add(actionRequestID, API.hasSubscription, request.iri());
-        } else if (API.ChangeRequest.equals(type)) {
-            actionRequestModel.add(actionRequestID, API.hasChange, request.iri());
-        } else if (API.AccessDelegationRequest.equals(type)) {
-            actionRequestModel.add(actionRequestID, API.hasAccessDelegation, request.iri());
+
+        switch (type) {
+            case SubscriptionRequest -> actionRequestModel.add(actionRequestID, API.hasSubscription, request.iri());
+            case ChangeRequest -> actionRequestModel.add(actionRequestID, API.hasChange, request.iri());
+            case AccessDelegationRequest ->
+                    actionRequestModel.add(actionRequestID, API.hasAccessDelegation, request.iri());
+            default -> {
+                // Optional: Handle the case where none of the cases match
+                log.warn("Unknown request type: {}", type);
+                throw new IllegalArgumentException(String.format("Unsupported request type:%s ", type));
+            }
         }
+
         actionRequestModel.addAll(requestModel);
 
         saveActionRequestModel(actionRequestModel);

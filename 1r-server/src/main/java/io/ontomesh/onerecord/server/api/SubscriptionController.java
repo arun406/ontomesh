@@ -1,5 +1,6 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
@@ -64,7 +65,7 @@ public class SubscriptionController extends BaseController {
         }
         // save
         IRI actionRequestID = this.actionRequestService
-                .createActionRequest(subscription, API.SubscriptionRequest);
+                .createActionRequest(subscription, RequestType.SubscriptionRequest);
         // update location.
         HttpHeaders headers = new HttpHeaders();
 //        headers.setLocation(URI.create(subscriptionRequest.iri().stringValue()));

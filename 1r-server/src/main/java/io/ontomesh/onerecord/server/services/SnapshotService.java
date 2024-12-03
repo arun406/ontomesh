@@ -7,7 +7,11 @@ import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.SnapshotNotFoundException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.util.Values;
@@ -24,12 +28,12 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 @Service
 public class SnapshotService extends AbstractLogisticsObjectService {
+
     private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
-    private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyDDmm'T'hhmmss'Z'")
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyDDmm'T'hhmmss'Z'")
             .withZone(ZoneId.from(ZoneOffset.UTC));
 
-    public SnapshotService(LogisticsObjectRepository repository,
-                           IdProvider idProvider) {
+    public SnapshotService(LogisticsObjectRepository repository, IdProvider idProvider) {
         super(repository, idProvider);
     }
 
@@ -39,10 +43,13 @@ public class SnapshotService extends AbstractLogisticsObjectService {
      * @return logisticsObject
      */
     public LogisticsObject createSnapshot(LogisticsObject logisticsObject) {
+
         Model oldModel = logisticsObject.model();
         String snapshotAt = dateTimeFormatter.format(Instant.now());
         Literal at = Values.literal(snapshotAt);
-        IRI snapshotId = valueFactory.createIRI(logisticsObject.iri().stringValue(), "?at=" + snapshotAt);
+
+        IRI snapshotId = valueFactory.createIRI(logisticsObject.iri().stringValue(), String.format("?at=%s", snapshotAt));
+
         Model newModel = new ModelBuilder().setNamespace(API.PREFIX, API.NAMESPACE)
                 .setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .subject(snapshotId)
@@ -63,12 +70,21 @@ public class SnapshotService extends AbstractLogisticsObjectService {
 
         LogisticsObject snapshot = new LogisticsObject(snapshotId, logisticsObject.type(), newModel);
         this.getRepository().persist(snapshot.model());
-//        print(snapshot, RDFFormat.JSONLD);
+
         return snapshot;
     }
 
+    /**
+     * find the logistics object snapshot
+     *
+     * @param loIRI
+     * @param at
+     * @return
+     */
     public LogisticsObject findSnapshot(IRI loIRI, String at) {
-        IRI snapshotIRI = valueFactory.createIRI(loIRI.stringValue(), "?at=" + at);
+
+        IRI snapshotIRI = valueFactory.createIRI(loIRI.stringValue(), String.format("?at=%s", at));
+
         return this.getRepository().findLoById(snapshotIRI,
                         (iri) -> OntoMeshId.isValidIri(iri, getIdProvider().getLogisticsObjectBaseIRI()))
                 .orElseThrow(() -> new SnapshotNotFoundException("Snapshot not exists."));

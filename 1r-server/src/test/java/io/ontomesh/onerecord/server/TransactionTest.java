@@ -17,7 +17,7 @@ public class TransactionTest {
     @Test
     public void testTransaction() {
         test.update(
-                Values.iri("http://1r.ontomesh.io/logistics-objects/adf4abf1-a212-4354-be7e-e86931158c14"),
+                Values.iri("http://server.ontomesh.io/logistics-objects/adf4abf1-a212-4354-be7e-e86931158c14"),
                 Values.iri("https://onerecord.iata.org/ns/cargo#coload"), Values.literal(true), Values.literal(false));
     }
 }

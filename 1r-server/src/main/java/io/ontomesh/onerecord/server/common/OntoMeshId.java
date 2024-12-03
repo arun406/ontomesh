@@ -37,11 +37,7 @@ public record OntoMeshId(IRI iri, URI uri) {
 
 
     public static boolean isValidIri(Statement statement, IRI logisticsObjectBaseIRI) {
-        if (statement != null && statement.getObject() != null && statement.getObject().isIRI()) {
-            IRI iri = (IRI) statement.getObject();
-            if (statement.getPredicate().isIRI()) {
-                log.info("statement type: {}", statement.getPredicate().stringValue());
-            }
+        if (statement != null && statement.getObject() != null && statement.getObject() instanceof IRI iri) {
             return (OntoMeshId.isInternalIri(iri)) || OntoMeshId.isOneRecordIri(iri)
                     || iri.getNamespace().equals(logisticsObjectBaseIRI.stringValue());
         }
@@ -50,8 +46,7 @@ public record OntoMeshId(IRI iri, URI uri) {
 
     public static boolean isValidIri(Statement statement) {
 
-        if (statement != null && statement.getObject() != null && statement.getObject().isIRI()) {
-            IRI iri = (IRI) statement.getObject();
+        if (statement != null && statement.getObject() != null && statement.getObject() instanceof IRI iri) {
             return OntoMeshId.isInternalIri(iri) || OntoMeshId.isOneRecordIri(iri);
         }
         return false;

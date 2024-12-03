@@ -3,13 +3,13 @@
     "cargo": "https://onerecord.iata.org/ns/cargo#",
     "api": "https://onerecord.iata.org/ns/api#"
   },
-  "@id": "http://1r.ontomesh.io/",
+  "@id": "http://server.ontomesh.io/",
   "@type": "api:ServerInformation",
   "api:hasDataHolder": {
     "@type": "cargo:Company",
-    "@id": "http://1r.ontomesh.io/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda"
+    "@id": "http://server.ontomesh.io/logistics-objects/ontomesh"
   },
-  "api:hasServerEndpoint": "http://1r.ontomesh.io",
+  "api:hasServerEndpoint": "http://server.ontomesh.io",
   "api:hasSupportedApiVersion": [
     "2.0.0-dev"
   ],

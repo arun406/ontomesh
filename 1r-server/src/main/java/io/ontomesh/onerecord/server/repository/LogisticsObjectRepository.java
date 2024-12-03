@@ -10,7 +10,14 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.GraphQueryResult;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResults;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.Update;
 import org.iata.onerecord.api.API;
 import org.springframework.stereotype.Component;
 
@@ -57,7 +64,7 @@ public class LogisticsObjectRepository extends BaseRepository {
 
     public Model findEventModelById(IRI id) {
         String query = String.format(
-                        "   PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>" +
+                "   PREFIX cargo: <https://onerecord.iata.org/ns/cargo#>" +
                         "   PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
                         "   CONSTRUCT WHERE { " +
                         "      <%s> ?p ?o ; " +
@@ -122,7 +129,7 @@ public class LogisticsObjectRepository extends BaseRepository {
             while (evaluate.hasNext()) {
                 BindingSet next = evaluate.next();
                 for (Binding binding : next) {
-                    log.info("name: {}, value : {} ", binding.getName(), binding.getValue());
+                    log.debug("name: {}, value : {} ", binding.getName(), binding.getValue());
                     loTypes.add((IRI) binding.getValue());
                 }
             }
@@ -141,14 +148,12 @@ public class LogisticsObjectRepository extends BaseRepository {
      */
     public List<ActionRequest> listLogisticsObject(IRI type, int limit, int offset, IRI status) {
         String query;
-        query = queryWithStatus.formatted(type.toString(), status.toString(), limit, offset);
+        query = queryWithStatus.formatted(type.toString(), limit, offset);
 
-        log.info("query: {}", query);
+        log.trace("query: {}", query);
 
         TupleQuery tupleQuery = getConnection().prepareTupleQuery(query);
-        if (status != null) {
-            tupleQuery.setBinding("STATUS", status);
-        }
+        tupleQuery.setBinding("STATUS", status);
         try (TupleQueryResult result = tupleQuery.evaluate()) {
             List<BindingSet> list = QueryResults.asList(result);
             return
@@ -180,7 +185,7 @@ public class LogisticsObjectRepository extends BaseRepository {
                           	FILTER (?current = ?currentRevision)
                         }
                 """;
-        log.info("Query : {}", query);
+        log.trace("Query : {}", query);
         Update operation = getConnection().prepareUpdate(QueryLanguage.SPARQL, query);
         operation.setBinding("subject", logisticsObjectId);
         operation.setBinding("currentRevision", currentRevision);
@@ -199,19 +204,19 @@ public class LogisticsObjectRepository extends BaseRepository {
 
         final String LIST_LOGISTICS_OBJECT_BY_TYPE = String
                 .format(
-               " PREFIX cargo: <https://onerecord.iata.org/ns/cargo#> " +
-               " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
-               " PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
-               " SELECT  distinct ?id " +
-               " WHERE { " +
-               "     ?id rdf:type ?class . " +
-               "     ?class rdf:subClassOf* ?mid . " +
-               "     ?mid rdfs:subClassOf* cargo:LogisticsObject . " +
-               "     FILTER (!BOUND(?LO_TYPE) || ?class = ?LO_TYPE) " +
-               " } " +
-               " order by ?id " +
-               " limit %d offset %d} "
-            , limit, offset);
+                        " PREFIX cargo: <https://onerecord.iata.org/ns/cargo#> " +
+                                " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+                                " PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+                                " SELECT  distinct ?id " +
+                                " WHERE { " +
+                                "     ?id rdf:type ?class . " +
+                                "     ?class rdf:subClassOf* ?mid . " +
+                                "     ?mid rdfs:subClassOf* cargo:LogisticsObject . " +
+                                "     FILTER (!BOUND(?LO_TYPE) || ?class = ?LO_TYPE) " +
+                                " } " +
+                                " order by ?id " +
+                                " limit %d offset %d} "
+                        , limit, offset);
 
         TupleQuery tupleQuery = getConnection().prepareTupleQuery(LIST_LOGISTICS_OBJECT_BY_TYPE);
         tupleQuery.setIncludeInferred(false);

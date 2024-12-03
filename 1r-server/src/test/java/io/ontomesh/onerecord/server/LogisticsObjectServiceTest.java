@@ -22,7 +22,7 @@ public class LogisticsObjectServiceTest {
 
     @Test
     public void updateRevision() {
-        IRI logisticsObjectIRI = Values.iri("http://1r.ontomesh.io:8085/logistics-objects/d3aaf89a-b0d7-4663-a694-d860c58dfea5");
+        IRI logisticsObjectIRI = Values.iri("http://server.ontomesh.io:8085/logistics-objects/d3aaf89a-b0d7-4663-a694-d860c58dfea5");
 
         Literal currentRevision = Values.getValueFactory().createLiteral(11);
         Literal nextRevision = Values.getValueFactory().createLiteral(12);

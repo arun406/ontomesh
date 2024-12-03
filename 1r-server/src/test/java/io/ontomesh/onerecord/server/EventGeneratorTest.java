@@ -40,7 +40,7 @@ public class EventGeneratorTest {
 
         IdProvider idProvider = service.getIdProvider();
         IRI eventCodeIRI = idProvider.createInternalIri();
-        IRI loId = Values.iri("http://1r.ontomesh.io/logistics-objects/a245e346-2598-496f-ab40-b50c782f0e0e");
+        IRI loId = Values.iri("http://server.ontomesh.io/logistics-objects/a245e346-2598-496f-ab40-b50c782f0e0e");
         OntoMeshId eventId = idProvider.createUniqueLogisticsEvent(loId);
         IRI tenant = serverInformationService.getTenant();
         LogisticsEvent logisticsEvent = service.createEventModel(loId, NotificationEventType.LOGISTICS_OBJECT_CREATED, tenant);

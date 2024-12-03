@@ -99,7 +99,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
         }
         log.debug("linked object id: {} ", linkedObjectId);
         if (!linkedObjectId.equals(logisticsObjectIRI)) {
-            throw new LinkedObjectNotMatchException("Logistics Object Id and Linked Object reference is not matching.");
+            throw new LinkedObjectNotMatchException(linkedObjectId, "Logistics Object Id and Linked Object reference is not matching.");
         }
     }
 

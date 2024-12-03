@@ -17,7 +17,7 @@ public class ListAllSubscribersTest {
 
     @Test
     void listAllSubscribersTest() {
-        IRI loId = Values.iri("http://1r.ontomesh.io/logistics-objects/3b13c319-bbb4-48a7-bfee-3ce00813a155");
+        IRI loId = Values.iri("http://server.ontomesh.io/logistics-objects/3b13c319-bbb4-48a7-bfee-3ce00813a155");
         IRI loType = Values.iri("https://onerecord.iata.org/ns/cargo#Shipment");
         IRI eventType = Values.iri("https://onerecord.iata.org/ns/api#23LOGISTICS_OBJECT_CREATED");
         service.listSubscribers(loId, null, eventType);

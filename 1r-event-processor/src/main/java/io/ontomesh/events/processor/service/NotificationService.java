@@ -154,7 +154,7 @@ public class NotificationService {
                 .setHeader(KafkaHeaders.KEY, subject.stringValue())
                 .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN)
                 .setHeader("from", null)
-                .setHeader("to", "http://1r.ontomesh.io:8085")
+                .setHeader("to", "http://server.ontomesh.io:8085")
                 .build();
     }
 

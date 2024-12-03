@@ -53,6 +53,11 @@ public class IdProvider extends BaseIdProvider {
                 .path("/logistics-objects/");
     }
 
+    private UriComponentsBuilder getAuthorizationUriBase() {
+        return baseUri()
+                .path("/authorizations-acls/");
+    }
+
     private UriComponentsBuilder getSubscriptionsUriBase() {
         return baseUri()
                 .path("/subscriptions/");
@@ -61,6 +66,11 @@ public class IdProvider extends BaseIdProvider {
 //    public OntoMeshId createInternalIri() {
 //        return OntoMeshId.fromIri(Values.iri(STR."\{serverProperties.getInternalIriScheme()}:\{UUID.randomUUID()}"));
 //    }
+
+    public OntoMeshId createAuthorizationLoUri() {
+        return OntoMeshId.fromUri(getAuthorizationUriBase().path(UUID.randomUUID().toString()).build().toUri());
+    }
+
 
     public OntoMeshId createUniqueLoUri() {
         return OntoMeshId.fromUri(getLoUriBase().path(UUID.randomUUID().toString()).build().toUri());

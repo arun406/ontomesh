@@ -54,7 +54,7 @@ public class OneRecordClientApplicationTests {
                 .setHeader(KafkaHeaders.KEY, null)
                 .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN)
                 .setHeader("from", null)
-                .setHeader("to", "http://1r.ontomesh.io:8085")
+                .setHeader("to", "http://server.ontomesh.io:8085")
                 .build();
 
         try (ConfigurableApplicationContext context = new SpringApplicationBuilder(

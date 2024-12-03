@@ -70,7 +70,7 @@ public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) 
 
     @Transactional
     public void updateRevision(int newRevision) {
-        add(API.hasRevision, null);
-        remove(API.hasRevision, Values.literal(newRevision));
+        remove(API.hasRevision, null);
+        add(API.hasRevision, Values.literal(newRevision));
     }
 }

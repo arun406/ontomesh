@@ -25,6 +25,7 @@ public class JsonldUtil {
         context.put("@context", new HashMap<>());
         context.get("@context").put(CARGO.PREFIX, CARGO.NAMESPACE);
         context.get("@context").put(API.PREFIX, API.NAMESPACE);
+        context.get("@context").put("acl", "http://www.w3.org/ns/auth/acl#");
     }
 
     /**

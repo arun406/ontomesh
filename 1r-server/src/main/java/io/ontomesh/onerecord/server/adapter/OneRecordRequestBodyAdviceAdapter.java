@@ -34,6 +34,7 @@ public class OneRecordRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter 
     @Transactional
     public Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter,
                                 Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
+
         log.debug("request url : {}", httpServletRequest.getRequestURL());
         if (body instanceof LogisticsObject changeObject && httpServletRequest.getMethod().startsWith("PATCH")) {
             log.debug("IRI of the change request : {}", changeObject.iri());
@@ -42,6 +43,7 @@ public class OneRecordRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter 
 //            log.debug("Audit IRI :{}", changeRequestIRI);
 //            httpServletRequest.setAttribute("changeRequestIRI", changeRequestIRI);
         }
+
         return body;
     }
 }

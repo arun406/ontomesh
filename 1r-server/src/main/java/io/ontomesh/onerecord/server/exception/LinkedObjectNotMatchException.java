@@ -1,11 +1,23 @@
 package io.ontomesh.onerecord.server.exception;
 
-public class LinkedObjectNotMatchException extends RuntimeException {
-    public LinkedObjectNotMatchException() {
+import org.eclipse.rdf4j.model.IRI;
 
+public class LinkedObjectNotMatchException extends RuntimeException {
+    private IRI iri;
+
+    public LinkedObjectNotMatchException() {
     }
 
     public LinkedObjectNotMatchException(String s) {
         super(s);
+    }
+
+    public LinkedObjectNotMatchException(IRI linkedObjectId, String s) {
+        super(s);
+        this.iri = linkedObjectId;
+    }
+
+    public IRI getIri() {
+        return this.iri;
     }
 }

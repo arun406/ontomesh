@@ -1,8 +1,6 @@
 package io.ontomesh.onerecord.server.converter;
 
-import io.ontomesh.core.properties.ServerProperties;
 import io.ontomesh.core.rdf.handler.BlankNodeReplacingStatementHandler;
-import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.util.RDFUtil;
@@ -16,24 +14,14 @@ import org.eclipse.rdf4j.model.util.ModelCollector;
 import org.eclipse.rdf4j.model.util.Statements;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
 
-@Getter
 @Slf4j
+@Getter
 public abstract class AbstractConverterService {
 
-    @Autowired
-    private IdProvider idProvider;
-
-    @Autowired
-    private ServerProperties serverProperties;
-
-    @Autowired
-    private HttpServletRequest httpServletRequest;
-
-    protected String getURL() {
+    protected String getURL(HttpServletRequest httpServletRequest) {
         return httpServletRequest.getRequestURL().toString();
     }
 
@@ -66,11 +54,12 @@ public abstract class AbstractConverterService {
     /**
      * @param inputStream
      * @param rdfFormat
+     * @param internalIriScheme
      * @return
      */
-    protected Tuple getTuple(InputStream inputStream, RDFFormat rdfFormat) {
+    protected Tuple getTuple(InputStream inputStream, RDFFormat rdfFormat, String internalIriScheme) {
         BlankNodeReplacingStatementHandler blankNodeReplacingStatementHandler =
-                new BlankNodeReplacingStatementHandler(serverProperties.getInternalIriScheme());
+                new BlankNodeReplacingStatementHandler(internalIriScheme);
 
         Model model = new InputStreamToModelConverter(rdfFormat, blankNodeReplacingStatementHandler).convert(inputStream);
 

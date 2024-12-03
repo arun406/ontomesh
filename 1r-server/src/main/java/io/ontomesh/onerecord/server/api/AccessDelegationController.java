@@ -1,8 +1,9 @@
 package io.ontomesh.onerecord.server.api;
 
-import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
+import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
+import io.ontomesh.onerecord.server.util.URIUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.iata.onerecord.api.API;
@@ -13,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URI;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
 
 @Slf4j
 @RestController
@@ -37,20 +41,22 @@ public class AccessDelegationController extends BaseController {
      * @param accessDelegation access delegation.
      * @return void
      */
-    @PostMapping(value = "", produces = {SemanticWebMediaType.APPLICATION_JSON_LD_VALUE,
-            SemanticWebMediaType.APPLICATION_TURTLE_VALUE,
-            SemanticWebMediaType.TEXT_TURTLE_VALUE})
+    @PostMapping(produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<Void> createRequest(@RequestBody LogisticsObject accessDelegation) {
+
         IRI type = accessDelegation.type();
-        if (!type.stringValue().equals(API.AccessDelegation.stringValue())) {
-            throw new RuntimeException(String.format("Invalid request type %s", type));
+
+        if (!type.equals(API.AccessDelegation)) {
+            throw new IllegalArgumentException(String.format("Invalid request type %s", type));
         }
-        IRI actionRequestID = actionRequestService.createActionRequest(accessDelegation, API.AccessDelegationRequest);
+
+        IRI actionRequestID = actionRequestService
+                .createActionRequest(accessDelegation, RequestType.AccessDelegationRequest);
         log.debug("action request with IRI {} created successfully.", actionRequestID);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(SemanticWebMediaType.APPLICATION_JSON_LD);
-        headers.add("Type", API.AccessDelegation.stringValue());
-        return ResponseEntity.created(URI.create(actionRequestID.stringValue())).headers(headers).build();
+        headers.setContentType(APPLICATION_JSON_LD);
+        headers.add("Type", String.valueOf(API.AccessDelegation));
+        return ResponseEntity.created(URIUtil.toURI(actionRequestID)).headers(headers).build();
     }
 }

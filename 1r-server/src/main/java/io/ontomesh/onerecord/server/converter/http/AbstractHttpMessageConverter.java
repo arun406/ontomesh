@@ -34,6 +34,30 @@ public abstract class AbstractHttpMessageConverter<E extends ILogisticsObject>
     @Autowired
     private HttpServletRequest httpServletRequest;
 
+    protected static boolean isValid(MediaType mediaType) {
+        return SemanticWebMediaType.APPLICATION_TURTLE.isCompatibleWith(mediaType)
+                || SemanticWebMediaType.APPLICATION_JSON_LD.isCompatibleWith(mediaType)
+                || SemanticWebMediaType.TEXT_TURTLE.isCompatibleWith(mediaType);
+    }
+
+    @Override
+    protected E readInternal(Class<? extends E> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+        InputStream inputStream = inputMessage.getBody();
+        RDFFormat rdfFormat = RDFUtil.getFormat(Objects.requireNonNull(inputMessage.getHeaders().getContentType()));
+        ILogisticsObject l = convert(inputStream, rdfFormat);
+        if (l == null) {
+            throw new HttpMessageNotReadableException("Input is not a valid RDF.", inputMessage);
+        }
+        return (E) l;
+    }
+
+    protected abstract ILogisticsObject convert(InputStream inputStream, RDFFormat rdfFormat);
+
+    private static ModelToStringConverter getModelToStringConverter(MediaType mediaType) {
+        RDFFormat format = RDFUtil.getFormat(mediaType);
+        return new ModelToStringConverter(format);
+    }
+
     /**
      * Convert Logistics Object to String.
      *
@@ -59,37 +83,6 @@ public abstract class AbstractHttpMessageConverter<E extends ILogisticsObject>
         return mediaType;
     }
 
-    private static ModelToStringConverter getModelToStringConverter(MediaType mediaType) {
-        RDFFormat format = RDFUtil.getFormat(mediaType);
-        return new ModelToStringConverter(format);
-    }
-
-    protected static boolean isValid(MediaType mediaType) {
-        return SemanticWebMediaType.APPLICATION_TURTLE.isCompatibleWith(mediaType)
-                || SemanticWebMediaType.APPLICATION_JSON_LD.isCompatibleWith(mediaType)
-                || SemanticWebMediaType.TEXT_TURTLE.isCompatibleWith(mediaType);
-    }
-
-
-    @Override
-    protected E readInternal(Class<? extends E> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
-        InputStream inputStream = inputMessage.getBody();
-        RDFFormat rdfFormat = RDFUtil.getFormat(Objects.requireNonNull(inputMessage.getHeaders().getContentType()));
-        ILogisticsObject l = convert(inputStream, rdfFormat);
-        if (l == null) {
-            throw new HttpMessageNotReadableException("Input is not a valid RDF.", inputMessage);
-        }
-        return (E) l;
-    }
-
-    protected abstract ILogisticsObject convert(InputStream inputStream, RDFFormat rdfFormat);
-
-    @Override
-    protected void writeInternal(E e, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        String rdfString = convertToRDFString(e.model(), e.type());
-        StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
-    }
-
     protected String convertToRDFString(Model model, IRI type) throws IOException {
         MediaType mediaType = getAcceptMediaType();
         String rdfString = convertToString(mediaType, model);
@@ -100,5 +93,11 @@ public abstract class AbstractHttpMessageConverter<E extends ILogisticsObject>
             return JsonUtils.toPrettyString(compact);
         }
         return rdfString;
+    }
+
+    @Override
+    protected void writeInternal(E e, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+        String rdfString = convertToRDFString(e.model(), e.type());
+        StreamUtils.copy(rdfString.getBytes(Charset.defaultCharset()), outputMessage.getBody());
     }
 }

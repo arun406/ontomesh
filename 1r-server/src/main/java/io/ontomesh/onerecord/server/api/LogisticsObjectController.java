@@ -1,18 +1,33 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.*;
+import io.ontomesh.onerecord.server.services.ActionRequestService;
+import io.ontomesh.onerecord.server.services.AuditTrailService;
+import io.ontomesh.onerecord.server.services.LogisticsObjectService;
+import io.ontomesh.onerecord.server.services.LogisticsObjectValidationService;
+import io.ontomesh.onerecord.server.services.SnapshotService;
+import io.ontomesh.onerecord.server.services.SubscriptionService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.iata.onerecord.api.API;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.time.Instant;
@@ -20,7 +35,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
 
 @Slf4j
 @RestController
@@ -86,9 +104,8 @@ public class LogisticsObjectController extends BaseController {
      *                           if the parameter is not set, a linked version of the Logistics Object is returned
      * @return Logistics Object
      */
-    @GetMapping(path = "/{id}", produces = {APPLICATION_JSON_LD_VALUE,
-            APPLICATION_TURTLE_VALUE,
-            TEXT_TURTLE_VALUE})
+    @GetMapping(path = "/{id}",
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> findLogisticsObject(HttpServletRequest httpServletRequest,
                                                                @PathVariable("id") String loReferenceId,
                                                                @RequestParam(required = false, name = "at") String at,
@@ -105,16 +122,73 @@ public class LogisticsObjectController extends BaseController {
     }
 
     /**
+     * returns the LogisticsObject's Snapshot 'at' a specific time.
+     *
+     * @param at        snapshot time.
+     * @param id        LogisticObject's reference.
+     * @param mediaType Content Type.
+     * @return response.
+     */
+    protected ResponseEntity<LogisticsObject> getLogisticsObjectSnapshot(String at, OntoMeshId id, MediaType mediaType) {
+        log.debug("finding the snapshot for the lo id {} at {}", id.uri(), at);
+
+        LogisticsObject logisticsObject = this.snapshotService.findSnapshot(id.iri(), at);
+        Literal snapshotVersion = logisticsObject.revision();
+        Integer latestRevision = logisticsObjectRevisionService.getRevision(id.iri());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(mediaType);
+        headers.setContentLanguage(Locale.US);
+        headers.setLastModified(Instant.now()); // TODO
+        headers.setLocation(id.uri());
+        headers.add("Type", logisticsObject.type().stringValue());
+        headers.add("Revision", String.valueOf(snapshotVersion.intValue()));
+        headers.add("Latest-Revision", latestRevision.toString());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(logisticsObject);
+    }
+
+    /**
+     * returns the latest logisticsObject
+     *
+     * @param id        logisticsObject reference
+     * @param mediaType content type.
+     * @return Response Entity.
+     */
+
+    protected ResponseEntity<LogisticsObject> getLogisticsObject(OntoMeshId id, MediaType mediaType) {
+
+        LogisticsObject logisticsObject = super.getLogisticsObjectService().findLogisticsObject(id.iri());
+        String revision = String.valueOf(logisticsObject.revision());
+        log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), revision);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(mediaType);
+        headers.setContentLanguage(Locale.US);
+        headers.setLastModified(Instant.now()); // TODO
+        headers.setLocation(id.uri());
+        headers.add("Type", logisticsObject.type().stringValue());
+        headers.add("Revision", revision);
+        headers.add("Latest-Revision", revision);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(logisticsObject);
+    }
+
+    /**
      * Returns the audit trail.
      *
      * @return logistics object audit.
      */
-    @GetMapping(path = "/{id}/audit-trail", produces = {APPLICATION_JSON_LD_VALUE,
-            APPLICATION_TURTLE_VALUE,
-            TEXT_TURTLE_VALUE})
+    @GetMapping(path = "/{id}/audit-trail",
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> findLogisticsObjectAudit(
             @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
             @PathVariable("id") String loReferenceId) {
+
         OntoMeshId id = getLoId(loReferenceId);
         LogisticsObject logisticsObject = auditTrailService.getAuditTrail(id.uri());
 
@@ -122,7 +196,9 @@ public class LogisticsObjectController extends BaseController {
         headers.setContentLanguage(Locale.US);
         headers.setContentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : APPLICATION_JSON_LD);
 
-        return ResponseEntity.ok().headers(headers).body(logisticsObject);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(logisticsObject);
     }
 
     /**
@@ -146,8 +222,7 @@ public class LogisticsObjectController extends BaseController {
         getLogisticsObjectService().saveLogisticsObject(logisticsObject);
 
         URI loURI = logisticsObject.uri();
-        logisticsObject.print();
-        log.info("{} is created successfully.", logisticsObject);
+        log.debug("{} is created successfully.", logisticsObject);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(loURI);
@@ -170,7 +245,7 @@ public class LogisticsObjectController extends BaseController {
 
         OntoMeshId loId = getLoId(loReferenceId);
         this.validationService.validate(loId.iri(), change.model(), change.iri());
-        IRI actionRequest = this.actionRequestService.createActionRequest(change, API.ChangeRequest);
+        IRI actionRequest = this.actionRequestService.createActionRequest(change, RequestType.ChangeRequest);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(APPLICATION_JSON_LD);

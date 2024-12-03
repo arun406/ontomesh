@@ -18,6 +18,6 @@ public class OneRecordSubscriptionClientTest {
         IRI topic = Values.iri("http://localhost:8085/logistics-objects/99e16c24-df98-4527-979f-42d6bc208ffa");
         IRI topicType = Values.iri("https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_IDENTIFIER");
 
-        Model model = this.clientService.initiateSubscription("http://1r.ontomesh.io:8085", topic, topicType);
+        Model model = this.clientService.initiateSubscription("http://server.ontomesh.io:8085", topic, topicType);
     }
 }

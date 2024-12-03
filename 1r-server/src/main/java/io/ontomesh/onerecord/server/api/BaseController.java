@@ -5,7 +5,12 @@ import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.AlreadyExistsException;
-import io.ontomesh.onerecord.server.services.*;
+import io.ontomesh.onerecord.server.services.ActionRequestService;
+import io.ontomesh.onerecord.server.services.AuditTrailService;
+import io.ontomesh.onerecord.server.services.LogisticsEventService;
+import io.ontomesh.onerecord.server.services.LogisticsObjectRevisionService;
+import io.ontomesh.onerecord.server.services.LogisticsObjectService;
+import io.ontomesh.onerecord.server.services.SnapshotService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -27,10 +32,10 @@ public abstract class BaseController {
 
     @Autowired
     public IdProvider idProvider;
-    private LogisticsObjectService logisticsObjectService;
-
     @Autowired
     public LogisticsObjectRevisionService logisticsObjectRevisionService;
+
+    private LogisticsObjectService logisticsObjectService;
     public SnapshotService snapshotService;
     public ActionRequestService actionRequestService;
     public LogisticsEventService eventService;
@@ -80,6 +85,10 @@ public abstract class BaseController {
         this.actionRequestService = actionRequestService;
     }
 
+    public BaseController(LogisticsObjectService logisticsObjectService) {
+        this.logisticsObjectService = logisticsObjectService;
+    }
+
     /**
      * remove hasPredefinedIri IRI.
      *
@@ -89,14 +98,31 @@ public abstract class BaseController {
         logisticsObject.model().remove(logisticsObject.iri(), OntoMesh.hasId, null);
     }
 
+    /**
+     * returns the logistics object id
+     *
+     * @param uuid
+     * @return
+     */
     protected OntoMeshId getLoId(String uuid) {
         return idProvider.getUriForLoId(uuid);
     }
 
+    /**
+     * returns the action request id
+     *
+     * @param uuid
+     * @return
+     */
     protected OntoMeshId getActionRequestId(String uuid) {
         return idProvider.getUriForActionRequestId(uuid);
     }
 
+    /**
+     * perform the duplicate check
+     *
+     * @param logisticsObject
+     */
     protected void checkForDuplicateIRI(LogisticsObject logisticsObject) {
         IRI iri = logisticsObject.iri();
         // Check if IRI is already taken.
@@ -105,6 +131,10 @@ public abstract class BaseController {
             throw new AlreadyExistsException(iri, logisticsObject.type().toString());
     }
 
+    /**
+     * @param logisticsObject
+     * @return
+     */
     protected boolean isIdPresent(LogisticsObject logisticsObject) {
         // Remove predicate temporarily introduced by LogisticsObjectBodyReader. Information is still part
         // of metadata.
@@ -113,57 +143,8 @@ public abstract class BaseController {
                 .booleanValue();
     }
 
-    /**
-     * returns the latest logisticsObject
-     *
-     * @param id        logisticsObject reference
-     * @param mediaType content type.
-     * @return Response Entity.
-     */
-
-    protected ResponseEntity<LogisticsObject> getLogisticsObject(OntoMeshId id, MediaType mediaType) {
-
-        HttpHeaders headers = new HttpHeaders();
-        LogisticsObject logisticsObject = logisticsObjectService.findLogisticsObject(id.iri());
-        String revision = String.valueOf(logisticsObject.revision());
-        log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), revision);
-        headers.setContentType(mediaType);
-        headers.setContentLanguage(Locale.US);
-        headers.setLastModified(Instant.now()); // TODO
-        headers.setLocation(id.uri());
-        headers.add("Type", logisticsObject.type().stringValue());
-        headers.add("Revision", revision);
-        headers.add("Latest-Revision", revision);
-        return ResponseEntity.ok().headers(headers).body(logisticsObject);
-    }
-
-    /**
-     * returns the LogisticsObject's Snapshot 'at' a specific time.
-     *
-     * @param at        snapshot time.
-     * @param id        LogisticObject's reference.
-     * @param mediaType Content Type.
-     * @return response.
-     */
-    protected ResponseEntity<LogisticsObject> getLogisticsObjectSnapshot(String at, OntoMeshId id, MediaType mediaType) {
-
-        HttpHeaders headers = new HttpHeaders();
-        log.debug("finding the snapshot for the lo id {} at {}", id.uri(), at);
 
 
-        LogisticsObject logisticsObject = this.snapshotService.findSnapshot(id.iri(), at);
-        Literal snapshotVersion = logisticsObject.revision();
-        Integer latestRevision = logisticsObjectRevisionService.getRevision(id.iri());
-
-        headers.setContentType(mediaType);
-        headers.setContentLanguage(Locale.US);
-        headers.setLastModified(Instant.now()); // TODO
-        headers.setLocation(id.uri());
-        headers.add("Type", logisticsObject.type().stringValue());
-        headers.add("Revision", String.valueOf(snapshotVersion.intValue()));
-        headers.add("Latest-Revision", latestRevision.toString());
-        return ResponseEntity.ok().headers(headers).body(logisticsObject);
-    }
 
     protected LogisticsObjectService getLogisticsObjectService() {
         return this.logisticsObjectService;

@@ -43,7 +43,7 @@ public class OneRecordNotificationClientTest {
 
         String notificationMessage = converter.convert(model);
 
-        notificationClient.sendNotification("http://1r.ontomesh.io:8085", notificationMessage);
+        notificationClient.sendNotification("http://server.ontomesh.io:8085", notificationMessage);
     }
 
 }

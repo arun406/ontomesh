@@ -68,7 +68,7 @@ public class SubscriptionTest {
 
     @Test
     public void getSubscriberForLoTest() {
-        IRI hasTopic = Values.iri("http://1r.ontomesh.io:8085/logistics-objects/7529be44-8fb4-419a-9267-2db9cce0ca3e");
+        IRI hasTopic = Values.iri("http://server.ontomesh.io:8085/logistics-objects/7529be44-8fb4-419a-9267-2db9cce0ca3e");
         IRI hasTopicType = API.LOGISTICS_OBJECT_IDENTIFIER;
 
         List<IRI> subscribersForLo = subscriptionService.getSubscribers(hasTopic, hasTopicType);

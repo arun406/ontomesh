@@ -27,7 +27,7 @@ public class ServerInformationController extends BaseController {
 
     @Autowired
     private final ServerInformationService serverInformationService;
-    @Value("${onerecord.server.url:http://1r.ontomesh.io}")
+    @Value("${onerecord.server.url:http://server.ontomesh.io}")
     private String ONERECORD_SERVER_BASE;
 
     public ServerInformationController(ServerInformationService serverInformationService) {
