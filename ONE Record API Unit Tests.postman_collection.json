@@ -92,6 +92,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJyYkdFdmIyVTFzdTd0MU1YVlo1aWowdnpDZU5feWFZX19vUjZ0WmlIXzVrIn0.eyJleHAiOjE3MzIyOTc5NTUsImlhdCI6MTczMjI5NzY1NSwianRpIjoiYWExMWU4OGMtZjFlZS00NjVjLWEzM2UtOWFkZmFiMTViNWI0IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MDAwL3JlYWxtcy9vbnRvbWVzaCIsInN1YiI6IjE4MjY3YzZiLWRkNmMtNDZhYS04MTBhLWU5MzAyNjBkNzJjMCIsInR5cCI6IkJlYXJlciIsImF6cCI6ImV4dGVybmFsLW9uZS1yZWNvcmQtY2xpZW50IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIvKiJdLCJyZXNvdXJjZV9hY2Nlc3MiOnsiZXh0ZXJuYWwtb25lLXJlY29yZC1jbGllbnQiOnsicm9sZXMiOlsiUE9TVF9MT0dJU1RJQ1NfRVZFTlQiLCJHRVRfTE9HSVNUSUNTX09CSkVDVCIsIkdFVF9MT0dJU1RJQ1NfRVZFTlQiLCJQQVRDSF9MT0dJU1RJQ1NfT0JKRUNUIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJjbGllbnRIb3N0IjoiMTkyLjE2OC42NS4xIiwicHJlZmVycmVkX3VzZXJuYW1lIjoic2VydmljZS1hY2NvdW50LWV4dGVybmFsLW9uZS1yZWNvcmQtY2xpZW50IiwibG9naXN0aWNzX2FnZW50X3VyaSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9sb2dpc3RpY3Mtb2JqZWN0cy9fZGF0YS1ob2xkZXIiLCJjbGllbnRBZGRyZXNzIjoiMTkyLjE2OC42NS4xIiwiY2xpZW50X2lkIjoiZXh0ZXJuYWwtb25lLXJlY29yZC1jbGllbnQifQ.lfeeboP-ZIqu7cCjYxYjW628XXTdYcPW3ZMZBcpSK683QlsVeydDTKD6TE2NQIzUaYNWwSAJM6Qb8ZhCQhgSZO3rgp4H699EI7ulZ6vope_05QJfN0bSWziMurMZJF3nP9tKiqvhf_XbQ-j64bGWTG9IuSEpLAGFSl5bgKll09Y7YxigDQLjLdYusDYdR8hUxfkKWLmp_1O_2W6DbdUX4gayI2XRWBnJAlo9fDcevLsACc9zhPxB6EsyH_beoxjnWdMXoKT--LhucrBjma8V_a4r2PDWv_fw1Mz9G_1B3lgICWTowmFoLbMf0UbNo9_8iR6CT-lMUa0rVWod2_pBeg",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -178,6 +188,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
@@ -1732,6 +1752,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [
 									{
@@ -2041,6 +2071,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
@@ -2102,6 +2142,7 @@
 											"var reqUrl = pm.variables.replaceIn(pm.request.url.toString());\r",
 											"if (pm.response.code == 201 ) {\r",
 											"    pm.collectionVariables.set(\"patchRequest1\", pm.response.headers.get(\"Location\").split(\"/\").pop());\r",
+											"    pm.collectionVariables.set(\"actionRequest\", pm.response.headers.get(\"Location\").split(\"/\").pop());\r",
 											"    // Update revisions\r",
 											"    if (reqUrl.includes(pm.collectionVariables.get(\"patchPieceId\"))){\r",
 											"        pm.collectionVariables.set(\"patchPieceRevision\", Number(pm.collectionVariables.get(\"patchPieceRevision\"))+1);\r",
@@ -2125,6 +2166,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "PATCH",
 								"header": [
 									{
@@ -2140,7 +2191,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{patchPieceId}}\"\n    },\n    \"api:hasDescription\": \"Add grossWeight\",\n    \"api:hasOperation\": [\n                {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#numericalValue\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20.0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n                {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{baseUrl}}/logistics-objects/{{patchPieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#Value\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"{{patchPieceRevision}}\"\n    }\n}\n",
+									"raw": "{\n    \"@context\": {\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\",\n        \"api\": \"https://onerecord.iata.org/ns/api#\"\n    },\n    \"@type\": \"api:Change\",\n    \"api:hasLogisticsObject\": {\n        \"@id\": \"{{loBase}}/logistics-objects/{{patchPieceId}}\"\n    },\n    \"api:hasDescription\": \"Add grossWeight\",\n    \"api:hasOperation\": [\n                {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#numericalValue\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#double\",\n                    \"api:hasValue\": \"20.0\"\n                }\n            ]\n        },\n        {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"_:b0\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#unit\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"http://www.w3.org/2001/XMLSchema#string\",\n                    \"api:hasValue\": \"KGM\"\n                }\n            ]\n        },\n                {\n            \"@type\": \"api:Operation\",\n            \"api:op\": {\n                \"@id\": \"api:ADD\"\n            },\n            \"api:s\": \"{{loBase}}/logistics-objects/{{patchPieceId}}\",\n            \"api:p\": \"https://onerecord.iata.org/ns/cargo#grossWeight\",\n            \"api:o\": [\n                {\n                    \"@type\": \"api:OperationObject\",\n                    \"api:hasDatatype\": \"https://onerecord.iata.org/ns/cargo#Value\",\n                    \"api:hasValue\": \"_:b0\"\n                }\n            ]\n        }\n    ],\n    \"api:hasRevision\": {\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#positiveInteger\",\n        \"@value\": \"{{patchPieceRevision}}\"\n    }\n}\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -2333,6 +2384,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJyYkdFdmIyVTFzdTd0MU1YVlo1aWowdnpDZU5feWFZX19vUjZ0WmlIXzVrIn0.eyJleHAiOjE3MzI0MzQ4MzAsImlhdCI6MTczMjQzNDUzMCwianRpIjoiZmJkMjFkY2ItOWFlZS00MjNlLTk0YjgtYWNkZjQxOTBkZDkzIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo1MDAwL3JlYWxtcy9vbnRvbWVzaCIsInN1YiI6IjE4MjY3YzZiLWRkNmMtNDZhYS04MTBhLWU5MzAyNjBkNzJjMCIsInR5cCI6IkJlYXJlciIsImF6cCI6ImV4dGVybmFsLW9uZS1yZWNvcmQtY2xpZW50IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIvKiJdLCJyZXNvdXJjZV9hY2Nlc3MiOnsiZXh0ZXJuYWwtb25lLXJlY29yZC1jbGllbnQiOnsicm9sZXMiOlsiUE9TVF9MT0dJU1RJQ1NfRVZFTlQiLCJHRVRfTE9HSVNUSUNTX09CSkVDVCIsIkdFVF9MT0dJU1RJQ1NfRVZFTlQiLCJQQVRDSF9MT0dJU1RJQ1NfT0JKRUNUIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJjbGllbnRIb3N0IjoiMTkyLjE2OC42NS4xIiwicHJlZmVycmVkX3VzZXJuYW1lIjoic2VydmljZS1hY2NvdW50LWV4dGVybmFsLW9uZS1yZWNvcmQtY2xpZW50IiwibG9naXN0aWNzX2FnZW50X3VyaSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9sb2dpc3RpY3Mtb2JqZWN0cy9fZGF0YS1ob2xkZXIiLCJjbGllbnRBZGRyZXNzIjoiMTkyLjE2OC42NS4xIiwiY2xpZW50X2lkIjoiZXh0ZXJuYWwtb25lLXJlY29yZC1jbGllbnQifQ.e8XKylI9Z7x04A3tW-mCRuSpArJToVC5_ZdovqsSaT-RWDK_7En-5DEimCt9uTYALLyOtHFc3le7BkXAcRKK2XkAx4OPZGTEl61J6cydW8Tfh3rhJ5h_i0llDfdJw25okOaaykzVBzA3l-mz8tP_NW02KhdzvjsyqodRcARgrTR007lCoZ-WqvHvPFjtRZMMvYOoM_I9lVQDi-doMohhc4HqCCskSJHWd18s5MjkC8thUfeuPV5JOMKiQe--lknqPegw7KtUy3pyln41saNYKXWRhxl6kWzhnuxTBGJ2PUUpW7EaXoFV4H1SeNBRQTbgC0f9_K-k5wJQUp-Q3s3Xwg",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [
 									{
@@ -3422,7 +3483,8 @@
 											"    pm.collectionVariables.set(\"companyCreationTime\", Date.now());\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -3431,17 +3493,27 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -3460,9 +3532,9 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/logistics-objects",
+									"raw": "{{loBase}}/logistics-objects",
 									"host": [
-										"{{baseUrl}}"
+										"{{loBase}}"
 									],
 									"path": [
 										"logistics-objects"
@@ -3500,7 +3572,8 @@
 											"    pm.collectionVariables.set(\"shipmentCreationTime\", Date.now());\r",
 											"}"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -3509,17 +3582,27 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json; version=2.0.0-dev",
-										"name": "Content-Type",
 										"type": "text"
 									},
 									{
@@ -3591,6 +3674,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
@@ -3606,7 +3699,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-10-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-10-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"TEST\",\r\n        \"cargo:codeListName\": \"Test\"\r\n    },\r\n    \"cargo:eventName\": \"Test Event on shipment record\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
+									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-10-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-10-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"TEST\",\r\n        \"cargo:codeListName\": \"Test\"\r\n    },\r\n    \"cargo:eventName\": \"Test Event on shipment record\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -3657,7 +3750,8 @@
 											"//Save variables for running GET tests\r",
 											"pm.collectionVariables.set(\"LEId\", pm.response.headers.get(\"Location\").split(\"/\").pop());"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -3666,11 +3760,22 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
@@ -3681,13 +3786,12 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json",
-										"name": "Content-Type",
 										"type": "text"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"DEP\",\r\n        \"cargo:codeListName\": \"Departure\"\r\n    },\r\n    \"cargo:eventName\": \"Consignment departed on a specific flight\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },\r\n    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
+									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"DEP\",\r\n        \"cargo:codeListName\": \"Departure\"\r\n    },\r\n    \"cargo:eventName\": \"Consignment departed on a specific flight\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },\r\n    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -3754,6 +3858,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
@@ -3769,7 +3883,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"ARR\",\r\n        \"cargo:codeListName\": \"Arrival\"\r\n    },\r\n    \"cargo:eventName\": \"Consignment arrived on a specific flight\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },\r\n    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
+									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"ARR\",\r\n        \"cargo:codeListName\": \"Arrival\"\r\n    },\r\n    \"cargo:eventName\": \"Consignment arrived on a specific flight\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },\r\n    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -3856,7 +3970,8 @@
 											"    });\r",
 											"});"
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -3865,11 +3980,22 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "POST",
 								"header": [
 									{
@@ -3880,13 +4006,12 @@
 									{
 										"key": "Content-Type",
 										"value": "application/ld+json",
-										"name": "Content-Type",
 										"type": "text"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"DEP\",\r\n        \"cargo:codeListName\": \"Departure\"\r\n    },\r\n    \"cargo:eventName\": \"Consignment departed on a specific flight\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{baseUrl}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
+									"raw": "{\r\n    \"@context\": {\r\n        \"cargo\": \"https://onerecord.iata.org/ns/cargo#\"\r\n    },\r\n    \"@type\": \"cargo:LogisticsEvent\",\r\n    \"cargo:creationDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventDate\": {\r\n        \"@type\": \"http://www.w3.org/2001/XMLSchema#dateTime\",\r\n        \"@value\": \"2023-04-01T10:38:01.000Z\"\r\n    },\r\n    \"cargo:eventCode\": {\r\n        \"@type\": \"cargo:CodeListElement\",\r\n        \"cargo:code\": \"DEP\",\r\n        \"cargo:codeListName\": \"Departure\"\r\n    },\r\n    \"cargo:eventName\": \"Consignment departed on a specific flight\",\r\n    \"cargo:eventTimeType\": {\r\n        \"@type\": \"cargo:EventTimeType\",\r\n        \"@id\": \"cargo:ACTUAL\"\r\n    },    \"cargo:partialEventIndicator\": false,\r\n    \"cargo:eventFor\": {\r\n        \"@type\": \"cargo:Shipment\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{shipmentId}}\"\r\n    },\r\n    \"cargo:recordingOrganization\": {\r\n        \"@type\": \"cargo:Company\",\r\n        \"@id\": \"{{loBase}}/logistics-objects/{{companyId}}\"\r\n    }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -5979,7 +6104,8 @@
 											"\r",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -5988,11 +6114,22 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [
 									{
@@ -6013,7 +6150,7 @@
 									"variable": [
 										{
 											"key": "actionRequestId",
-											"value": "{{actionRequest}}"
+											"value": "{{addWeightCR}}"
 										}
 									]
 								}
@@ -6045,6 +6182,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "GET",
 								"header": [
 									{
@@ -6127,6 +6274,16 @@
 								}
 							],
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{accessToken}}",
+											"type": "string"
+										}
+									]
+								},
 								"method": "PATCH",
 								"header": [
 									{
@@ -6167,7 +6324,7 @@
 									"variable": [
 										{
 											"key": "actionRequestId",
-											"value": "{{ARId}}"
+											"value": "{{addWeightCR}}"
 										}
 									]
 								}
@@ -6549,6 +6706,231 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Authorizations",
+			"item": [
+				{
+					"name": "grant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test Status Code",
+									"pm.test(\"Status code is 201\", () => {",
+									"  pm.response.to.have.status(201);",
+									"});",
+									"// Test Response Headers",
+									"pm.test(\"Location header is present\", () => {",
+									"  pm.response.to.have.header(\"Location\");",
+									"});",
+									"pm.test(\"Type header is present\", () => {",
+									"  pm.response.to.have.header(\"Type\");",
+									"});",
+									"//Test type header",
+									"pm.test(\"Check type header\",() => {",
+									"    pm.expect(pm.response.headers.get(\"Type\")).to.eql(\"http://www.w3.org/ns/auth/acl#Authorization\");  ",
+									"});",
+									"",
+									"//Save variables for running GET tests",
+									"var req = JSON.parse(request.data);",
+									"if (req[\"@type\"].includes(\"acl:Authorization\")){",
+									"    pm.collectionVariables.set(\"aclId\", pm.response.headers.get(\"Location\").split(\"/\").pop());",
+									"    pm.collectionVariables.set(\"aclRevision\", 1);",
+									"",
+									"    //Set creation date for historical object",
+									"    isoTimestamp = pm.variables.replaceIn('{{$isoTimestamp}}')",
+									"    date = isoTimestamp.replaceAll('-','').replaceAll(':',\"\").split(\".\").shift() + \"Z\";",
+									"    pm.collectionVariables.set(\"historicalCreation\",date);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/ld+json; version=2.0.0-dev",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"@vocab\": \"http://www.w3.org/ns/auth/acl#\",\n        \"acl\": \"http://www.w3.org/ns/auth/acl#\"\n    },\n    \"@type\": \"acl:Authorization\",\n    \"agent\": {\n        \"@id\": \"http://server.ontomesh.io/logistics-objects/ontomesh\"\n    },\n    \"accessTo\": {\n        \"@id\": \"http://server.ontomesh.io/logistics-objects/207592c7-cb5c-4abf-a255-6e6818cb42dd\"\n    },\n    \"mode\": [\n        {\n            \"@id\": \"acl:Write\"\n        },\n        {\n            \"@id\": \"acl:Read\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{loBase}}/authorizations-acls",
+							"host": [
+								"{{loBase}}"
+							],
+							"path": [
+								"authorizations-acls"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "grant Copy",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": {\n        \"@vocab\": \"http://www.w3.org/ns/auth/acl#\",\n        \"acl\": \"http://www.w3.org/ns/auth/acl#\"\n    },\n    \"@type\": \"acl:Authorization\",\n    \"agent\": {\n        \"@id\": \"http://server.ontomesh.io/logistics-objects/ontomesh\"\n    },\n    \"accessTo\": {\n        \"@id\": \"http://server.ontomesh.io/logistics-objects/207592c7-cb5c-4abf-a255-6e6818cb42dd\"\n    },\n    \"mode\": [\n        {\n            \"@id\": \"acl:Write\"\n        },\n        {\n            \"@id\": \"acl:Read\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{loBase}}/authorizations/acls",
+							"host": [
+								"{{loBase}}"
+							],
+							"path": [
+								"authorizations",
+								"acls"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get acl by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/ld+json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://server.ontomesh.io/authorizations-acls/:aclId",
+							"protocol": "http",
+							"host": [
+								"server",
+								"ontomesh",
+								"io"
+							],
+							"path": [
+								"authorizations-acls",
+								":aclId"
+							],
+							"variable": [
+								{
+									"key": "aclId",
+									"value": "{{aclId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete acl",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://server.ontomesh.io/authorizations-acls/:aclId",
+							"protocol": "http",
+							"host": [
+								"server",
+								"ontomesh",
+								"io"
+							],
+							"path": [
+								"authorizations-acls",
+								":aclId"
+							],
+							"variable": [
+								{
+									"key": "aclId",
+									"value": "{{aclId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "http://localhost:5000/realms/ontomesh/protocol/openid-connect/token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var res = pm.response.json();",
+									"var accessToken = res.access_token;",
+									"pm.collectionVariables.set(\"accessToken\", accessToken);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "external-one-record-client",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "3JnxJZmgsoQlnHHlsShT9aRYlRShCYcp",
+									"type": "text"
+								},
+								{
+									"key": "audience",
+									"value": "http://server.ontomesh.io.se",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:5000/realms/ontomesh/protocol/openid-connect/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"realms",
+								"ontomesh",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
@@ -6697,6 +7079,19 @@
 		{
 			"key": "pieceNotificationId",
 			"value": ""
+		},
+		{
+			"key": "aclId",
+			"value": ""
+		},
+		{
+			"key": "aclRevision",
+			"value": ""
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "default"
 		}
 	]
 }
