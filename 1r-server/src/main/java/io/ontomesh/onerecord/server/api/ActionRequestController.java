@@ -2,6 +2,7 @@ package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.ActionRequest;
+import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.ActionRequestService;
 import lombok.extern.slf4j.Slf4j;
@@ -63,14 +64,12 @@ public class ActionRequestController extends BaseController {
         List<ActionRequest> actionRequests = this.actionRequestService
                 .listAll(SimpleValueFactory.getInstance().createIRI(type), limit, offset, SimpleValueFactory.getInstance().createIRI(status));
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON);
-        headers.setContentLanguage(Locale.US);
-        headers.setLastModified(Instant.now());
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentType(APPLICATION_JSON)
+                .contentLanguage(Locale.US)
+                .lastModified(Instant.now()).build();
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(actionRequests);
+        return ResponseEntity.ok().headers(headers).body(actionRequests);
     }
 
     /**
@@ -84,15 +83,13 @@ public class ActionRequestController extends BaseController {
         OntoMeshId actionRequestId = getActionRequestId(actionRequestReference);
         LogisticsObject actionRequest = actionRequestService.get(actionRequestId.iri());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON_LD);
-        headers.setContentLanguage(Locale.US);
-        headers.add("Type", actionRequest.type().stringValue());
-        headers.setLastModified(Instant.now()); //TODO
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentType(APPLICATION_JSON_LD)
+                .contentLanguage(Locale.US)
+                .type(actionRequest.type().stringValue())
+                .lastModified(Instant.now()).build();
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(actionRequest);
+        return ResponseEntity.ok().headers(headers).body(actionRequest);
     }
 
     /**
@@ -127,9 +124,9 @@ public class ActionRequestController extends BaseController {
         }
 
         this.actionRequestService.updateStatus(actionRequestId.iri(), newStatus);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON_LD);
-        headers.setLocation(actionRequestId.uri());
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .location(actionRequestId.uri())
+                .contentType(APPLICATION_JSON_LD).build();
 
         return ResponseEntity.noContent()
                 .headers(headers)

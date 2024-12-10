@@ -42,17 +42,17 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
     /**
      * Action Request Processor.
      */
-    private final ActionRequestProcessor actionRequestProcessor;
+    private final ActionRequestProcessExecutor actionRequestProcessExecutor;
 
     /**
      * @param repository repository
      * @param idProvider id Provider
      */
     protected ActionRequestService(LogisticsObjectRepository repository, IdProvider idProvider, LogisticsEventService logisticsEventService,
-                                   ActionRequestProcessor actionRequestProcessor) {
+                                   ActionRequestProcessExecutor actionRequestProcessExecutor) {
         super(repository, idProvider);
         this.logisticsEventService = logisticsEventService;
-        this.actionRequestProcessor = actionRequestProcessor;
+        this.actionRequestProcessExecutor = actionRequestProcessExecutor;
     }
 
     private static IRI validateAndGetActionRequestStatus(IRI iri, IRI newStatus, Model model) {
@@ -154,7 +154,6 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
     @Transactional
     public IRI createActionRequest(LogisticsObject request, RequestType type) {
 //        validateActionRequestType(type);
-        Model requestModel = request.model();
         IRI actionRequestID = getIdProvider().createUniqueActionRequestUri().iri();
         IRI requestedBy = getIdProvider().createUniqueLoUri().iri();
 
@@ -182,7 +181,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
             }
         }
 
-        actionRequestModel.addAll(requestModel);
+        actionRequestModel.addAll(request.model());
 
         saveActionRequestModel(actionRequestModel);
 
@@ -234,8 +233,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
         if (logisticsObjectIRI == null) {
             return;
         }
-        logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI,
-                NotificationEventType.valueOf(status));
+        logisticsEventService.addEventToLogisticsObject(logisticsObjectIRI, NotificationEventType.valueOf(status));
     }
 
     /**
@@ -256,7 +254,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
         actionRequest.add(API.hasRequestStatus, newStatus);
 //        model.add(iri, API.hasRequestStatus, newStatus);
 
-        this.actionRequestProcessor.process(actionRequest);
+        this.actionRequestProcessExecutor.execute(actionRequest);
 
         // add Event
         addEventToLogisticsObject(model, iri, actionRequest.type(), newStatus);

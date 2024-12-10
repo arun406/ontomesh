@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import java.time.Instant;
+import java.util.Date;
 
 import static org.iata.onerecord.api.API.REQUEST_PENDING;
 
@@ -117,31 +119,32 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
             this.getRepository().add(changeRequestId, API.hasRequestStatus, requestStatus);
         }
     }
-//
-//    /**
-//     * Saves the change request
-//     *
-//     * @param change change to be applied.
-//     * @return
-//     */
-//    public IRI saveChangeRequest(LogisticsObject change) {
-//
-//        IRI changeRequestId = idProvider.createUniqueLoUri().iri();
-//        log.debug("change request id : {}", changeRequestId);
-//        this.repository.persist(change.iri(), change.model());
-//        Model changeRequest = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
-//                .setNamespace(API.PREFIX, API.NAMESPACE)
-//                .subject(changeRequestId)
-//                .add(RDF.TYPE, API.ChangeRequest)
-//                .add(API.hasChange, change.iri())
-//                .add(API.isRequestedAt, Date.from(Instant.now()))
-//                .add(API.isRequestedBy, Values.literal("Arun Kumar"))
-//                .add(API.hasRequestStatus, REQUEST_PENDING)
-//                .build();
-//
-//        this.repository.persist(changeRequestId, changeRequest);
-//        return changeRequestId;
-//    }
+
+    /**
+     * Saves the change request
+     *
+     * @param change change to be applied.
+     * @return
+     */
+    public IRI saveChangeRequest(LogisticsObject change) {
+
+        IRI changeRequestId = getIdProvider().createUniqueLoUri().iri();
+        log.debug("change request id : {}", changeRequestId);
+        this.getRepository().persist(change.model());
+        Model changeRequest = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
+                .setNamespace(API.PREFIX, API.NAMESPACE)
+                .subject(changeRequestId)
+                .add(RDF.TYPE, API.ChangeRequest)
+                .add(API.hasChange, change.iri())
+                .add(API.isRequestedAt, Date.from(Instant.now()))
+                .add(API.isRequestedBy, Values.literal("Arun Kumar")) //TODO
+                .add(API.hasRequestStatus, REQUEST_PENDING)
+                .build();
+
+        this.getRepository().persist(changeRequest);
+        
+        return changeRequestId;
+    }
 
     /**
      * Saves the error

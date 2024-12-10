@@ -11,18 +11,16 @@ import io.ontomesh.onerecord.server.services.LogisticsEventService;
 import io.ontomesh.onerecord.server.services.LogisticsObjectRevisionService;
 import io.ontomesh.onerecord.server.services.LogisticsObjectService;
 import io.ontomesh.onerecord.server.services.SnapshotService;
+import io.ontomesh.onerecord.server.util.URIUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.Instant;
-import java.util.Locale;
+import java.net.URI;
 
 /**
  * @author arun
@@ -74,11 +72,6 @@ public abstract class BaseController {
         this.actionRequestService = actionRequestService;
     }
 
-    public BaseController(LogisticsObjectService logisticsObjectService, SnapshotService snapshotService,
-                          ActionRequestService actionRequestService, AuditTrailService auditTrailService) {
-        this(logisticsObjectService, snapshotService, auditTrailService);
-        this.actionRequestService = actionRequestService;
-    }
 
     public BaseController(LogisticsObjectService logisticsObjectService, ActionRequestService actionRequestService) {
         this.logisticsObjectService = logisticsObjectService;
@@ -143,9 +136,13 @@ public abstract class BaseController {
                 .booleanValue();
     }
 
-
-
-
+    public IRI getLoFromRequest(HttpServletRequest httpServletRequest) {
+        URI uri = ServletUriComponentsBuilder.fromRequestUri(httpServletRequest)
+                .build()
+                .toUri();
+        return URIUtil.toIRI(uri);
+    }
+    
     protected LogisticsObjectService getLogisticsObjectService() {
         return this.logisticsObjectService;
     }

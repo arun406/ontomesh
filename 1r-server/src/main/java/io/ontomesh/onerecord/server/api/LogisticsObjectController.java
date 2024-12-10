@@ -2,13 +2,14 @@ package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
+import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.ActionRequestService;
 import io.ontomesh.onerecord.server.services.AuditTrailService;
 import io.ontomesh.onerecord.server.services.LogisticsObjectService;
-import io.ontomesh.onerecord.server.services.LogisticsObjectValidationService;
+import io.ontomesh.onerecord.server.services.LogisticsObjectValidationUtil;
 import io.ontomesh.onerecord.server.services.SnapshotService;
 import io.ontomesh.onerecord.server.services.SubscriptionService;
+import io.ontomesh.onerecord.server.util.URIUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -45,16 +46,13 @@ import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURT
 @RequestMapping("/logistics-objects")
 public class LogisticsObjectController extends BaseController {
 
-    @Autowired
-    private LogisticsObjectValidationService validationService;
 
     @Autowired
     private SubscriptionService subscriptionService;
 
     public LogisticsObjectController(LogisticsObjectService logisticsObjectService,
-                                     SnapshotService snapshotService, AuditTrailService auditTrailService,
-                                     ActionRequestService actionRequestService) {
-        super(logisticsObjectService, snapshotService, actionRequestService, auditTrailService);
+                                     SnapshotService snapshotService, AuditTrailService auditTrailService) {
+        super(logisticsObjectService, snapshotService, auditTrailService);
     }
 
     @GetMapping()
@@ -67,29 +65,27 @@ public class LogisticsObjectController extends BaseController {
             return ResponseEntity.ok()
                     .body(iriList.stream().map(Object::toString).collect(Collectors.toList()));
         }
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setContentLanguage(Locale.US);
-        return ResponseEntity.ok()
-                .headers(headers)
+
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentLanguage(Locale.US)
+                .contentType(MediaType.APPLICATION_JSON)
                 .build();
+
+        return ResponseEntity.ok().headers(headers).build();
     }
 
     @GetMapping(path = "/{loId}/subscriptions",
-            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE,
-                    TEXT_TURTLE_VALUE})
-    private ResponseEntity<LogisticsObject> getLogisticsSubscriptions(HttpServletRequest httpServletRequest,
-                                                                      @PathVariable("loId") String loReferenceId) {
-        OntoMeshId loId = getLoId(loReferenceId);
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
+    private ResponseEntity<LogisticsObject> getLogisticsSubscriptions(HttpServletRequest httpServletRequest) {
 
-        LogisticsObject logisticsObject = this.subscriptionService
-                .getSubscriptionsByLoId(loId.iri());
+        IRI iri = getLoFromRequest(httpServletRequest);
+        LogisticsObject logisticsObject = this.subscriptionService.getSubscriptionsByLoId(iri);
 
-        //Last-Modified, Type, Location, Content-Type, Content-Language
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentLanguage(Locale.US);
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
-        headers.setLastModified(Instant.now());
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentLanguage(Locale.US)
+                .contentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)))
+                .lastModified(Instant.now())
+                .build();
 
         return ResponseEntity.ok().headers(headers).body(logisticsObject);
     }
@@ -136,14 +132,16 @@ public class LogisticsObjectController extends BaseController {
         Literal snapshotVersion = logisticsObject.revision();
         Integer latestRevision = logisticsObjectRevisionService.getRevision(id.iri());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(mediaType);
-        headers.setContentLanguage(Locale.US);
-        headers.setLastModified(Instant.now()); // TODO
-        headers.setLocation(id.uri());
-        headers.add("Type", logisticsObject.type().stringValue());
-        headers.add("Revision", String.valueOf(snapshotVersion.intValue()));
-        headers.add("Latest-Revision", latestRevision.toString());
+
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentType(mediaType)
+                .contentLanguage(Locale.US)
+                .lastModified(Instant.now())
+                .type(logisticsObject.type().stringValue())
+                .latestRevision(latestRevision)
+                .revision(snapshotVersion.intValue())
+                .location(id.uri())
+                .build();
 
         return ResponseEntity.ok()
                 .headers(headers)
@@ -162,16 +160,17 @@ public class LogisticsObjectController extends BaseController {
 
         LogisticsObject logisticsObject = super.getLogisticsObjectService().findLogisticsObject(id.iri());
         String revision = String.valueOf(logisticsObject.revision());
-        log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), revision);
+        log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), logisticsObject.revision());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(mediaType);
-        headers.setContentLanguage(Locale.US);
-        headers.setLastModified(Instant.now()); // TODO
-        headers.setLocation(id.uri());
-        headers.add("Type", logisticsObject.type().stringValue());
-        headers.add("Revision", revision);
-        headers.add("Latest-Revision", revision);
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentType(mediaType)
+                .contentLanguage(Locale.US)
+                .lastModified(Instant.now())
+                .type(logisticsObject.type().stringValue())
+                .latestRevision(logisticsObject.revision().intValue())
+                .revision(logisticsObject.revision().intValue())
+                .location(id.uri())
+                .build();
 
         return ResponseEntity.ok()
                 .headers(headers)
@@ -187,14 +186,15 @@ public class LogisticsObjectController extends BaseController {
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> findLogisticsObjectAudit(
             @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String accept,
-            @PathVariable("id") String loReferenceId) {
+            HttpServletRequest httpServletRequest) {
 
-        OntoMeshId id = getLoId(loReferenceId);
-        LogisticsObject logisticsObject = auditTrailService.getAuditTrail(id.uri());
+        IRI iri = getLoFromRequest(httpServletRequest);
+        LogisticsObject logisticsObject = auditTrailService.getAuditTrail(URIUtil.toURI(iri));
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentLanguage(Locale.US);
-        headers.setContentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : APPLICATION_JSON_LD);
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : APPLICATION_JSON_LD)
+                .contentLanguage(Locale.US)
+                .build();
 
         return ResponseEntity.ok()
                 .headers(headers)
@@ -217,42 +217,45 @@ public class LogisticsObjectController extends BaseController {
             checkForDuplicateIRI(logisticsObject);
         }
         removeMarkerPredicate(logisticsObject);
-//        addRevisionToLO(logisticsObject);
 
         getLogisticsObjectService().saveLogisticsObject(logisticsObject);
+        log.debug("{} is created successfully.", logisticsObject.iri());
 
-        URI loURI = logisticsObject.uri();
-        log.debug("{} is created successfully.", logisticsObject);
+        URI location = logisticsObject.uri();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(loURI);
-        headers.add("Type", logisticsObject.type().stringValue());
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .location(location)
+                .type(logisticsObject.type().stringValue())
+                .build();
 
-        return ResponseEntity.created(loURI).headers(headers).build();
+        return ResponseEntity.created(location).headers(headers).build();
     }
 
     /**
      * Update logistics objects
      *
-     * @param change        change logistics object.
-     * @param loReferenceId logistics objects loReferenceId.
+     * @param change             change logistics object.
+     * @param httpServletRequest http servlet request.
      * @return void
      */
     @PatchMapping(path = "/{id}", consumes = {APPLICATION_JSON_LD_VALUE},
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<Void> updateLogisticObject(@RequestBody LogisticsObject change,
-                                                     @PathVariable("id") String loReferenceId) {
+                                                     HttpServletRequest httpServletRequest) {
 
-        OntoMeshId loId = getLoId(loReferenceId);
-        this.validationService.validate(loId.iri(), change.model(), change.iri());
+        IRI iri = getLoFromRequest(httpServletRequest);
+        LogisticsObjectValidationUtil.validate(iri, change.model(), change.iri());
         IRI actionRequest = this.actionRequestService.createActionRequest(change, RequestType.ChangeRequest);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON_LD);
         URI location = URI.create(actionRequest.stringValue());
-        headers.setLocation(location);
-        headers.add("Type", API.ChangeRequest.stringValue());
+
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentType(APPLICATION_JSON_LD)
+                .location(location)
+                .type(API.ChangeRequest.stringValue())
+                .build();
 
         return ResponseEntity.created(location).headers(headers).build();
     }
+
 }
