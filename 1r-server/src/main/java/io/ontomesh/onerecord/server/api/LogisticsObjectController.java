@@ -4,12 +4,12 @@ import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
+import io.ontomesh.onerecord.server.services.ActionRequestService;
 import io.ontomesh.onerecord.server.services.AuditTrailService;
 import io.ontomesh.onerecord.server.services.LogisticsObjectService;
 import io.ontomesh.onerecord.server.services.LogisticsObjectValidationUtil;
 import io.ontomesh.onerecord.server.services.SnapshotService;
 import io.ontomesh.onerecord.server.services.SubscriptionService;
-import io.ontomesh.onerecord.server.util.URIUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -51,8 +51,9 @@ public class LogisticsObjectController extends BaseController {
     private SubscriptionService subscriptionService;
 
     public LogisticsObjectController(LogisticsObjectService logisticsObjectService,
-                                     SnapshotService snapshotService, AuditTrailService auditTrailService) {
-        super(logisticsObjectService, snapshotService, auditTrailService);
+                                     SnapshotService snapshotService, AuditTrailService auditTrailService,
+                                     ActionRequestService actionRequestService) {
+        super(logisticsObjectService, snapshotService, auditTrailService, actionRequestService);
     }
 
     @GetMapping()
@@ -189,7 +190,7 @@ public class LogisticsObjectController extends BaseController {
             HttpServletRequest httpServletRequest) {
 
         IRI iri = getLoFromRequest(httpServletRequest);
-        LogisticsObject logisticsObject = auditTrailService.getAuditTrail(URIUtil.toURI(iri));
+        LogisticsObject logisticsObject = auditTrailService.getAuditTrail(iri);
 
         HttpHeaders headers = new HttpHeadersBuilder()
                 .contentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : APPLICATION_JSON_LD)
@@ -245,7 +246,7 @@ public class LogisticsObjectController extends BaseController {
 
         IRI iri = getLoFromRequest(httpServletRequest);
         LogisticsObjectValidationUtil.validate(iri, change.model(), change.iri());
-        IRI actionRequest = this.actionRequestService.createActionRequest(change, RequestType.ChangeRequest);
+        IRI actionRequest = getActionRequestService().createChangeRequest(change);
 
         URI location = URI.create(actionRequest.stringValue());
 
@@ -257,5 +258,4 @@ public class LogisticsObjectController extends BaseController {
 
         return ResponseEntity.created(location).headers(headers).build();
     }
-
 }

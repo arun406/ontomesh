@@ -62,8 +62,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:5000/realms/ontomesh
-  #          jwk-set-uri: http://localhost:5000/realms/ontomesh/protocol/openid-connect/certs
+          issuer-uri: https://keycloak.ontomesh.io:8443/realms/ontomesh
+          jwk-set-uri: https://keycloak.ontomesh.io:8443/realms/ontomesh/protocol/openid-connect/certs
   #          audiences: http://server.ontomesh.io
 
   output:
@@ -71,7 +71,7 @@ spring:
       enabled: ALWAYS
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:29092,localhost:39092,localhost:49092
     client-id: client-01
     consumer:
       group-id: group-01
@@ -81,3 +81,5 @@ spring:
 
 server:
   port: ${SERVER_PORT:80}
+  ssl:
+    enabled: false

@@ -4,7 +4,7 @@ import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMesh;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.exception.SnapshotNotFoundException;
+import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -85,8 +85,8 @@ public class SnapshotService extends AbstractLogisticsObjectService {
 
         IRI snapshotIRI = valueFactory.createIRI(loIRI.stringValue(), String.format("?at=%s", at));
 
-        return this.getRepository().findLoById(snapshotIRI,
-                        (iri) -> OntoMeshId.isValidIri(iri, getIdProvider().getLogisticsObjectBaseIRI()))
-                .orElseThrow(() -> new SnapshotNotFoundException("Snapshot not exists."));
+        return this.getRepository()
+                .findLoById(snapshotIRI, (iri) -> OntoMeshId.isValidIri(iri, getIdProvider().getLogisticsObjectBaseIRI()))
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(snapshotIRI, "Snapshot not exists."));
     }
 }

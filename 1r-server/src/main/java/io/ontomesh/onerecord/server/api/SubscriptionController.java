@@ -13,16 +13,24 @@ import org.eclipse.rdf4j.model.util.Values;
 import org.iata.onerecord.api.API;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
 
 @Slf4j
 @RestController
@@ -87,8 +95,8 @@ public class SubscriptionController extends BaseController {
     @GetMapping(produces = {APPLICATION_JSON_LD_VALUE,
             APPLICATION_TURTLE_VALUE,
             TEXT_TURTLE_VALUE})
-    public ResponseEntity<LogisticsObject> handleProposal(@RequestParam(value = "topic", required = false) String topic,
-                                                          @RequestParam(value = "topicType", required = false) String topicType) {
+    public ResponseEntity<LogisticsObject> handleProposal(@RequestParam(value = "topic") String topic,
+                                                          @RequestParam(value = "topicType") String topicType) {
 
         if (topicType == null || topicType.isBlank() ||
                 topic == null || topic.isBlank()) {
@@ -128,7 +136,7 @@ public class SubscriptionController extends BaseController {
             throw new InvalidApiRequestException("Invalid 'topicType'.");
         }
         if (API.LOGISTICS_OBJECT_TYPE.equals(topicType)) {
-            List<IRI> logisticsObjectTypes = getLogisticsObjectService().logisticsObjectTypes();
+            Set<IRI> logisticsObjectTypes = getLogisticsObjectService().logisticsObjectTypes();
             if (logisticsObjectTypes != null) {
                 log.debug("count of logistics object types : {}", logisticsObjectTypes.size());
                 logisticsObjectTypes.stream()

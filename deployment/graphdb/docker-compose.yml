@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  graphdb:
+    image: ontotext/graphdb:10.2.2
+    container_name: graphdb_cluster_proxy
+    ports:
+      - "7200:7200"  # GraphDB Workbench
+      - "7300:7300"  # GraphDB SPARQL endpoint
+    entrypoint: /opt/graphdb/dist/bin/cluster-proxy
+    environment:
+      - GRAPHDB_AUTH_TOKEN_SECRET=superSecretToken
+    command: -Dgraphdb.auth.token.secret=${GRAPHDB_AUTH_TOKEN_SECRET} -g http://<hostname>:7200
+    restart: unless-stopped

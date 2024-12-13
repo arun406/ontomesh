@@ -58,13 +58,14 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
             return;
         }
         Statement next = statements.next();
-        if (next.getObject().isLiteral()) {
-            int revision = Integer.parseInt(next.getObject().stringValue());
-            // First Remove the existing statement.
-            this.getRepository().delete(auditTrailId, API.hasLatestRevision, Values.literal(revision));
-            //Add New statement
-            this.getRepository().add(auditTrailId, API.hasLatestRevision, Values.literal(revision + 1));
+        if (!next.getObject().isLiteral()) {
+            return;
         }
+        int revision = Integer.parseInt(next.getObject().stringValue());
+        // First Remove the existing statement.
+        this.getRepository().delete(auditTrailId, API.hasLatestRevision, Values.literal(revision));
+        //Add New statement
+        this.getRepository().add(auditTrailId, API.hasLatestRevision, Values.literal(revision + 1));
     }
 
     /**
@@ -79,8 +80,10 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
 
         IRI auditTrailId = getAuditIri(URI.create(logisticsObjectIRI.toString()));
 
-        LogisticsObject auditTrail = this.getRepository().findLoById(auditTrailId, OntoMeshId::findParentOnly)
+        LogisticsObject auditTrail = this.getRepository()
+                .findLoById(auditTrailId, OntoMeshId::findParentOnly)
                 .orElseGet(() -> this.create(auditTrailId, changeRequestIRI));
+
         auditTrail.model().add(auditTrail.iri(), API.hasChangeRequest, changeRequestIRI);
         save(auditTrail);
         updateLatestRevision(auditTrailId);
@@ -142,7 +145,7 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
                 .build();
 
         this.getRepository().persist(changeRequest);
-        
+
         return changeRequestId;
     }
 
@@ -163,12 +166,12 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
      * @param auditTrailId
      * @return
      */
-    public LogisticsObject getAuditTrail(URI auditTrailId) {
-        IRI auditIri = getAuditIri(auditTrailId);
-        log.info("audit trail id {}", auditIri);
-        return this.getRepository().findLoById(auditIri,
+    public LogisticsObject getAuditTrail(IRI auditTrailId) {
+        // IRI auditIri = getAuditIri(auditTrailId);
+        // log.info("audit trail id {}", auditIri);
+        return this.getRepository().findLoById(auditTrailId,
                         (iri) -> OntoMeshId.isValidIri(iri, getIdProvider().getLogisticsObjectBaseIRI()))
-                .orElseThrow(() -> new LogisticsObjectNotFoundException(auditIri, "Audit Trail not found."));
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(auditTrailId, "Audit Trail not found."));
     }
 
     public void addError(IRI changeRequestIRI, ErrorObject errorObject) {

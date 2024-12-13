@@ -14,6 +14,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.base.CoreDatatype;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.util.Values;
@@ -29,7 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -161,7 +166,8 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
      */
     public LogisticsObject getSubscriptionsByLoType(IRI loType, IRI eventType) {
 
-        final String subject = String.format("%s/subscriptions", loType.stringValue());;
+        final String subject = String.format("%s/subscriptions", loType.stringValue());
+        ;
 
         ModelBuilder builder = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
@@ -203,20 +209,22 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
     /**
      * returns the subscriptions for Logistics Object.
      *
-     * @param logisticsObjectIRI Logistics Object Id.
+     * @param subscriptionsIRI Logistics Object Id.
      * @return collection of Subscription packed as LogisticsObject.
      */
-    public LogisticsObject getSubscriptionsByLoId(IRI logisticsObjectIRI) {
+    public LogisticsObject getSubscriptionsByLoId(IRI subscriptionsIRI) {
 
-        final String subject = String.format("%s/subscriptions", logisticsObjectIRI.stringValue());
+//        final String subject = String.format("%s/subscriptions", subscriptionsIRI.stringValue());
         // validate logistics object.
         ModelBuilder builder = new ModelBuilder().setNamespace(CARGO.PREFIX, CARGO.NAMESPACE)
                 .setNamespace(API.PREFIX, API.NAMESPACE)
-                .subject(subject)
+                .subject(subscriptionsIRI)
                 .add(RDF.TYPE, OntoMesh.Collection);
 
+        String logisticsObjectIRI = subscriptionsIRI.stringValue().substring(0, subscriptionsIRI.stringValue().lastIndexOf("/subscriptions"));
+
         RepositoryResult<Statement> repositoryResult = this.getRepository()
-                .getStatements(null, API.hasTopic, logisticsObjectIRI);
+                .getStatements(null, API.hasTopic, SimpleValueFactory.getInstance().createIRI(logisticsObjectIRI));
 
         List<Statement> statementList = repositoryResult.stream().toList();
 
@@ -232,12 +240,12 @@ public class SubscriptionService extends AbstractLogisticsObjectService {
                     builder
                             .add(ss.getSubject(), ss.getPredicate(), ss.getObject());
                 }
-                builder.subject(subject);
+                builder.subject(subscriptionsIRI);
             }
         }
-        builder.add(subject, OntoMesh.hasTotalItems, counter);
+        builder.add(subscriptionsIRI, OntoMesh.hasTotalItems, counter);
         Model model = builder.build();
-        return new LogisticsObject(Values.iri(subject), OntoMesh.Collection, model);
+        return new LogisticsObject(subscriptionsIRI, OntoMesh.Collection, model);
     }
 
     /**

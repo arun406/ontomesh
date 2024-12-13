@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.eclipse.rdf4j.model.IRI;
+import org.iata.onerecord.api.API;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +23,7 @@ public class LogisticsObjectAspect {
     @Autowired
     private AuditTrailService auditTrailService;
 
-    @Pointcut("execution(* io.ontomesh.onerecord.server.services.LogisticsObjectService.processLogisticsObjectUpdateRequest(..))")
+    @Pointcut("execution(* io.ontomesh.onerecord.server.services.ActionRequestService.createChangeRequest(..))")
     public void processLogisticsObjectUpdateRequest() {
     }
 
@@ -30,12 +31,11 @@ public class LogisticsObjectAspect {
     public Object aroundProcessLogisticsObjectUpdateRequest(ProceedingJoinPoint joinPoint) throws Throwable {
 
         // Before method execution
-        log.debug("Before method: {}", joinPoint.getSignature().getName());
+        log.debug("creating the change request : {}", joinPoint.getSignature().getName());
         LogisticsObject changeObject = (LogisticsObject) joinPoint.getArgs()[0];
-        IRI loIRI = (IRI) joinPoint.getArgs()[1];
 
         IRI changeRequestIRI = this.auditTrailService.saveChangeRequest(changeObject);
-        this.auditTrailService.saveOrUpdate(changeRequestIRI, loIRI);
+        this.auditTrailService.saveOrUpdate(changeRequestIRI, changeObject.findIRI(API.hasLogisticsObject, false));
 
         Object result = null;
         try {

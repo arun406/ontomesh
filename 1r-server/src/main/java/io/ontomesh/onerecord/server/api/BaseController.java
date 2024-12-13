@@ -82,6 +82,12 @@ public abstract class BaseController {
         this.logisticsObjectService = logisticsObjectService;
     }
 
+    public BaseController(LogisticsObjectService logisticsObjectService, SnapshotService snapshotService,
+                          AuditTrailService auditTrailService, ActionRequestService actionRequestService) {
+        this(logisticsObjectService, snapshotService, auditTrailService);
+        this.actionRequestService = actionRequestService;
+    }
+
     /**
      * remove hasPredefinedIri IRI.
      *
@@ -142,8 +148,12 @@ public abstract class BaseController {
                 .toUri();
         return URIUtil.toIRI(uri);
     }
-    
+
     protected LogisticsObjectService getLogisticsObjectService() {
         return this.logisticsObjectService;
+    }
+
+    protected ActionRequestService getActionRequestService() {
+        return this.actionRequestService;
     }
 }

@@ -276,4 +276,8 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
     public List<ActionRequest> listAll(IRI type, int limit, int offset, IRI status) {
         return this.getRepository().listLogisticsObject(type, limit, offset, status);
     }
+
+    public IRI createChangeRequest(LogisticsObject change) {
+        return this.createActionRequest(change, RequestType.ChangeRequest);
+    }
 }

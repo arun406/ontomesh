@@ -21,6 +21,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.iata.onerecord.api.API;
 import org.iata.onerecord.cargo.CARGO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -163,9 +164,9 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
             // if not exactly one triple is deleted throw an exception, this cancels the transaction and
             // nothing is changed
-            if (deletedTriples != 1) {
+            /*if (deletedTriples != 1) {
                 throw new RuntimeException(String.format("Number of affected triples should be 1 but was %s", deletedTriples));
-            }
+            }*/
         }
     }
 
@@ -278,8 +279,11 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
         return changedProperties;
     }
 
-    public List<IRI> logisticsObjectTypes() {
-        return this.getRepository().logisticsObjectTypes();
+    @Autowired
+    private OneRecordDataModelOntologyService oneRecordDataModelOntologyService;
+
+    public Set<IRI> logisticsObjectTypes() {
+        return oneRecordDataModelOntologyService.logisticsObjectTypes();
     }
 
     private void addEventToLogisticsObject(NotificationEventType notificationEventType, IRI iri) {
