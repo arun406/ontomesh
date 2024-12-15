@@ -4,7 +4,7 @@ import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.ActionRequest;
 import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.ActionRequestService;
+import io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;

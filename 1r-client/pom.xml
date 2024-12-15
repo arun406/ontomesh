@@ -29,6 +29,10 @@
                 <artifactId>rdf4j-spring</artifactId>
                 <version>${rdf4j.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.ontomesh</groupId>
+                <artifactId>ontomesh-webclient</artifactId>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -116,6 +120,12 @@
         <dependency>
             <groupId>io.ontomesh</groupId>
             <artifactId>ontomesh-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.ontomesh</groupId>
+            <artifactId>ontomesh-webclient</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

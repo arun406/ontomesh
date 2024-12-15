@@ -1,9 +1,10 @@
 package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.common.OntoMeshId;
+import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsEvent;
 import io.ontomesh.onerecord.server.domain.LogisticsEvents;
-import io.ontomesh.onerecord.server.services.LogisticsEventService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.events.LogisticsEventService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
@@ -11,13 +12,21 @@ import org.iata.onerecord.cargo.CARGO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.Locale;
 
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
 
 @Slf4j
 @RestController
@@ -40,25 +49,23 @@ public class LogisticsEventController extends BaseController {
      * @param httpServletRequest
      * @return
      */
-    @GetMapping(path = "/{logisticsEventId}", produces = {APPLICATION_JSON_LD_VALUE,
-            APPLICATION_TURTLE_VALUE,
-            TEXT_TURTLE_VALUE})
+    @GetMapping(path = "/{logisticsEventId}",
+            produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     private ResponseEntity<LogisticsEvent> getLogisticsEvent(HttpServletRequest httpServletRequest,
                                                              @PathVariable("logisticsObjectId") String logisticsObjectId,
                                                              @PathVariable("logisticsEventId") String logisticsEventId) {
 
-//        IRI requestIRI = Values.iri(httpServletRequest.getRequestURL().toString());
-//        log.debug("Request IRI {}", requestIRI);
         OntoMeshId id = getLogisticsEventId(logisticsObjectId, logisticsEventId);
         LogisticsEvent logisticsEvent = this.eventService.getLogisticsEvent(id.iri());
 
         //Last-Modified, Type, Location, Content-Type, Content-Language
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Type", CARGO.LogisticsEvent.stringValue());
-        headers.setContentLanguage(Locale.US);
-        headers.setLocation(URI.create(logisticsEvent.iri().stringValue()));
-        headers.setLastModified(Instant.now()); //TODO check this value.
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .type(CARGO.LogisticsEvent.stringValue())
+                .contentLanguage(Locale.US)
+                .location(URI.create(logisticsEvent.iri().stringValue()))
+                .lastModified(Instant.now())
+                .contentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)))
+                .build();
 
         return ResponseEntity.ok().headers(headers).body(logisticsEvent);
     }
@@ -68,16 +75,14 @@ public class LogisticsEventController extends BaseController {
     }
 
     /**
-     * Queries the logistic events.
+     * Retrieves all logistics events associated with a specific logistics object.
      *
-     * @param httpServletRequest
-     * @param loReferenceId
-     * @param eventType
-     * @return
+     * @param httpServletRequest The HTTP request object.
+     * @param loReferenceId      The ID of the logistics object.
+     * @param eventType          The type of event to filter by (optional).
+     * @return A ResponseEntity containing the list of logistics events.
      */
-    @GetMapping(produces = {APPLICATION_JSON_LD_VALUE,
-            APPLICATION_TURTLE_VALUE,
-            TEXT_TURTLE_VALUE})
+    @GetMapping(produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     private ResponseEntity<LogisticsEvents> getLogisticsEvents(HttpServletRequest httpServletRequest,
                                                                @PathVariable("logisticsObjectId") String loReferenceId,
                                                                @RequestParam(required = false, name = "eventType") String eventType) {
@@ -87,20 +92,23 @@ public class LogisticsEventController extends BaseController {
                 .getEventsByLogisticsObjectIRI(loId.iri(), eventType);
 
         //Last-Modified, Type, Location, Content-Type, Content-Language
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentLanguage(Locale.US);
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
-        headers.setLastModified(Instant.now());
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .contentLanguage(Locale.US)
+                .contentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)))
+                .lastModified(Instant.now()).build();
 
         return ResponseEntity.ok().headers(headers).body(events);
     }
 
     /**
-     * Saves the logistics event.
+     * Save logistics events.
+     * <p>
+     * This endpoint allows the creation of new logistics events associated with a specific logistics object.
      *
-     * @param logisticsEvent
-     * @param httpServletRequest
-     * @return
+     * @param logisticsEvent     The logistics event to be saved.
+     * @param logisticsObjectId  The ID of the logistics object to which the event is related.
+     * @param httpServletRequest The HTTP request object.
+     * @return A ResponseEntity with a status of 201 Created and headers containing the location of the created resource.
      */
     @PostMapping(consumes = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE},
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
@@ -113,9 +121,10 @@ public class LogisticsEventController extends BaseController {
         IRI logisticsEventIRI = this.eventService.saveLogisticsEvent(loId.iri(), logisticsEvent);
         log.debug("Logistics Event IRI {}", logisticsEventIRI);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Type", CARGO.LogisticsEvent.stringValue());
-        headers.setContentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)));
+        HttpHeaders headers = new HttpHeadersBuilder()
+                .type(CARGO.LogisticsEvent.stringValue())
+                .contentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)))
+                .build();
 
         return ResponseEntity.created(URI.create(logisticsEventIRI.stringValue())).headers(headers).build();
     }

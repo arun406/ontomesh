@@ -1,7 +1,7 @@
 package io.ontomesh.onerecord.server.aop;
 
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.AuditTrailService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.audittrail.AuditTrailService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -23,7 +23,7 @@ public class LogisticsObjectAspect {
     @Autowired
     private AuditTrailService auditTrailService;
 
-    @Pointcut("execution(* io.ontomesh.onerecord.server.services.ActionRequestService.createChangeRequest(..))")
+    @Pointcut("execution(* io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService.createChangeRequest(..))")
     public void processLogisticsObjectUpdateRequest() {
     }
 

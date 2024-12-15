@@ -1,6 +1,6 @@
 package io.ontomesh.onerecord.server.config;
 
-import io.ontomesh.onerecord.server.services.AuthorizationService;
+import io.ontomesh.onerecord.server.services.authorization.AuthorizationService;
 import io.ontomesh.onerecord.server.util.URIUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

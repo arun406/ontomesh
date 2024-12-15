@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Service class for managing subscriptions.
+ */
 @Slf4j
 @Service
 public class SubscriptionService {
@@ -24,10 +27,12 @@ public class SubscriptionService {
     }
 
     /**
-     * @param loId
-     * @param loType
-     * @param eventType
-     * @return
+     * List all subscribers for the given loId, loType and eventType.
+     *
+     * @param loId      the logistics object id
+     * @param loType    the logistics object type
+     * @param eventType the event type
+     * @return the map of subscribers
      */
     public Map<IRI, Model> listSubscribers(IRI loId, IRI loType, IRI eventType) {
         Model model = repository.listAllSubscribers(loId, loType);
@@ -35,9 +40,7 @@ public class SubscriptionService {
         Map<IRI, Model> subscribersMap = new HashMap<>();
         for (IRI iri : iris) {
             Model statements = model.filter(iri, null, null);
-            Model eventTypeStatements = model
-                    .filter(iri, INCLUDE_SUBSCRIPTION_EVENT_TYPE, eventType);
-
+            Model eventTypeStatements = model.filter(iri, INCLUDE_SUBSCRIPTION_EVENT_TYPE, eventType);
             if (eventTypeStatements != null) {
                 subscribersMap.put(iri, statements);
             }
@@ -47,4 +50,16 @@ public class SubscriptionService {
 
         return subscribersMap;
     }
+//    public Map<IRI, Model> listSubscribers(IRI loId, IRI loType, IRI eventType) {
+//        Model model = repository.listAllSubscribers(loId, loType);
+//        Map<IRI, Model> subscribersMap = Models.subjectIRIs(model).stream()
+//                .filter(iri -> model.contains(iri, INCLUDE_SUBSCRIPTION_EVENT_TYPE, eventType))
+//                .collect(Collectors.toMap(iri -> iri, iri -> model.filter(iri, null, null)));
+//
+//        log.info("Number of subscribers for event {} of loId {} and type {}: {}",
+//                eventType, loId, loType, subscribersMap.size());
+//
+//        return subscribersMap;
+//    }
+
 }

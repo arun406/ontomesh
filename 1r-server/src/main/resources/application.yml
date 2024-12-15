@@ -38,7 +38,7 @@ rdf4j:
   spring:
     repository:
       remote:
-        manager-url: http://Aruns-MacBook-Air.local:7200/
+        manager-url: http://GGKMAC23066.local:7200
         name: ontomesh
         password: admin
         username: admin

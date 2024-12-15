@@ -2,7 +2,7 @@ package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.ActionRequestService;
+import io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService;
 import io.ontomesh.onerecord.server.util.URIUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;

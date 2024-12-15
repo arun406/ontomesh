@@ -1,15 +1,14 @@
 package io.ontomesh.onerecord.server.api;
 
-import io.ontomesh.onerecord.server.api.enums.RequestType;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.ActionRequestService;
-import io.ontomesh.onerecord.server.services.AuditTrailService;
-import io.ontomesh.onerecord.server.services.LogisticsObjectService;
-import io.ontomesh.onerecord.server.services.LogisticsObjectValidationUtil;
-import io.ontomesh.onerecord.server.services.SnapshotService;
-import io.ontomesh.onerecord.server.services.SubscriptionService;
+import io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.audittrail.AuditTrailService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectValidationUtil;
+import io.ontomesh.onerecord.server.services.logisticsobjects.snapshot.SnapshotService;
+import io.ontomesh.onerecord.server.services.subscriptions.SubscriptionService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;

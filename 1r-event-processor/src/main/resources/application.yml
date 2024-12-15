@@ -8,7 +8,7 @@ rdf4j:
       enabled: true
     repository:
       remote:
-        manager-url: http://Aruns-MacBook-Air.local:7200/
+        manager-url: http://GGKMAC23066.local:7200/
         name: ontomesh
         password: admin
         username: admin
@@ -68,6 +68,6 @@ spring:
                 "value.deserializer": org.apache.kafka.common.serialization.StringDeserializer
 
         binder:
-          brokers: localhost:9092
+          brokers: localhost:29092,localhost:39092,localhost:49092
           configuration:
             commit.interval.ms: 10000

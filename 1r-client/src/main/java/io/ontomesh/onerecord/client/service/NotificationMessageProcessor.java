@@ -2,6 +2,7 @@ package io.ontomesh.onerecord.client.service;
 
 import io.ontomesh.core.enums.ProtocolType;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.rdf4j.model.util.Values;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -36,13 +37,13 @@ public class NotificationMessageProcessor {
         ProtocolType protocolType = getProtocolType(headers);
         String to = getHeader(headers, TO);
 
-        if (protocolType == ProtocolType.EMAIL) {
-            notificationClient.sendNotification(to, message.getPayload());
+        if (protocolType == ProtocolType.HTTP) {
+            notificationClient.sendNotification(Values.iri(to), message.getPayload());
         }
 
         Acknowledgment acknowledgment = message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
         if (acknowledgment != null) {
-            log.info("Acknowledgment provided");
+            log.debug("Acknowledgment provided");
             acknowledgment.acknowledge();
         }
     }

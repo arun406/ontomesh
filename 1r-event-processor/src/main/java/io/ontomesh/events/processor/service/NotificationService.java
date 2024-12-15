@@ -3,6 +3,7 @@ package io.ontomesh.events.processor.service;
 import io.ontomesh.core.BaseIdProvider;
 import io.ontomesh.core.enums.ProtocolType;
 import io.ontomesh.core.properties.ServerProperties;
+import io.ontomesh.core.rdf.util.RDFUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -20,150 +21,168 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.util.StringUtils;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import static io.ontomesh.events.processor.config.Constants.*;
+import static io.ontomesh.events.processor.config.Constants.EVENT_CODE;
+import static io.ontomesh.events.processor.config.Constants.EVENT_FOR;
+import static io.ontomesh.events.processor.config.Constants.SUBSCRIPTION_REQUEST;
 
+/**
+ * Service class for managing notifications.
+ */
 @Slf4j
 @Service
 public class NotificationService {
 
     private final ServerProperties serverProperties;
-    private final Converter<String, Model> stringToModelConverter;
     private final Converter<Model, String> modelToStringConverter;
-
     private final SubscriptionService subscriptionService;
 
-
+    /**
+     * Constructor for NotificationService.
+     *
+     * @param serverProperties       the server properties
+     * @param subscriptionService    the subscription service
+     * @param modelToStringConverter the converter from Model to String
+     */
     public NotificationService(ServerProperties serverProperties, SubscriptionService subscriptionService,
-                               @Qualifier("stringToJsonLDConverter") Converter<String, Model> stringToModelConverter,
                                @Qualifier("jsonLDToStringConverter") Converter<Model, String> modelToStringConverter) {
         this.serverProperties = serverProperties;
         this.subscriptionService = subscriptionService;
         this.modelToStringConverter = modelToStringConverter;
-        this.stringToModelConverter = stringToModelConverter;
+
     }
 
     /**
-     * @param payload
-     * @param contentType
-     * @return
+     * Creates notification messages.
+     *
+     * @param subject    the subject IRI
+     * @param eventModel
+     * @return list of notification messages
      */
-    public List<Message<String>> createNotificationMessages(IRI subject, String payload, String contentType) {
+    public List<Message<String>> createNotificationMessages(IRI subject, Model eventModel) {
+        // Extract relevant IRIs and literals directly from the model
+        IRI loId = Models.objectIRI(eventModel.filter(subject, EVENT_FOR, null)).orElse(null);
+        IRI loType = Models.objectIRI(eventModel.filter(loId, RDF.TYPE, null)).orElse(null);
+        Literal eventCodeLit = Models.objectLiteral(eventModel.filter(
+                        Models.objectIRI(eventModel.filter(loId, EVENT_CODE, null)).orElse(null),
+                        Values.iri("https://onerecord.iata.org/ns/cargo#code"), null))
+                .orElse(null);
 
-        List<Notification> notificationModels = createNotifications(subject, payload, contentType);
-
-        if (!notificationModels.isEmpty()) {
-            return notificationModels.stream()
-                    .map(n -> createNotificatonMessage(subject, n))
-                    .collect(Collectors.toList());
-        }
-        return Collections.emptyList();
-    }
-
-    /**
-     * @param payload
-     * @param contentType
-     * @return
-     */
-    public List<Notification> createNotifications(IRI subject, String payload, String contentType) {
-        List<Notification> notifications = new ArrayList<>();
-        Map<IRI, Model> subscribersMap = new HashMap<>();
-        IRI eventCode = null, loType = null, loId = null;
-
-        if (StringUtils.hasText(contentType)) {
-            String eventPayload = payload;
-            // convert to Model
-            Model eventModel = stringToModelConverter.convert(eventPayload);
-            // read lo id, lo type and event type.
-
-            loId = Models.objectIRI(eventModel.filter(subject, EVENT_FOR, null)).orElse(null);
-            eventCode = Models.objectIRI(eventModel.filter(subject, EVENT_CODE, null)).orElse(null);
-            loType = Models.objectIRI(eventModel.filter(loId, RDF.TYPE, null)).orElse(null);
-            // get subscriptions
-            subscribersMap = subscriptionService.listSubscribers(loId, loType, eventCode);
+        // If event code literal is null, return an empty list
+        if (eventCodeLit == null) {
+            return Collections.emptyList();
         }
 
-        if (!subscribersMap.isEmpty()) {
-            for (Map.Entry<IRI, Model> entry : subscribersMap.entrySet()) {
-                Model subscription = entry.getValue();
-                IRI subscriptionId = entry.getKey();
-                IRI triggeredBy = Models.objectIRI(subscription.filter(subscriptionId, SUBSCRIPTION_REQUEST, null))
-                        .orElse(null);
-                Literal literal = Models.objectLiteral(subscription.filter(subscriptionId, TOPIC, null)).orElse(null);
-                String topic = null;
-                if (literal != null) {
-                    topic = literal.stringValue();
-                }
+        // Derive event type and fetch subscribers
+        IRI eventType = Values.iri(eventCodeLit.stringValue());
+        Map<IRI, Model> subscribersMap = subscriptionService.listSubscribers(loId, loType, eventType);
 
-                Model notification = createNotification(subject, loId, eventCode, triggeredBy, loType, false);
-                notifications.add(new Notification(topic, notification));
-            }
+        if (subscribersMap.isEmpty()) {
+            return Collections.emptyList();
         }
-        return notifications;
+
+        // Generate notification models
+        List<Model> notificationModels = createNotifications(subscribersMap, eventType, loType, loId);
+
+        // Convert models into notification messages or return an empty list if no notifications
+        return notificationModels.isEmpty() ? Collections.emptyList() :
+                notificationModels.stream()
+                        .map(n -> createNotificatonMessage(subject, n))
+                        .toList();
     }
 
 
     /**
-     * @param loId                    Logistics Object id
-     * @param eventType               Event Type
-     * @param triggeredBy             Action Request ID
-     * @param loType                  Logistics Object Type
-     * @param sendLogisticsObjectBody Indicator to include entire logistics object.
-     * @return
+     * Creates notifications.
+     *
+     * @param subscribersMap the subscribers map
+     * @param eventCode      the event code
+     * @param loType         the logistics object type
+     * @param loId           the logistics object ID
+     * @return list of notifications
      */
-    public Model createNotification(IRI subject, IRI loId, IRI eventType, IRI triggeredBy, IRI loType,
-                                    boolean sendLogisticsObjectBody) {
+    public List<Model> createNotifications(Map<IRI, Model> subscribersMap,
+                                           IRI eventCode, IRI loType, IRI loId) {
+        // Return an empty list if no subscribers exist
+        if (subscribersMap.isEmpty()) {
+            return Collections.emptyList();
+        }
 
+        // Generate notification models for each subscriber
+        return subscribersMap.entrySet().stream()
+                .map(entry -> {
+                    IRI triggeredBy = Models.objectIRI(
+                            entry.getValue().filter(entry.getKey(), SUBSCRIPTION_REQUEST, null)
+                    ).orElse(null);
+
+                    IRI subscriber = Models.objectIRI(
+                            entry.getValue().filter(entry.getKey(), Values.iri("https://onerecord.iata.org/ns/api#hasSubscriber"), null)
+                    ).orElse(null);
+
+                    return createNotificationModel(loId, eventCode, triggeredBy, loType, false, subscriber);
+                })
+                .toList();
+    }
+
+
+    /**
+     * Creates a notification model.
+     *
+     * @param loId                    the logistics object ID
+     * @param eventType               the event type
+     * @param triggeredBy             the action request ID
+     * @param loType                  the logistics object type
+     * @param sendLogisticsObjectBody indicator to include entire logistics object
+     * @param subscriber
+     * @return the notification model
+     */
+    public Model createNotificationModel(IRI loId, IRI eventType, IRI triggeredBy, IRI loType,
+                                         boolean sendLogisticsObjectBody, IRI subscriber) {
         IRI notificationId = new BaseIdProvider(serverProperties.getInternalIriScheme()).createInternalIri();
-
+        //@formatter:off
         ModelBuilder builder = new ModelBuilder()
                 .setNamespace("api", "https://onerecord.iata.org/ns/api#")
                 .setNamespace("cargo", "https://onerecord.iata.org/ns/cargo#")
                 .subject(notificationId)
-                .add(RDF.TYPE, Values.iri("api:Notification"))
-                .add("api:hasLogisticsObject", loId)
-                .add("api:hasEventType", eventType)
-                .add("api:isTriggeredBy", triggeredBy)
-                .add("api:hasLogisticsObjectType", loType)
+                    .add(RDF.TYPE, Values.iri("api:Notification"))
+                    .add("api:hasLogisticsObject", loId)
+                    .add("api:hasEventType", eventType)
+                    .add("api:isTriggeredBy", triggeredBy)
+                    .add("api:hasLogisticsObjectType", loType)
+                    .add("api:hasSubscriber", subscriber)
                 .subject(loType)
                 .add(RDF.TYPE, XSD.ANYURI);
-
+        //@formatter:on
         if (sendLogisticsObjectBody) {
             builder.subject(loId);
-            // TODO: fetch and add all LO statements to builder
         }
         return builder.build();
     }
 
-
     /**
-     * @param notification
-     * @return
+     * Creates a notification message.
+     *
+     * @param subject           the subject IRI
+     * @param notificationModel
+     * @return the notification message
      */
-    private Message<String> createNotificatonMessage(IRI subject, Notification notification) {
+    private Message<String> createNotificatonMessage(IRI subject, Model notificationModel) {
+        IRI subscriber = RDFUtil.getObjectIRI(notificationModel, RDFUtil.getRootIri(notificationModel),
+                Values.iri("https://onerecord.iata.org/ns/api#hasSubscriber"), false);
 
-        String modelAsString = modelToStringConverter.convert(notification.model());
+        String modelAsString = modelToStringConverter.convert(notificationModel);
 
         return MessageBuilder.withPayload(modelAsString)
-//                .setHeader("spring.cloud.stream.sendto.destination", model.topic())
-                .setHeader("protocol", ProtocolType.EMAIL.getValue())
+                .setHeader("protocol", ProtocolType.HTTP.getValue())
                 .setHeader(KafkaHeaders.KEY, subject.stringValue())
                 .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.TEXT_PLAIN)
                 .setHeader("from", null)
-                .setHeader("to", "http://server.ontomesh.io:8085")
+                .setHeader("to", subscriber.stringValue())
                 .build();
     }
 
-    /**
-     * Notification Holder
-     *
-     * @param topic
-     * @param model
-     */
-    record Notification(String topic, Model model) {
-    }
 }

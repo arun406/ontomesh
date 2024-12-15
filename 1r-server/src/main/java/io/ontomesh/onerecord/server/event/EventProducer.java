@@ -1,6 +1,6 @@
 package io.ontomesh.onerecord.server.event;
 
-import io.ontomesh.onerecord.server.services.Producer;
+import io.ontomesh.onerecord.server.event.api.Producer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.eclipse.rdf4j.model.IRI;
@@ -29,10 +29,12 @@ public class EventProducer implements Producer {
     }
 
     /**
-     * @param key
-     * @param message
-     * @param tenantId
-     * @param action
+     * Sends a message to the logistics event topic.
+     *
+     * @param key      the key of the message
+     * @param message  the message content
+     * @param tenantId the tenant identifier
+     * @param action   the callback action to be executed upon completion
      */
     public void send(String key, String message, IRI tenantId,
                      BiConsumer<? super SendResult<String, String>, ? super Throwable> action) {

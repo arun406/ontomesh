@@ -65,16 +65,15 @@ public class Rdf4jConfig {
 
     @Bean(name = "stringToJsonLDConverter")
     public StringToModelConverter stringToJsonLDConverter(ServerProperties serverProperties) {
-        BlankNodeReplacingStatementHandler statementHandler =
-                new BlankNodeReplacingStatementHandler(serverProperties.getInternalIriScheme());
-        return new StringToModelConverter(RDFFormat.JSONLD, statementHandler);
+        return new StringToModelConverter(RDFFormat.JSONLD, createStatementHandler(serverProperties));
     }
 
     @Bean(name = "stringToTurtleConverter")
     public StringToModelConverter stringToTurtleConverter(ServerProperties serverProperties) {
-        BlankNodeReplacingStatementHandler statementHandler =
-                new BlankNodeReplacingStatementHandler(serverProperties.getInternalIriScheme());
+        return new StringToModelConverter(RDFFormat.TURTLE, createStatementHandler(serverProperties));
+    }
 
-        return new StringToModelConverter(RDFFormat.TURTLE, statementHandler);
+    private static BlankNodeReplacingStatementHandler createStatementHandler(ServerProperties serverProperties) {
+        return new BlankNodeReplacingStatementHandler(serverProperties.getInternalIriScheme());
     }
 }

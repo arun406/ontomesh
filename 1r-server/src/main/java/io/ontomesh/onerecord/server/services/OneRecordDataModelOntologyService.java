@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -46,29 +46,29 @@ public class OneRecordDataModelOntologyService {
             if (inputStream == null) {
                 throw new RuntimeException("File 'IATA-1R-DM-Ontology.ttl' not found in resources folder");
             }
-
             // Load the Turtle file into the repository
             connection.add(inputStream, "", RDFFormat.TURTLE);
         }
     }
 
+    /**
+     * Retrieves the set of logistics object types from the ontology.
+     *
+     * @return a set of IRIs representing the logistics object types
+     */
     public Set<IRI> logisticsObjectTypes() {
-        Set<IRI> loTypes = new HashSet<>();
         try (RepositoryConnection connection = this.repository.getConnection()) {
             TupleQuery tupleQuery = connection.prepareTupleQuery(LOGISTICS_OBJECT_TYPES);
             try (TupleQueryResult result = tupleQuery.evaluate()) {
-                QueryResults.stream(result)
+                return QueryResults.stream(result)
                         .flatMap(bindingSet -> {
-                            Iterable<Binding> iterable = () -> bindingSet.iterator();
+                            Iterable<Binding> iterable = bindingSet::iterator;
                             return StreamSupport.stream(iterable.spliterator(), false);
                         })
                         .filter(binding -> binding.getValue() instanceof IRI)
-                        .forEach(binding -> {
-                            log.trace("name: {}, value : {} ", binding.getName(), binding.getValue());
-                            loTypes.add((IRI) binding.getValue());
-                        });
+                        .map(binding -> (IRI) binding.getValue())
+                        .collect(Collectors.toSet());
             }
         }
-        return loTypes;
     }
 }

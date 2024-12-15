@@ -9,6 +9,9 @@ import org.springframework.core.convert.converter.Converter;
 
 import java.io.StringWriter;
 
+/**
+ * Converts a {@link Model} to a string.
+ */
 public class ModelToStringConverter implements Converter<Model, String> {
 
     private final RDFFormat rdfFormat;

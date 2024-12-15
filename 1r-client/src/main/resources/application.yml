@@ -1,3 +1,34 @@
+app:
+  webclients:
+    - name: Subscriber1
+      clientId: "http://server.ontomesh.io/logistics-objects/24596a9f-f974-41dd-b6e5-2905ca3da20d"
+      baseUrl: http://server.ontomesh.io:90
+      description: Subscriber 1 one record server
+      services:
+        - key: notifications
+          endpoint:
+            method: POST
+            path: /notifications
+            headers:
+              - key: Accept
+                value: application/ld+json
+            requestBody: "java.lang.String"
+            responseBody: "java.lang.Void"
+
+    - name: Subscriber2
+      clientId: "http://server.ontomesh.io/logistics-objects/piece-24596a9f-f974-41dd-b6e5-2905ca3da20e"
+      baseUrl: http://server.ontomesh.io:70
+      description: Subscriber 2 one record server
+      services:
+        - key: notifications
+          endpoint:
+            method: POST
+            path: /notifications
+            headers:
+              - key: Accept
+                value: application/ld+json
+            requestBody: "java.lang.String"
+            responseBody: "java.lang.Void"
 server:
   port: ${ONERECORD_CLIENT_PORT:9095}
 
@@ -19,21 +50,20 @@ spring:
         input:
           destination: notifications
           group: notification-group-01
-
       kafka:
         binder:
-          brokers: localhost:9092
-          defaultBrokerPort: 9092
-          #Default empty
-          configuration:
-          #Default 10
-          healthTimeout: 20
-          #Default
-          requiredAcks: 1
-          #Default 1
-          replicationFactor: 1
-          #Default is true
-          autoCreateTopics: true
+          brokers: localhost:29092,localhost:39092,localhost:49092
+        #          #          defaultBrokerPort: 9092
+        #          #Default empty
+        #          configuration:
+        #          #Default 10
+        #          healthTimeout: 20
+        #          #Default
+        #          requiredAcks: 1
+        #          #Default 1
+        #          replicationFactor: 1
+        #          #Default is true
+        #          autoCreateTopics: true
         bindings:
           input:
             consumer:
@@ -46,9 +76,9 @@ spring:
                 max.poll.records: 10
               #                default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
               #                default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-              enableDlq: true
-              dlqName: ontomesh.onerecord.client.notifications.dql
-              dlqProducerProperties:
+#              enableDlq: true
+#              dlqName: ontomesh.onerecord.client.notifications.dql
+#              dlqProducerProperties:
 
 
 

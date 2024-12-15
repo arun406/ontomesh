@@ -10,6 +10,9 @@ import org.springframework.core.io.support.PropertySourceFactory;
 import java.io.IOException;
 import java.util.Properties;
 
+/**
+ * This class is used to load multiple yaml files into the application context.
+ */
 public class MultipleYamlPropertySourceFactory implements PropertySourceFactory {
     @Override
     public PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {

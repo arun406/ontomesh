@@ -33,10 +33,12 @@ services:
       - "8443:8443"
     volumes:
       - ./certs:/etc/x509/https:ro
+      - ./import:/opt/keycloak/data/import
     depends_on:
       - postgres
-    command: >
-      start
+    #    command: >
+    #      start
+    command: [ "start", "--import-realm" ]
     restart: unless-stopped
 
 volumes:

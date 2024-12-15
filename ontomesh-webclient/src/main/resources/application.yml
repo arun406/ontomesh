@@ -1,0 +1,102 @@
+innova:
+  webclients:
+    - name: Client 1
+      clientId: client1
+      baseUrl: http://localhost:8085
+      description: Client 1
+      services:
+        - key: getUserById
+          endpoint:
+            method: GET
+            path: /users/{id}  # Define path variable as part of endpoint
+            headers:
+              - key: Accept
+                value: application/json
+            requestBody: null
+            responseBody: "com.innovasolutions.framework.UserResponseDTO"
+        - key: getAllUsers
+          endpoint:
+            method: GET
+            path: /users
+            headers:
+              - key: Content-Type
+                value: application/json
+            requestBody:
+            responseBody: "java.util.List"
+        - key: saveUser
+          endpoint:
+            method: POST
+            path: /users
+            headers:
+              - key: Content-Type
+                value: application/json
+            requestBody: "com.innovasolutions.framework.UserResponseDTO"
+            responseBody: "java.lang.String"
+        - key: updateUser
+          endpoint:
+            method: PUT
+            path: /users/{id}
+            headers:
+              - key: Content-Type
+                value: application/json
+            requestBody: "com.innovasolutions.framework.UserResponseDTO"
+            responseBody: "java.lang.Void"
+        - key: deleteUser
+          endpoint:
+            method: DELETE
+            path: /users/{id}
+            headers:
+              - key: Accept
+                value: application/json
+            requestBody:
+            responseBody: "java.lang.Void"
+    - name: Client 2
+      clientId: client2
+      baseUrl: http://localhost:8095
+      description: Client 2
+      services:
+        - key: getDepartmentId
+          endpoint:
+            method: GET
+            path: /departments/{id}  # Define path variable as part of endpoint
+            headers:
+              - key: Accept
+                value: application/json
+            requestBody: null
+            responseBody: "com.innovasolutions.framework.DepartmentResponseDTO"
+        - key: getAllDepartments
+          endpoint:
+            method: GET
+            path: /departments
+            headers:
+              - key: Content-Type
+                value: application/json
+            requestBody:
+            responseBody: "java.util.List"
+        - key: saveDepartment
+          endpoint:
+            method: POST
+            path: /departments
+            headers:
+              - key: Content-Type
+                value: application/json
+            requestBody: "com.innovasolutions.framework.DepartmentResponseDTO"
+            responseBody: "java.lang.String"
+        - key: updateDepartments
+          endpoint:
+            method: PUT
+            path: /departments/{id}
+            headers:
+              - key: Content-Type
+                value: application/json
+            requestBody: "com.innovasolutions.framework.DepartmentResponseDTO"
+            responseBody: "java.lang.Void"
+        - key: deleteDepartments
+          endpoint:
+            method: DELETE
+            path: /departments/{id}
+            headers:
+              - key: Accept
+                value: application/json
+            requestBody:
+            responseBody: "java.lang.Void"

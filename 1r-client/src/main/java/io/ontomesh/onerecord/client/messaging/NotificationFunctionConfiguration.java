@@ -3,14 +3,14 @@ package io.ontomesh.onerecord.client.messaging;
 import io.ontomesh.onerecord.client.service.NotificationMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 
 import java.util.function.Consumer;
 
 @Slf4j
-@EnableAutoConfiguration
+@Configuration
 public class NotificationFunctionConfiguration {
 
     @Autowired
@@ -22,13 +22,4 @@ public class NotificationFunctionConfiguration {
             processor.process(message);
         };
     }
-
-//    @Bean
-//    public Function<String, String> uppercase() {
-//        return v -> {
-//            System.out.println("processor:::" + processor);
-//            return v.toUpperCase();
-//        };
-//    }
-
 }

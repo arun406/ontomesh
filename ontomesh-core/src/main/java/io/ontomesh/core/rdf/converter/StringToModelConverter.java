@@ -12,6 +12,9 @@ import org.springframework.core.convert.converter.Converter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Converts a string to a {@link Model}.
+ */
 @Slf4j
 public class StringToModelConverter implements Converter<String, Model> {
 

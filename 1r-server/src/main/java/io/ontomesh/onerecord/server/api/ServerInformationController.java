@@ -4,7 +4,7 @@ import io.ontomesh.onerecord.server.common.SemanticWebMediaType;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.LogisticsObjectNotFoundException;
 import io.ontomesh.onerecord.server.exception.ServerInfoNotFoundException;
-import io.ontomesh.onerecord.server.services.ServerInformationService;
+import io.ontomesh.onerecord.server.services.server.ServerInformationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

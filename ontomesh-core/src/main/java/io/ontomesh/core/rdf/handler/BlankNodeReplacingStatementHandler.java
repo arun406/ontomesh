@@ -1,7 +1,12 @@
 package io.ontomesh.core.rdf.handler;
 
 import io.ontomesh.core.BaseIdProvider;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.DynamicModelFactory;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
@@ -9,7 +14,9 @@ import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ * A {@link org.eclipse.rdf4j.rio.RDFHandler} that replaces blank nodes with IRIs.
+ */
 public class BlankNodeReplacingStatementHandler extends AbstractRDFHandler {
 
     private final Model result = new DynamicModelFactory().createEmptyModel();

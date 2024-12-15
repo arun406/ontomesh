@@ -1,8 +1,8 @@
 package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
-import io.ontomesh.onerecord.server.services.AuthorizationService;
-import io.ontomesh.onerecord.server.services.LogisticsObjectService;
+import io.ontomesh.onerecord.server.services.authorization.AuthorizationService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.eclipse.rdf4j.model.IRI;
 import org.springframework.http.HttpHeaders;
