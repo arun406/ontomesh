@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Values;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -91,7 +90,7 @@ public class LogisticsEventConsumerConfiguration {
      * @param headers the message headers
      * @return the content type
      */
-    private static @NotNull String getContentType(MessageHeaders headers) {
+    private static String getContentType(MessageHeaders headers) {
         return "application/ld+json";
     }
 

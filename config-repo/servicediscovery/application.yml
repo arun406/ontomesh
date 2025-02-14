@@ -1,0 +1,29 @@
+server:
+  port: ${SERVICE_DISCOVERY_SERVER_PORT:8761}
+  forward-headers-strategy: FRAMEWORK
+
+spring:
+  resources:
+    add-mappings: true
+  cloud:
+    config:
+      fail-fast: true
+  security:
+    user:
+      name: ${EUREKA_USERNAME:eureka}
+      password: ${EUREKA_PASSWORD:server}
+
+#service discovery server  configuration
+eureka:
+  dashboard:
+    path: eurekawebui
+  instance:
+    hostname: ${SERVICE_DISCOVERY_HOST:localhost}
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://eureka:server@localhost:8761/eureka/
+  #      defaultZone: http://${EUREKA_USERNAME:eureka}:${EUREKA_PASSWORD:server}@${SERVICE_DISCOVERY_HOST:localhost}:${SERVICE_DISCOVERY_SERVER_PORT:8761}/eureka/
+  server:
+    waitTimeInMsWhenSyncEmpty: 0

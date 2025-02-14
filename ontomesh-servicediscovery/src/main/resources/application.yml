@@ -1,0 +1,18 @@
+# This default profile is used when running a single instance completely standalone:
+spring:
+  banner:
+    location: classpath:banner/banner.txt
+  profiles:
+    active: ${SERVICE_DISCOVERY_PROFILE:dev}
+  cloud:
+    config:
+      label: servicediscovery
+      fail-fast: true
+      username: ${CONFIG_USERNAME:config}
+      password: ${CONFIG_PASSWORD:server}
+  application:
+    name: servicediscovery
+  config:
+    import: "${CONFIG_SERVER_URL:optional:configserver:http://config:server@config-server:8888}"
+    username: ${CONFIG_USERNAME:config}
+    password: ${CONFIG_PASSWORD:server}

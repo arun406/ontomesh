@@ -3,7 +3,6 @@ package io.ontomesh.onerecord.client.service;
 import io.ontomesh.core.enums.ProtocolType;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.util.Values;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
@@ -54,7 +53,7 @@ public class NotificationMessageProcessor {
      * @param headers Message Headers
      * @return ProtocolType
      */
-    private static @Nullable ProtocolType getProtocolType(MessageHeaders headers) {
+    private static ProtocolType getProtocolType(MessageHeaders headers) {
         String protocol = getHeader(headers, PROTOCOL);
         return ProtocolType.fromValue(protocol);
     }

@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8085}
+
+spring:
+  application:
+    name: server
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URI:https://keycloak.ontomesh.io:8443/realms/ontomesh}
+#          jwk-set-uri: ${JWK_SET_URI:https://keycloak.ontomesh.io:8443/realms/ontomesh/protocol/openid-connect/certs}
+##service discovery client  configuration
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: ${SERVICE_DISCOVERY_URL:http://eureka:server@localhost:8761/eureka}
+#management configuration
+management:
+  #  endpoint:
+  #    gateway:
+  #      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "httpexchanges,loggers,health,info,metrics,gateway"
+
+# logging
+logging:
+  level:
+    reactor.netty: INFO
+    org.springframework.cloud.gateway: INFO

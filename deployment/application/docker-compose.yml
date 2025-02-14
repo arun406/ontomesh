@@ -1,0 +1,280 @@
+services:
+  config-server:
+    build:
+      context: ../../ontomesh-configserver
+      dockerfile: Dockerfile
+    container_name: config-server
+    environment:
+      - CONFIG_SERVER_PORT=${CONFIG_SERVER_PORT}
+      - CONFIG_USERNAME=${CONFIG_USERNAME}
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+      #      - SEARCH_LOCATIONS=${SEARCH_LOCATIONS}
+      - DISCOVERY_CLIENT_ENABLED=${DISCOVERY_CLIENT_ENABLED}
+    volumes:
+      #      - ./../opentelemetry-javaagent-2.6.0.jar:/app/opentelemetry-javaagent.jar
+      - ./../../config-repo:/app/config-repo
+    #      - ./collector/logs/accesslog/config-server/:/app/docker/collector/logs/accesslog/config-server/
+    ports:
+      - "8888:8888"
+    expose:
+      - 8888
+    #    depends_on:
+    #      - otel-collector
+    networks:
+      - ontomesh-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  service-discovery:
+    build:
+      context: ../../ontomesh-servicediscovery
+      dockerfile: Dockerfile
+    container_name: service-discovery
+    environment:
+      - CONFIG_SERVER_URL=${CONFIG_SERVER_URL}
+      - SERVICE_DISCOVERY_PROFILE=${SERVICE_DISCOVERY_PROFILE}
+      - CONFIG_USERNAME=${CONFIG_USERNAME}
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+    #    volumes:
+    #      - ./../opentelemetry-javaagent-2.6.0.jar:/app/opentelemetry-javaagent.jar
+    #      - ./collector/logs/accesslog/service-discovery/:/app/docker/collector/logs/accesslog/servicediscovery/
+    ports:
+      - "8761:8761"
+    expose:
+      - 8761
+    depends_on:
+      config-server:
+        condition: service_healthy
+    networks:
+      - ontomesh-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: always
+
+  #  1r-client:
+  #    build:
+  #      context: ./../../1r-client
+  #      dockerfile: Dockerfile
+  #    container_name: 1r-client
+  #    image: 1r-client:latest
+  #    ports:
+  #      - "8081:8081"
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+  #    networks:
+  #      - onerecord-network
+
+  #  1r-event-processor:
+  #    build:
+  #      context: ./../../1r-event-processor
+  #      dockerfile: Dockerfile
+  #    container_name: 1r-event-processor
+  #    image: 1r-event-processor:latest
+  #    ports:
+  #      - "8082:8082"
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=prod
+  #    networks:
+  #      - onerecord-network
+
+  1r-server:
+    build:
+      context: ./../../1r-server
+      dockerfile: Dockerfile
+    container_name: 1r-server
+    #    image: 1r-server:latest
+    ports:
+      - "8085:8085"
+    environment:
+      - SERVER_PROFILES_ACTIVE=${SERVER_PROFILES_ACTIVE}
+      - ONERECORD_SERVER_HOST=${ONERECORD_SERVER_HOST}
+      - ONERECORD_SERVER_PORT=${ONERECORD_SERVER_PORT}
+      - ONERECORD_SERVER_PROTOCOL=${ONERECORD_SERVER_PROTOCOL}
+      - ONERECORD_SERVER_URL=${ONERECORD_SERVER_URL}
+      - IRI_SCHEME=${IRI_SCHEME}
+      - REPOSITORY_URL=${REPOSITORY_URL}
+      - REPOSITORY_NAME=${REPOSITORY_NAME}
+      - REPOSITORY_USERNAME=${REPOSITORY_USERNAME}
+      - REPOSITORY_PASSWORD=${REPOSITORY_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - KAFKA_CLIENT_ID=${KAFKA_CLIENT_ID}
+      - KAFKA_GROUP_ID=${KAFKA_GROUP_ID}
+      - ISSUER_URI=${ISSUER_URI}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "keycloak.ontomesh.io:host-gateway"
+      - "graphdb.ontomesh.io:host-gateway"
+    #    volumes:
+    #      - ./../keycloak/certs/tls.crt:/usr/local/share/ca-certificates/keycloak.crt
+    networks:
+      - ontomesh-network
+    depends_on:
+      - config-server
+      #        condition: service_healthy
+      - broker-1
+      - broker-2
+      - broker-3
+
+
+  #============================kafka cluster=============================#
+  controller-1:
+    image: apache/kafka:latest
+    container_name: controller-1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - ontomesh-network
+  controller-2:
+    image: apache/kafka:latest
+    container_name: controller-2
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - ontomesh-network
+  controller-3:
+    image: apache/kafka:latest
+    container_name: controller-3
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: controller
+      KAFKA_LISTENERS: CONTROLLER://:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - ontomesh-network
+  broker-1:
+    image: apache/kafka:latest
+    container_name: broker-1
+    ports:
+      - 29092:9092
+    environment:
+      KAFKA_NODE_ID: 4
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-1:9092'  # Change this per broker
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    depends_on:
+      - controller-1
+      - controller-2
+      - controller-3
+    networks:
+      - ontomesh-network
+  broker-2:
+    image: apache/kafka:latest
+    container_name: broker-2
+    ports:
+      - 39092:9092
+    environment:
+      KAFKA_NODE_ID: 5
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-2:9092'  # Change this per broker
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    depends_on:
+      - controller-1
+      - controller-2
+      - controller-3
+    networks:
+      - ontomesh-network
+  broker-3:
+    image: apache/kafka:latest
+    container_name: broker-3
+    ports:
+      - 49092:9092
+    environment:
+      KAFKA_NODE_ID: 6
+      KAFKA_PROCESS_ROLES: broker
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker-3:9092'  # Change this per broker
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    depends_on:
+      - controller-1
+      - controller-2
+      - controller-3
+    networks:
+      - ontomesh-network
+
+  postgres:
+    image: postgres:latest
+    container_name: keycloak_postgres
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ontomesh-network
+
+  keycloak:
+    image: keycloak/keycloak:latest
+    container_name: keycloak_server
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: keycloak.ontomesh.io
+      #KC_PROXY: edge
+      KC_HTTP_ENABLED: "false"
+      #KEYCLOAK_BOOTSTRAP_ADMIN_USERNAME: admin
+      #KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTPS_CERTIFICATE_FILE: /etc/x509/https/tls.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/x509/https/tls.key
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./certs:/etc/x509/https:ro
+      - ./import:/opt/keycloak/data/import
+    depends_on:
+      - postgres
+    #    command: >
+    #      start
+    command: [ "start", "--import-realm" ]
+    restart: unless-stopped
+    networks:
+      - ontomesh-network
+
+volumes:
+  postgres_data:
+    driver: local
+networks:
+  ontomesh-network:
+    driver: bridge

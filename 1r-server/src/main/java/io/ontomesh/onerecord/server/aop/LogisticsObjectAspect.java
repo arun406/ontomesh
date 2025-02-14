@@ -2,26 +2,29 @@ package io.ontomesh.onerecord.server.aop;
 
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.logisticsobjects.audittrail.AuditTrailService;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.eclipse.rdf4j.model.IRI;
 import org.iata.onerecord.api.API;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import static org.iata.onerecord.api.API.REQUEST_ACCEPTED;
 import static org.iata.onerecord.api.API.REQUEST_REJECTED;
 
-@Slf4j
 @Aspect
 @Component
 public class LogisticsObjectAspect {
 
-    @Autowired
-    private AuditTrailService auditTrailService;
+    private final AuditTrailService auditTrailService;
+    private final static Logger log = LoggerFactory.getLogger(LogisticsObjectAspect.class);
+
+    public LogisticsObjectAspect(AuditTrailService auditTrailService) {
+        this.auditTrailService = auditTrailService;
+    }
 
     @Pointcut("execution(* io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService.createChangeRequest(..))")
     public void processLogisticsObjectUpdateRequest() {

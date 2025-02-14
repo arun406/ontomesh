@@ -1,17 +1,17 @@
 server:
   port: ${SERVER_PORT:9095}
 
-#---------- RDF4J repository configuration ------------#
-rdf4j:
-  spring:
-    pool:
-      enabled: true
-    repository:
-      remote:
-        manager-url: http://GGKMAC23066.local:7200/
-        name: ontomesh
-        password: admin
-        username: admin
+##---------- RDF4J repository configuration ------------#
+#rdf4j:
+#  spring:
+#    pool:
+#      enabled: true
+#    repository:
+#      remote:
+#        manager-url: http://GGKMAC23066.local:7200/
+#        name: ontomesh
+#        password: admin
+#        username: admin
 
 #----------------- ONERECORD Configuration --------------------#
 onerecord:

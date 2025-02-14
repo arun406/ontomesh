@@ -1,0 +1,70 @@
+spring:
+  output:
+    ansi:
+      enabled: ALWAYS
+server:
+  forward-headers-strategy: FRAMEWORK
+  compression:
+    enabled: true
+    min-response-size: 512
+    mime-types: text/html,text/xml,text/plain,text/css,application/json
+  tomcat:
+    basedir: ${ONTOMESH_HOME}/logs
+    accesslog:
+      enabled: true
+      directory: accesslog
+      suffix: .log
+      prefix: ${spring.application.name}/access-log
+      file-date-format: .yyyy-MM-dd
+      pattern: "${spring.application.name} %{X-Forwarded-For}i %h %l %u %t \"%r\" %s %b %D \"%{User-Agent}i\""
+
+#service discovery client  configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${SERVICE_DISCOVERY_URL:http://eureka:server@service-discovery:8761/eureka}
+#management configuration
+management:
+  endpoint:
+    health:
+      show-details: ALWAYS
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+# logging
+logging:
+  level:
+    org.zalando.logbook: TRACE
+logbook:
+  #  predicate:
+  #    exclude:
+  #      - path: /actuator/**
+  #  filter.enabled: true
+  #  secure-filter.enabled: true
+  format.style: json
+#  strategy: default  #status-at-least, body-only-if-status-at-least, without-body
+#  #  minimum-status: 500
+#  obfuscate:
+#    headers:
+#      - Authorization
+#      - X-Secret
+#      - Accept
+#    parameters:
+#      - access_token
+#      - password
+#  write:
+#    chunk-size: 1000
+#  attribute-extractors:
+#    - type: JwtFirstMatchingClaimExtractor
+#      claim-names: [ "sub", "subject" ]
+#      claim-key: Principal
+#    - type: JwtAllMatchingClaimsExtractor
+#      claim-names: [ "sub", "iat" ]
