@@ -122,6 +122,7 @@ services:
       - broker-1
       - broker-2
       - broker-3
+      - graphdb-node-1
 
 
   #============================kafka cluster=============================#
@@ -272,8 +273,25 @@ services:
     networks:
       - ontomesh-network
 
+  graphdb-node-1:
+    image: ontotext/graphdb:10.8.0
+    container_name: graphdb-node-1
+    ports:
+      - "7200:7200"
+      - "7300:7300"
+    environment:
+      - GRAPHDB_AUTH_TOKEN_SECRET=superSecretToken
+    command: [ "/opt/graphdb/dist/bin/graphdb", "-Dgraphdb.auth.token.secret=superSecretToken" ]
+    volumes:
+      - graphdb_data_1:/opt/graphdb/home
+    networks:
+      - ontomesh-network
+    restart: always
+
 volumes:
   postgres_data:
+    driver: local
+  graphdb_data_1:
     driver: local
 networks:
   ontomesh-network:
