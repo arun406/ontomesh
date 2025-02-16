@@ -95,9 +95,6 @@ services:
       - "8085:8085"
     environment:
       - SERVER_PROFILES_ACTIVE=${SERVER_PROFILES_ACTIVE}
-      - ONERECORD_SERVER_HOST=${ONERECORD_SERVER_HOST}
-      - ONERECORD_SERVER_PORT=${ONERECORD_SERVER_PORT}
-      - ONERECORD_SERVER_PROTOCOL=${ONERECORD_SERVER_PROTOCOL}
       - ONERECORD_SERVER_URL=${ONERECORD_SERVER_URL}
       - IRI_SCHEME=${IRI_SCHEME}
       - REPOSITORY_URL=${REPOSITORY_URL}
@@ -117,13 +114,16 @@ services:
     networks:
       - ontomesh-network
     depends_on:
-      - config-server
-      #        condition: service_healthy
-      - broker-1
-      - broker-2
-      - broker-3
-      - graphdb-node-1
-
+      config-server:
+        condition: service_healthy
+      broker-1:
+        condition: service_started
+      broker-2:
+        condition: service_started
+      broker-3:
+        condition: service_started
+      graph-db-setup:
+        condition: service_started
 
   #============================kafka cluster=============================#
   controller-1:
@@ -273,9 +273,9 @@ services:
     networks:
       - ontomesh-network
 
-  graphdb-node-1:
+  graphdb:
     image: ontotext/graphdb:10.8.0
-    container_name: graphdb-node-1
+    container_name: graphdb
     ports:
       - "7200:7200"
       - "7300:7300"
@@ -283,15 +283,36 @@ services:
       - GRAPHDB_AUTH_TOKEN_SECRET=superSecretToken
     command: [ "/opt/graphdb/dist/bin/graphdb", "-Dgraphdb.auth.token.secret=superSecretToken" ]
     volumes:
-      - graphdb_data_1:/opt/graphdb/home
+      - graphdb_data:/opt/graphdb/home
     networks:
       - ontomesh-network
     restart: always
+    healthcheck:
+      test: "curl -f http://localhost:7200/rest/repositories || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
+  graph-db-setup:
+    image: ontotext/graphdb:10.8.0
+    entrypoint: [ "/bin/bash", "-c" ]
+    restart: "no"
+    depends_on:
+      graphdb:
+        condition: service_healthy
+    command:
+      - /opt/ontomesh/graphdb/init-repo.sh
+    environment:
+      - ONTOMESH_REPO_ID=${REPOSITORY_NAME}
+    volumes:
+      - "./graphdb/init-repo.sh:/opt/ontomesh/graphdb/init-repo.sh"
+      - "./graphdb/repo-ontomesh.ttl:/opt/ontomesh/graphdb/repo-ontomesh.ttl"
+    networks:
+      - ontomesh-network
 volumes:
   postgres_data:
     driver: local
-  graphdb_data_1:
+  graphdb_data:
     driver: local
 networks:
   ontomesh-network:

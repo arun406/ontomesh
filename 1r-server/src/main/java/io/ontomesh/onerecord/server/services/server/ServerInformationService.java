@@ -7,6 +7,7 @@ import io.ontomesh.onerecord.server.exception.ServerInfoNotFoundException;
 import io.ontomesh.onerecord.server.repository.LogisticsObjectRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Models;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.Charset;
 
 @Slf4j
 @Service
@@ -44,12 +45,21 @@ public class ServerInformationService {
     @Transactional
     public void createServerInformation() throws IOException {
 
-        log.debug("creating the server information from the resource...");
-        InputStream inputStream = serverInfo.getInputStream();
-        Model serverInfoModel = Rio.parse(inputStream, RDFFormat.JSONLD);
+        log.info("Creating the {} server information from the resource.", serverProperties.getUrl());
+        String serverInfoContentAsString = serverInfo.getContentAsString(Charset.defaultCharset());
+        serverInfoContentAsString = serverInfoContentAsString.replace("${{onerecord.server.url}}", serverProperties.getUrl());
+        log.info("Server Information: {}", serverInfoContentAsString);
+        Model serverInfoModel = Rio.parse(IOUtils.toInputStream(serverInfoContentAsString, Charset.defaultCharset()),
+                RDFFormat.JSONLD);
         repository.persist(serverInfoModel); //TODO revisit
     }
 
+    /**
+     * Get the server information.
+     *
+     * @param url
+     * @return
+     */
     public LogisticsObject getServerInformation(String url) {
         log.info("Getting Server Information of {}", url);
         return this.repository.findLoById(Values.iri(url))
