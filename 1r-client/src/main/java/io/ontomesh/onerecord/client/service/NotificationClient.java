@@ -5,7 +5,6 @@ import com.innovasolutions.framework.webclient.RegisteredWebClientRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
@@ -16,92 +15,59 @@ import reactor.core.publisher.Mono;
 @Component
 public class NotificationClient implements INotificationClient {
 
-    @Autowired
-    private RegisteredWebClientRepository repository;
-
+    private final RegisteredWebClientRepository repository;
     private final Converter<Model, String> converter;
 
-    public NotificationClient(@Qualifier("jsonLDToStringConverter") Converter<Model, String> converter) {
-        this.converter = converter;
-//        this.oneRecordClient = oneRecordClient;
-    }
-
-    /*    *//**
-     * Convert Model To String.
+    /**
+     * Constructor for NotificationClient.
      *
-     * @param notificationModel notification model
-     * @return rdf string
-     *//*
-    private String getNotificationMessage(Model notificationModel) {
-        return converter.convert(notificationModel);
-    }*/
-
-    /*    *//**
-     * Sends Notification.
-     *
-     * @param url
-     * @param notification
-     *//*
-    public void sendNotification(String url, Model notification) {
-        if (notification.isEmpty()) {
-            return;
-        }
-
-        String notificationMessage = getNotificationMessage(notification);
-        log.debug("Notification message {}", notificationMessage);
-        this.sendNotification(url, notificationMessage);
-    }*/
-
-    /*    */
-    /*
+     * @param repository RegisteredWebClientRepository for fetching registered clients
+     * @param converter  Converter for transforming RDF Model into a String
      */
+    public NotificationClient(RegisteredWebClientRepository repository,
+                              @Qualifier("jsonLDToStringConverter") Converter<Model, String> converter) {
+        this.repository = repository;
+        this.converter = converter;
+    }
 
     /**
-     * Sends Notification
+     * Sends a notification message.
      *
-     * @param url
-     * @param notification
-     *//*
+     * @param clientId     The client identifier as an IRI
+     * @param notification The notification message in string format
+     */
     @Override
-    public void sendNotification(IRI url, String notification) {
-        if (!StringUtils.hasText(notification)) {
-            return;
-        }
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(url);
-        sendNotification(factory, notification);
-    }*/
     public void sendNotification(IRI clientId, String notification) {
         if (!StringUtils.hasText(notification)) {
+            log.warn("Notification content is empty. Skipping sending.");
             return;
         }
 
-        // Query for a client and service by client ID and service key
+        // Fetch the registered client for notifications
         RegisteredWebClient registeredWebClient = repository.findByClientAndServiceId(clientId.stringValue(), "notifications");
 
-        // Validate that the client-service pair exists
         if (registeredWebClient == null) {
-            log.info("Client or Service not found!");
+            log.warn("No registered client found for ID: {}", clientId);
             return;
         }
 
-        Mono<Void> response = null;
         try {
-            response = registeredWebClient.execute(notification);
+            Mono<Void> response = registeredWebClient.execute(notification);
+            response.block();
+            log.info("Notification sent successfully to client: {}", clientId);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            log.error("Error while sending notification to client: {}", clientId, e);
+            throw new RuntimeException("Failed to send notification", e);
         }
-        response.block();
     }
 
-    /*    private final OneRecordClient oneRecordClient;
-
-     *//**
-     * Sends Notification.
+    /**
+     * Converts an RDF Model into a notification message string.
      *
-     * @param notification Notification.
-     *//*
-    private void sendNotification(UriBuilderFactory factory, String notification) {
-        oneRecordClient.sendNotification(factory, notification);
-    }*/
-
+     * @param notificationModel The RDF model representing the notification
+     * @return The notification as a string
+     */
+    private String convertNotificationModel(Model notificationModel) {
+        return converter.convert(notificationModel);
+    }
 }

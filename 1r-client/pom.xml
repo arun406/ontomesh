@@ -38,6 +38,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
@@ -132,6 +136,24 @@
     <build>
         <plugins>
 
+            <!--<plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                    &lt;!&ndash; Make sure `mvn spring-boot:build-image` uses the Java version defined in this project &ndash;&gt;
+                    <image>
+                        <env>
+                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
+                        </env>
+                    </image>
+                </configuration>
+            </plugin>-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -142,13 +164,16 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <!-- Make sure `mvn spring-boot:build-image` uses the Java version defined in this project -->
-                    <image>
-                        <env>
-                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
-                        </env>
-                    </image>
+                    <mainClass>io.ontomesh.onerecord.client.OneRecordClientApplication</mainClass>
+                    <layout>JAR</layout>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -1,12 +1,12 @@
 package io.ontomesh.events.processor.repository;
 
 
+import io.ontomesh.core.rdf.repository.BaseRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryResults;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,11 +15,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class SubscriptionRepository extends BaseRepository {
-
-
-    protected SubscriptionRepository(RepositoryConnection connection) {
-        super(connection);
-    }
 
     /**
      * List all subscribers.

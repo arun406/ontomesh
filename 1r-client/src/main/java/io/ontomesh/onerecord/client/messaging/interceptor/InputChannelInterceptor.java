@@ -21,7 +21,6 @@ public class InputChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-
         MessageHeaders headers = message.getHeaders();
         logHeaders(headers);
         return ChannelInterceptor.super.postReceive(message, channel);

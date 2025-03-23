@@ -36,20 +36,21 @@ public class SubscriptionService {
      */
     public Map<IRI, Model> listSubscribers(IRI loId, IRI loType, IRI eventType) {
         Model model = repository.listAllSubscribers(loId, loType);
-        Set<IRI> iris = Models.subjectIRIs(model);
         Map<IRI, Model> subscribersMap = new HashMap<>();
-        for (IRI iri : iris) {
-            Model statements = model.filter(iri, null, null);
-            Model eventTypeStatements = model.filter(iri, INCLUDE_SUBSCRIPTION_EVENT_TYPE, eventType);
-            if (eventTypeStatements != null) {
-                subscribersMap.put(iri, statements);
-            }
-        }
+
+        model.subjects()
+                .stream()
+                .filter(IRI.class::isInstance)
+                .map(IRI.class::cast)
+                .filter(iri -> !model.filter(iri, INCLUDE_SUBSCRIPTION_EVENT_TYPE, eventType).isEmpty())
+                .forEach(iri -> subscribersMap.put(iri, model.filter(iri, null, null)));
+
         log.info("No of subscribers available for the event {} of lo id {} of type {} is {}",
                 eventType, loId, loType, subscribersMap.size());
 
         return subscribersMap;
     }
+
 //    public Map<IRI, Model> listSubscribers(IRI loId, IRI loType, IRI eventType) {
 //        Model model = repository.listAllSubscribers(loId, loType);
 //        Map<IRI, Model> subscribersMap = Models.subjectIRIs(model).stream()

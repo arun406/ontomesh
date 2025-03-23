@@ -1,5 +1,5 @@
 server:
-  port: ${CONFIG_SERVER_PORT:8888}
+  port: ${CONFIG_SERVER_PORT:8080}
 
 spring:
   output:
@@ -27,4 +27,5 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://eureka:server@service-discovery:8761/eureka/
+      defaultZone: ${SERVICE_DISCOVERY_URL:http://eureka:server@service-discovery:8080/eureka}
+#      defaultZone: http://eureka:server@service-discovery:8761/eureka/

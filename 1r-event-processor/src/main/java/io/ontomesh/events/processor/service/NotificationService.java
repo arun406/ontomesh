@@ -25,14 +25,11 @@ import org.springframework.util.MimeTypeUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static io.ontomesh.events.processor.config.Constants.EVENT_CODE;
-import static io.ontomesh.events.processor.config.Constants.EVENT_FOR;
-import static io.ontomesh.events.processor.config.Constants.SUBSCRIPTION_REQUEST;
+import static io.ontomesh.events.processor.config.Constants.*;
 
-/**
- * Service class for managing notifications.
- */
 @Slf4j
 @Service
 public class NotificationService {
@@ -44,135 +41,127 @@ public class NotificationService {
     /**
      * Constructor for NotificationService.
      *
-     * @param serverProperties       the server properties
-     * @param subscriptionService    the subscription service
-     * @param modelToStringConverter the converter from Model to String
+     * @param serverProperties       the server properties containing internal configuration
+     * @param subscriptionService    service responsible for handling subscriptions
+     * @param modelToStringConverter converter for transforming RDF models into string representation
      */
     public NotificationService(ServerProperties serverProperties, SubscriptionService subscriptionService,
                                @Qualifier("jsonLDToStringConverter") Converter<Model, String> modelToStringConverter) {
         this.serverProperties = serverProperties;
         this.subscriptionService = subscriptionService;
         this.modelToStringConverter = modelToStringConverter;
-
     }
 
     /**
-     * Creates notification messages.
+     * Generates a list of notification messages based on an event.
      *
-     * @param subject    the subject IRI
-     * @param eventModel
-     * @return list of notification messages
+     * @param subject    the subject IRI representing the event entity
+     * @param eventModel the RDF model containing event details
+     * @return a list of notification messages to be sent, or an empty list if no notifications are needed
      */
     public List<Message<String>> createNotificationMessages(IRI subject, Model eventModel) {
-        // Extract relevant IRIs and literals directly from the model
-        IRI loId = Models.objectIRI(eventModel.filter(subject, EVENT_FOR, null)).orElse(null);
+        Optional<IRI> loIdOpt = Models.objectIRI(eventModel.filter(subject, EVENT_FOR, null));
+        if (loIdOpt.isEmpty()) return Collections.emptyList();
+
+        IRI loId = loIdOpt.get();
         IRI loType = Models.objectIRI(eventModel.filter(loId, RDF.TYPE, null)).orElse(null);
-        Literal eventCodeLit = Models.objectLiteral(eventModel.filter(
-                        Models.objectIRI(eventModel.filter(loId, EVENT_CODE, null)).orElse(null),
-                        Values.iri("https://onerecord.iata.org/ns/cargo#code"), null))
-                .orElse(null);
+        IRI eventType = extractEventType(eventModel, loId);
 
-        // If event code literal is null, return an empty list
-        if (eventCodeLit == null) {
-            return Collections.emptyList();
-        }
+        if (eventType == null) return Collections.emptyList();
 
-        // Derive event type and fetch subscribers
-        IRI eventType = Values.iri(eventCodeLit.stringValue());
         Map<IRI, Model> subscribersMap = subscriptionService.listSubscribers(loId, loType, eventType);
+        if (subscribersMap.isEmpty()) return Collections.emptyList();
 
-        if (subscribersMap.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // Generate notification models
-        List<Model> notificationModels = createNotifications(subscribersMap, eventType, loType, loId);
-
-        // Convert models into notification messages or return an empty list if no notifications
-        return notificationModels.isEmpty() ? Collections.emptyList() :
-                notificationModels.stream()
-                        .map(n -> createNotificatonMessage(subject, n))
-                        .toList();
+        return createNotifications(subscribersMap, eventType, loType, loId).stream()
+                .map(n -> createNotificationMessage(subject, n))
+                .collect(Collectors.toList());
     }
 
-
     /**
-     * Creates notifications.
+     * Extracts the event type from the event model.
      *
-     * @param subscribersMap the subscribers map
-     * @param eventCode      the event code
-     * @param loType         the logistics object type
-     * @param loId           the logistics object ID
-     * @return list of notifications
+     * @param eventModel the RDF model containing event details
+     * @param loId       the IRI of the logistics object associated with the event
+     * @return the event type as an IRI, or null if it cannot be determined
      */
-    public List<Model> createNotifications(Map<IRI, Model> subscribersMap,
-                                           IRI eventCode, IRI loType, IRI loId) {
-        // Return an empty list if no subscribers exist
-        if (subscribersMap.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // Generate notification models for each subscriber
-        return subscribersMap.entrySet().stream()
-                .map(entry -> {
-                    IRI triggeredBy = Models.objectIRI(
-                            entry.getValue().filter(entry.getKey(), SUBSCRIPTION_REQUEST, null)
-                    ).orElse(null);
-
-                    IRI subscriber = Models.objectIRI(
-                            entry.getValue().filter(entry.getKey(), Values.iri("https://onerecord.iata.org/ns/api#hasSubscriber"), null)
-                    ).orElse(null);
-
-                    return createNotificationModel(loId, eventCode, triggeredBy, loType, false, subscriber);
-                })
-                .toList();
+    private IRI extractEventType(Model eventModel, IRI loId) {
+        return Models.objectLiteral(eventModel.filter(
+                        Models.objectIRI(eventModel.filter(loId, EVENT_CODE, null)).orElse(null),
+                        CODE, null))
+                .map(Literal::stringValue)
+                .map(Values::iri)
+                .orElse(null);
     }
 
+    /**
+     * Creates a list of notification models for all subscribers of a given event.
+     *
+     * @param subscribersMap a map of subscriber IRIs to their subscription models
+     * @param eventCode      the event type IRI
+     * @param loType         the logistics object type IRI
+     * @param loId           the logistics object ID IRI
+     * @return a list of notification models, or an empty list if no notifications need to be sent
+     */
+    public List<Model> createNotifications(Map<IRI, Model> subscribersMap, IRI eventCode, IRI loType, IRI loId) {
+        if (subscribersMap.isEmpty()) return Collections.emptyList();
+
+        return subscribersMap.entrySet().stream()
+                .map(entry -> createNotificationModel(
+                        loId,
+                        eventCode,
+                        Models.objectIRI(entry.getValue().filter(entry.getKey(), SUBSCRIPTION_REQUEST, null)).orElse(null),
+                        loType,
+                        false,
+                        Models.objectIRI(entry.getValue().filter(entry.getKey(), SUBSCRIBER, null)).orElse(null)
+                ))
+                .collect(Collectors.toList());
+    }
 
     /**
-     * Creates a notification model.
+     * Constructs a notification model containing details about the event.
      *
-     * @param loId                    the logistics object ID
-     * @param eventType               the event type
-     * @param triggeredBy             the action request ID
-     * @param loType                  the logistics object type
-     * @param sendLogisticsObjectBody indicator to include entire logistics object
-     * @param subscriber
-     * @return the notification model
+     * @param loId                    the logistics object ID IRI
+     * @param eventType               the event type IRI
+     * @param triggeredBy             the action request IRI that triggered this event
+     * @param loType                  the logistics object type IRI
+     * @param sendLogisticsObjectBody flag indicating whether to include full logistics object details
+     * @param subscriber              the subscriber IRI receiving the notification
+     * @return an RDF model representing the notification
      */
     public Model createNotificationModel(IRI loId, IRI eventType, IRI triggeredBy, IRI loType,
                                          boolean sendLogisticsObjectBody, IRI subscriber) {
         IRI notificationId = new BaseIdProvider(serverProperties.getInternalIriScheme()).createInternalIri();
-        //@formatter:off
+
         ModelBuilder builder = new ModelBuilder()
                 .setNamespace("api", "https://onerecord.iata.org/ns/api#")
                 .setNamespace("cargo", "https://onerecord.iata.org/ns/cargo#")
                 .subject(notificationId)
-                    .add(RDF.TYPE, Values.iri("api:Notification"))
-                    .add("api:hasLogisticsObject", loId)
-                    .add("api:hasEventType", eventType)
-                    .add("api:isTriggeredBy", triggeredBy)
-                    .add("api:hasLogisticsObjectType", loType)
-                    .add("api:hasSubscriber", subscriber)
+                .add(RDF.TYPE, Values.iri("api:Notification"))
+                .add("api:hasLogisticsObject", loId)
+                .add("api:hasEventType", eventType)
+                .add("api:isTriggeredBy", triggeredBy)
+                .add("api:hasLogisticsObjectType", loType)
+                .add("api:hasSubscriber", subscriber)
                 .subject(loType)
                 .add(RDF.TYPE, XSD.ANYURI);
-        //@formatter:on
+
         if (sendLogisticsObjectBody) {
             builder.subject(loId);
         }
+
         return builder.build();
     }
 
     /**
-     * Creates a notification message.
+     * Converts a notification model into a Kafka message.
      *
-     * @param subject           the subject IRI
-     * @param notificationModel
-     * @return the notification message
+     * @param subject           the subject IRI representing the event entity
+     * @param notificationModel the RDF model containing notification details
+     * @return a Kafka message containing the notification payload
      */
-    private Message<String> createNotificatonMessage(IRI subject, Model notificationModel) {
+    private Message<String> createNotificationMessage(IRI subject, Model notificationModel) {
         IRI subscriber = RDFUtil.getObjectIRI(notificationModel, RDFUtil.getRootIri(notificationModel),
-                Values.iri("https://onerecord.iata.org/ns/api#hasSubscriber"), false);
+                SUBSCRIBER, false);
 
         String modelAsString = modelToStringConverter.convert(notificationModel);
 
@@ -184,5 +173,4 @@ public class NotificationService {
                 .setHeader("to", subscriber.stringValue())
                 .build();
     }
-
 }

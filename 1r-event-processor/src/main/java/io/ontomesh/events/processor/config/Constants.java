@@ -10,4 +10,5 @@ public interface Constants {
     IRI LOGISTICS_EVENT = Values.iri("https://onerecord.iata.org/ns/cargo#LogisticsEvent");
     IRI SUBSCRIPTION_REQUEST = Values.iri("https://onerecord.iata.org/ns/api#SubscriptionRequest");
     IRI TOPIC = Values.iri("https://onerecord.iata.org/ns/api#hasTopic");
+    IRI SUBSCRIBER = Values.iri("https://onerecord.iata.org/ns/api#hasSubscriber");
 }

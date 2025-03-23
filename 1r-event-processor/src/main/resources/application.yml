@@ -1,73 +1,26 @@
-server:
-  port: ${SERVER_PORT:9095}
+#----------------- LOGGING Configuration --------------------#
+logging:
+  level:
+    io.ontomesh.events.processor: DEBUG
+    org.eclipse.rdf4j.spring: ERROR
+    org.eclipse.rdf4j.spring.operationlog.log.slf4: ERROR
+    root: INFO
 
-##---------- RDF4J repository configuration ------------#
-#rdf4j:
-#  spring:
-#    pool:
-#      enabled: true
-#    repository:
-#      remote:
-#        manager-url: http://GGKMAC23066.local:7200/
-#        name: ontomesh
-#        password: admin
-#        username: admin
-
-#----------------- ONERECORD Configuration --------------------#
-onerecord:
-  server:
-    internalIriScheme: ontomesh
-
-#-----------------Spring configuration -----------------------#
+#----------------- SPRINGBOOT Configuration --------------------#
 spring:
-
-  output:
-    ansi:
-      enabled: ALWAYS
-  application:
-    name: 1r-event-processor
-
-  config:
-    import: 'optional:configserver:'
-  #--------- Spring cloud stream configurations ------------#
+  banner:
+    location: classpath:banner/banner.txt
+  profiles:
+    active: ${ONERECORD_PROCESSOR_PROFILES:kafka,onerecord,rdf4j}
   cloud:
-    stream:
-      function:
-        bindings:
-          processEvents-in-0: input
-          processEvents-out-0: output
-      bindings:
-        input:
-          destination: logistics-events
-          group: logistics-group-01
-          consumer:
-            use-native-decoding: true
-        output:
-          destination: notifications
-          content-type: text/plain
-          producer:
-            use-native-encoding: true
-      #-------- Kafka binder configuration ------------#
-      #https://docs.spring.io/spring-cloud-stream/reference/kafka/kafka-binder/config-options.html
-      kafka:
-        bindings:
-          output:
-            producer:
-              configuration:
-                "key.serializer": org.apache.kafka.common.serialization.StringSerializer
-                "value.serializer": org.apache.kafka.common.serialization.StringSerializer
-          input:
-            consumer:
-              enableDlq: true
-              dlqName: logistics-events-dlq
-              dqlProducerProperties:
-                configuration:
-                  value.serializer: org.apache.kafka.common.serialization.StringSerializer
-              configuration:
-                "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
-                "value.deserializer": org.apache.kafka.common.serialization.StringDeserializer
-
-        binder:
-          brokers: localhost:29092,localhost:39092,localhost:49092
-          configuration:
-            commit.interval.ms: 10000
+    config:
+      label: processor
+      fail-fast: true
+      username: ${CONFIG_USERNAME:config}
+      password: ${CONFIG_PASSWORD:server}
+  application:
+    name: processor
+  config:
+    import: "${CONFIG_SERVER_URL:optional:configserver:http://config:server@config-server:8888}"
+    username: ${CONFIG_USERNAME:config}
+    password: ${CONFIG_PASSWORD:server}

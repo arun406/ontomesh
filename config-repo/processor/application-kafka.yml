@@ -1,0 +1,44 @@
+#-----------------Spring configuration -----------------------#
+spring:
+  #--------- Spring cloud stream configurations ------------#
+  cloud:
+    stream:
+      function:
+        bindings:
+          processEvents-in-0: input
+          processEvents-out-0: output
+      bindings:
+        input:
+          destination: logistics-events
+          group: logistics-group-01
+          consumer:
+            use-native-decoding: true
+        output:
+          destination: notifications
+          content-type: text/plain
+          producer:
+            use-native-encoding: true
+      #-------- Kafka binder configuration ------------#
+      #https://docs.spring.io/spring-cloud-stream/reference/kafka/kafka-binder/config-options.html
+      kafka:
+        bindings:
+          output:
+            producer:
+              configuration:
+                "key.serializer": org.apache.kafka.common.serialization.StringSerializer
+                "value.serializer": org.apache.kafka.common.serialization.StringSerializer
+          input:
+            consumer:
+              enableDlq: true
+              dlqName: logistics-events-dlq
+              dqlProducerProperties:
+                configuration:
+                  value.serializer: org.apache.kafka.common.serialization.StringSerializer
+              configuration:
+                "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
+                "value.deserializer": org.apache.kafka.common.serialization.StringDeserializer
+
+        binder:
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092,localhost:39092,localhost:49092}
+          configuration:
+            commit.interval.ms: 10000

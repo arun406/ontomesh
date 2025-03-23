@@ -1,0 +1,4 @@
+#----------------- ONERECORD Configuration --------------------#
+onerecord:
+  server:
+    internalIriScheme: ontomesh

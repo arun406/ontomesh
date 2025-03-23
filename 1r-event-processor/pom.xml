@@ -6,7 +6,6 @@
         <groupId>io.ontomesh</groupId>
         <artifactId>ontomesh-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <!--        <relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
     </parent>
 
     <properties>
@@ -30,9 +29,29 @@
     </scm>
     <dependencies>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
+        <!--<dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.5.16</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.16</version>
+            <scope>compile</scope>
+        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+        </dependency>
+        <!-- <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-actuator</artifactId>
+         </dependency>-->
         <!--<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -44,7 +63,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream-binder-kafka</artifactId>
-            <exclusions>
+            <!--<exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
@@ -69,7 +88,7 @@
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-parameter-names</artifactId>
                 </exclusion>
-            </exclusions>
+            </exclusions>-->
         </dependency>
 
         <!--
@@ -98,7 +117,7 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -108,7 +127,7 @@
                     <artifactId>android-json</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream-test-binder</artifactId>
@@ -126,7 +145,7 @@
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-storage</artifactId>
             <type>pom</type>
-            <exclusions>
+            <!--<exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
@@ -151,12 +170,12 @@
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-parameter-names</artifactId>
                 </exclusion>
-            </exclusions>
+            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-repository-sail</artifactId>
-            <exclusions>
+            <!--<exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
@@ -181,12 +200,12 @@
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-parameter-names</artifactId>
                 </exclusion>
-            </exclusions>
+            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-sail-memory</artifactId>
-            <exclusions>
+            <!--<exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
@@ -211,12 +230,13 @@
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-parameter-names</artifactId>
                 </exclusion>
-            </exclusions>
+            </exclusions>-->
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-spring</artifactId>
-            <exclusions>
+            &lt;!&ndash;<exclusions>
+
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
@@ -241,8 +261,12 @@
                     <groupId>com.fasterxml.jackson.module</groupId>
                     <artifactId>jackson-module-parameter-names</artifactId>
                 </exclusion>
-            </exclusions>
-        </dependency>
+                <exclusion>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>&ndash;&gt;
+        </dependency>-->
         <!-- <dependency>
              <groupId>com.github.jsonld-java</groupId>
              <artifactId>jsonld-java</artifactId>
@@ -267,7 +291,7 @@
          </dependency>
  -->
 
-        <!-- Jackson dependencies -->
+        <!--&lt;!&ndash; Jackson dependencies &ndash;&gt;
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
@@ -297,22 +321,22 @@
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-parameter-names</artifactId>
             <version>${jackson-bom.version}</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>io.ontomesh</groupId>
             <artifactId>ontomesh-core</artifactId>
         </dependency>
 
     </dependencies>
-    <dependencyManagement>
+    <!--<dependencyManagement>
         <dependencies>
-            <!--<dependency>
+            &lt;!&ndash;<dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>-->
+            </dependency>&ndash;&gt;
             <dependency>
                 <groupId>org.eclipse.rdf4j</groupId>
                 <artifactId>rdf4j-bom</artifactId>
@@ -378,7 +402,7 @@
                 </exclusions>
             </dependency>
         </dependencies>
-    </dependencyManagement>
+    </dependencyManagement>-->
 
     <build>
         <plugins>
@@ -392,13 +416,16 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <!-- Make sure `mvn spring-boot:build-image` uses the Java version defined in this project -->
-                    <image>
-                        <env>
-                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
-                        </env>
-                    </image>
+                    <mainClass>io.ontomesh.events.processor.EventProcessorApplication</mainClass>
+                    <layout>JAR</layout>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

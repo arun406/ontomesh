@@ -15,7 +15,7 @@ services:
       - ./../../config-repo:/app/config-repo
     #      - ./collector/logs/accesslog/config-server/:/app/docker/collector/logs/accesslog/config-server/
     ports:
-      - "8888:8888"
+      - "8888:8080"
     expose:
       - 8888
     #    depends_on:
@@ -23,7 +23,7 @@ services:
     networks:
       - ontomesh-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -43,7 +43,7 @@ services:
     #      - ./../opentelemetry-javaagent-2.6.0.jar:/app/opentelemetry-javaagent.jar
     #      - ./collector/logs/accesslog/service-discovery/:/app/docker/collector/logs/accesslog/servicediscovery/
     ports:
-      - "8761:8761"
+      - "8761:8080"
     expose:
       - 8761
     depends_on:
@@ -52,38 +52,93 @@ services:
     networks:
       - ontomesh-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 10s
       timeout: 10s
       retries: 5
       start_period: 10s
     restart: always
 
-  #  1r-client:
-  #    build:
-  #      context: ./../../1r-client
-  #      dockerfile: Dockerfile
-  #    container_name: 1r-client
-  #    image: 1r-client:latest
-  #    ports:
-  #      - "8081:8081"
-  #    environment:
-  #      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-  #    networks:
-  #      - onerecord-network
+  1r-client:
+    build:
+      context: ./../../1r-client
+      dockerfile: Dockerfile
+    container_name: 1r-client
+    #    image: 1r-client:latest
+    ports:
+      - "8081:8080"
+    environment:
+      - ONERECORD_CLIENT_PROFILES=${ONERECORD_CLIENT_PROFILES}
+      - ONERECORD_CLIENT_PORT=${ONERECORD_CLIENT_PORT}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - CONFIG_SERVER_URL=${CONFIG_SERVER_URL}
+      - CONFIG_USERNAME=${CONFIG_USERNAME}
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "keycloak.ontomesh.io:host-gateway"
+      - "graphdb.ontomesh.io:host-gateway"
+    #    volumes:
+    #      - ./../keycloak/certs/tls.crt:/usr/local/share/ca-certificates/keycloak.crt
+    networks:
+      - ontomesh-network
+    depends_on:
+      config-server:
+        condition: service_healthy
+      broker-1:
+        condition: service_started
+      broker-2:
+        condition: service_started
+      broker-3:
+        condition: service_started
+      1r-server:
+        condition: service_started
 
-  #  1r-event-processor:
-  #    build:
-  #      context: ./../../1r-event-processor
-  #      dockerfile: Dockerfile
-  #    container_name: 1r-event-processor
-  #    image: 1r-event-processor:latest
-  #    ports:
-  #      - "8082:8082"
-  #    environment:
-  #      - SPRING_PROFILES_ACTIVE=prod
-  #    networks:
-  #      - onerecord-network
+  1r-processor:
+    build:
+      context: ./../../1r-event-processor
+      dockerfile: Dockerfile
+    container_name: 1r-processor
+    #    image: 1r-processor:latest
+    ports:
+      - "8083:8080"
+    environment:
+      - ONERECORD_PROCESSOR_PORT=${ONERECORD_PROCESSOR_PORT}
+      - ONERECORD_PROCESSOR_PROFILES=${ONERECORD_PROCESSOR_PROFILES}
+      - REPOSITORY_URL=${REPOSITORY_URL}
+      - REPOSITORY_NAME=${REPOSITORY_NAME}
+      - REPOSITORY_USERNAME=${REPOSITORY_USERNAME}
+      - REPOSITORY_PASSWORD=${REPOSITORY_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - KAFKA_CLIENT_ID=${KAFKA_CLIENT_ID}
+      - KAFKA_GROUP_ID=${KAFKA_GROUP_ID}
+      - SERVICE_DISCOVERY_PROFILE=${SERVICE_DISCOVERY_PROFILE}
+      - CONFIG_SERVER_URL=${CONFIG_SERVER_URL}
+      - CONFIG_USERNAME=${CONFIG_USERNAME}
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "keycloak.ontomesh.io:host-gateway"
+      - "graphdb.ontomesh.io:host-gateway"
+    #    volumes:
+    #      - ./../keycloak/certs/tls.crt:/usr/local/share/ca-certificates/keycloak.crt
+    networks:
+      - ontomesh-network
+    depends_on:
+      config-server:
+        condition: service_healthy
+      broker-1:
+        condition: service_started
+      broker-2:
+        condition: service_started
+      broker-3:
+        condition: service_started
+      graph-db-setup:
+        condition: service_started
+      1r-server:
+        condition: service_started
+      1r-client:
+        condition: service_started
 
   1r-server:
     build:
@@ -92,9 +147,10 @@ services:
     container_name: 1r-server
     #    image: 1r-server:latest
     ports:
-      - "8085:8085"
+      - "8085:8080"
     environment:
-      - SERVER_PROFILES_ACTIVE=${SERVER_PROFILES_ACTIVE}
+      - ONERECORD_SERVER_PORT=${ONERECORD_SERVER_PORT}
+      - ONERECORD_SERVER_PROFILES=${ONERECORD_SERVER_PROFILES}
       - ONERECORD_SERVER_URL=${ONERECORD_SERVER_URL}
       - IRI_SCHEME=${IRI_SCHEME}
       - REPOSITORY_URL=${REPOSITORY_URL}
@@ -105,6 +161,10 @@ services:
       - KAFKA_CLIENT_ID=${KAFKA_CLIENT_ID}
       - KAFKA_GROUP_ID=${KAFKA_GROUP_ID}
       - ISSUER_URI=${ISSUER_URI}
+      - SERVICE_DISCOVERY_PROFILE=${SERVICE_DISCOVERY_PROFILE}
+      - CONFIG_SERVER_URL=${CONFIG_SERVER_URL}
+      - CONFIG_USERNAME=${CONFIG_USERNAME}
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "keycloak.ontomesh.io:host-gateway"

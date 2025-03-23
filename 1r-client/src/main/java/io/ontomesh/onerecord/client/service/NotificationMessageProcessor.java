@@ -8,64 +8,97 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
+ * Processes incoming notification messages and sends them to One Record Client via the subscriber's REST endpoint.
+ * Handles acknowledgment for Kafka messages.
+ *
  * @author Arun Kumar K
- * Process the incoming notification message and send it to One Record Client via REST endpoint of subscriber.
  */
 @Slf4j
 @Service
 public class NotificationMessageProcessor {
 
-    public static final String TO = "to";
-    public static final String PROTOCOL = "protocol";
+    private static final String TO = "to";
+    private static final String PROTOCOL = "protocol";
+
     private final INotificationClient notificationClient;
 
+    /**
+     * Constructor for NotificationMessageProcessor.
+     *
+     * @param notificationClient The notification client to send messages.
+     */
     public NotificationMessageProcessor(INotificationClient notificationClient) {
         this.notificationClient = notificationClient;
     }
 
     /**
-     * Process the incoming notification message
+     * Processes the incoming notification message.
      *
-     * @param message Notification Message as String
+     * @param message Notification message containing headers and payload.
      */
     public void process(Message<String> message) {
         MessageHeaders headers = message.getHeaders();
-
         ProtocolType protocolType = getProtocolType(headers);
         String to = getHeader(headers, TO);
 
-        if (protocolType == ProtocolType.HTTP) {
-            notificationClient.sendNotification(Values.iri(to), message.getPayload());
+        // Validate protocol type and recipient
+        if (protocolType != ProtocolType.HTTP || !StringUtils.hasText(to)) {
+            log.warn("Invalid notification request - Protocol: {}, Recipient: '{}'. Notification will not be sent.", protocolType, to);
+            acknowledgeMessage(headers);
+            return;
         }
 
-        Acknowledgment acknowledgment = message.getHeaders().get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
-        if (acknowledgment != null) {
-            log.debug("Acknowledgment provided");
-            acknowledgment.acknowledge();
-        }
+        // Send notification
+        log.info("Sending notification to: {}", to);
+        notificationClient.sendNotification(Values.iri(to), message.getPayload());
+
+        // Acknowledge message
+        acknowledgeMessage(headers);
     }
 
+
     /**
-     * Returns the Subscribers Protocol Type
+     * Retrieves the protocol type from message headers.
      *
-     * @param headers Message Headers
-     * @return ProtocolType
+     * @param headers Message headers
+     * @return ProtocolType extracted from headers or {@code null} if not found
      */
     private static ProtocolType getProtocolType(MessageHeaders headers) {
         String protocol = getHeader(headers, PROTOCOL);
+        if (protocol == null) {
+            log.warn("Protocol type header is missing. Defaulting to null.");
+            return null;
+        }
         return ProtocolType.fromValue(protocol);
     }
 
     /**
-     * returns the message headers as String.
+     * Retrieves the specified header value as a string.
      *
-     * @param headers Message Headers
-     * @param key     Message Header Key
-     * @return Message Header Value
+     * @param headers Message headers
+     * @param key     Header key
+     * @return Header value as a string, or {@code null} if not found
      */
     private static String getHeader(MessageHeaders headers, String key) {
-        return (String.valueOf(headers.get(key)));
+        Object value = headers.get(key);
+        return value != null ? value.toString() : null;
+    }
+
+    /**
+     * Acknowledges the Kafka message if an acknowledgment header is present.
+     *
+     * @param headers Message headers
+     */
+    private void acknowledgeMessage(MessageHeaders headers) {
+        Acknowledgment acknowledgment = headers.get(KafkaHeaders.ACKNOWLEDGMENT, Acknowledgment.class);
+        if (acknowledgment == null) {
+            log.warn("Acknowledgment not found in headers. Message may not be properly acknowledged.");
+            return;
+        }
+        log.debug("Acknowledging message.");
+        acknowledgment.acknowledge();
     }
 }

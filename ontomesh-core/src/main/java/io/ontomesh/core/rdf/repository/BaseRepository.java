@@ -1,4 +1,4 @@
-package io.ontomesh.onerecord.server.repository;
+package io.ontomesh.core.rdf.repository;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

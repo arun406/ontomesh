@@ -2,7 +2,7 @@ innova:
   webclients:
     - name: Client 1
       clientId: client1
-      baseUrl: http://localhost:8085
+      baseUrl: http://localhost:8080
       description: Client 1
       services:
         - key: getUserById

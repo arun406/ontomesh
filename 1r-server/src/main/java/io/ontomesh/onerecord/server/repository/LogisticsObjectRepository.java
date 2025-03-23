@@ -1,5 +1,6 @@
 package io.ontomesh.onerecord.server.repository;
 
+import io.ontomesh.core.rdf.repository.BaseRepository;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.ActionRequest;
 import io.ontomesh.onerecord.server.domain.LogisticsEvent;
@@ -10,7 +11,6 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryLanguage;
@@ -22,7 +22,6 @@ import org.iata.onerecord.api.API;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;

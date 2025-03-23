@@ -1,0 +1,31 @@
+spring:
+  cloud:
+    kafka:
+      binder:
+        brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092,localhost:39092,localhost:49092}
+      #          #          defaultBrokerPort: 9092
+      #          #Default empty
+      #          configuration:
+      #          #Default 10
+      #          healthTimeout: 20
+      #          #Default
+      #          requiredAcks: 1
+      #          #Default 1
+      #          replicationFactor: 1
+      #          #Default is true
+      #          autoCreateTopics: true
+      bindings:
+        input:
+          consumer:
+            autoCommitOffset: false
+            ackEachRecord: false
+            startOffset:
+            standardHeaders: both
+            configuration:
+              commit.interval.ms: 1000
+              max.poll.records: 10
+            #                default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+            #                default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+#              enableDlq: true
+#              dlqName: ontomesh.onerecord.client.notifications.dql
+#              dlqProducerProperties:

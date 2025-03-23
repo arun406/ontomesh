@@ -15,7 +15,7 @@ public class DatabaseConfig {
     @Value("${rdf4j.spring.repository.remote.manager-url:http://localhost:9090/rdf4j-server/}")
     private String rdf4jServer;
 
-    @Value("${rdf4j.spring.repository.remote.name:ontomesh01}")
+    @Value("${rdf4j.spring.repository.remote.name:ontomesh}")
     private String repositoryID;
 
     @Bean
@@ -25,7 +25,6 @@ public class DatabaseConfig {
 
     @Bean
     public RepositoryConnection getConnection() {
-        RepositoryConnection connection = repository().getConnection();
-        return connection;
+        return repository().getConnection();
     }
 }
