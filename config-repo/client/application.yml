@@ -9,16 +9,16 @@ logging:
     "org.eclipse.rdf4j.spring": DEBUG
     "reactor.netty.http.client": DEBUG
 
-spring:
-  cloud:
-    stream:
-      function:
-        bindings:
-          consumeNotification-in-0: input
-      bindings:
-        input:
-          destination: notifications
-          group: notification-group-01
+#spring:
+#  cloud:
+#    stream:
+#      function:
+#        bindings:
+#          consumeNotification-in-0: input
+#      bindings:
+#        input:
+#          destination: notifications
+#          group: notification-group-01
 #      kafka:
 #        binder:
 #          brokers: localhost:29092,localhost:39092,localhost:49092
