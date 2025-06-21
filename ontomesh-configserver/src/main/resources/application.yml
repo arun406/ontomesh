@@ -16,7 +16,7 @@ spring:
       server:
         native:
           #          searchLocations: classpath:config-repo/
-          searchLocations: ${SEARCH_LOCATIONS:file:///app/config-repo/}
+          searchLocations: ${SEARCH_LOCATIONS:file:///Users/arun/source/ontomesh/config-repo}
           search-paths: '{application}'
   profiles:
     active: native

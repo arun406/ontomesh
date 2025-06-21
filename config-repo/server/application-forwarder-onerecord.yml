@@ -1,0 +1,17 @@
+#----------------- ONERECORD Configuration --------------------#
+onerecord:
+  logistics:
+    events:
+      destination: ${LOGISTICS_EVENTS_TOPIC:logistics-events}
+  server:
+    identifier: ${LOGISTICS_SERVER_ID:5f1a4869-e324-45b1-9ab0-60271ba54185}
+    internalIriScheme: ${IRI_SCHEME:ontomesh}
+    url: ${ONERECORD_SERVER_URL:http://forwarder.ontomesh.io:${ONERECORD_SERVER_PORT}}
+    subscriptions:
+      notify-request-status-change: false
+      send-logistics-object-body: false
+      subscribe-to-logistics-events: false
+      include-subscription-event-type:
+        - https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED
+        - https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED
+        - https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED

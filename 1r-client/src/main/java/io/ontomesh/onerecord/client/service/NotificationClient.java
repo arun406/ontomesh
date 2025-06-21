@@ -42,7 +42,7 @@ public class NotificationClient implements INotificationClient {
             log.warn("Notification content is empty. Skipping sending.");
             return;
         }
-
+        log.debug("notification: {} ", notification);
         // Fetch the registered client for notifications
         RegisteredWebClient registeredWebClient = repository.findByClientAndServiceId(clientId.stringValue(), "notifications");
 

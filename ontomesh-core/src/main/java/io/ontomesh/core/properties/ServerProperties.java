@@ -8,4 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ServerProperties {
     private String internalIriScheme;
     private String url;
+    private String identifier;
 }

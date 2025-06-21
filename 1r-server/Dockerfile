@@ -26,3 +26,11 @@ ENTRYPOINT  java -jar /app/app.jar
 #                -Dotel.exporter.otlp.endpoint=http://10.118.71.208:4318 \
 #                -Dotel.resource.attributes="service.name=gateway,service.version=0.0.1-SNAPSHOT,environment=development" \
 #                -jar /app/app.jar
+
+
+
+#keytool -importcert \
+#    -file /Users/arun/source/ontomesh/1r-server/tls.crt \
+#    -keystore /Users/arun/Library/Java/JavaVirtualMachines/openjdk-21.0.1/Contents/Home/lib/security \
+#    -storepass changeit \
+#    -noprompt

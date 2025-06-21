@@ -6,7 +6,7 @@ spring:
           consumeNotification-in-0: input
       bindings:
         input:
-          destination: notifications
+          destination: ${LOGISTICS_EVENTS_NOTIFICATION_TOPIC:notifications}
           group: notification-group-01
       kafka:
         binder:

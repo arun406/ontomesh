@@ -9,12 +9,12 @@ spring:
           processEvents-out-0: output
       bindings:
         input:
-          destination: logistics-events
+          destination: ${LOGISTICS_EVENT_TOPIC:logistics-events}
           group: logistics-group-01
           consumer:
             use-native-decoding: true
         output:
-          destination: notifications
+          destination: ${LOGISTICS_EVENTS_NOTIFICATION_TOPIC:notifications}
           content-type: text/plain
           producer:
             use-native-encoding: true

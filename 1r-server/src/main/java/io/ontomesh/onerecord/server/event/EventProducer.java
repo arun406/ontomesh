@@ -19,13 +19,13 @@ import java.util.function.BiConsumer;
 public class EventProducer implements Producer {
 
     private final KafkaTemplate<String, String> logisticsEventKafkaTemplate;
-    private final String logisticsEventTopic;
+    @Value("${onerecord.logistics.events.destination:logistics-events}")
+    private String logisticsEventTopic;
 
     public EventProducer(
-            KafkaTemplate<String, String> logisticsEventKafkaTemplate,
-            @Value("${logistics.event.topic:logistics-events}") String logisticsEventTopic) {
+            KafkaTemplate<String, String> logisticsEventKafkaTemplate
+    ) {
         this.logisticsEventKafkaTemplate = logisticsEventKafkaTemplate;
-        this.logisticsEventTopic = logisticsEventTopic;
     }
 
     /**

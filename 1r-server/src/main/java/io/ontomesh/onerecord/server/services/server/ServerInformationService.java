@@ -48,6 +48,7 @@ public class ServerInformationService {
         log.info("Creating the {} server information from the resource.", serverProperties.getUrl());
         String serverInfoContentAsString = serverInfo.getContentAsString(Charset.defaultCharset());
         serverInfoContentAsString = serverInfoContentAsString.replace("${{onerecord.server.url}}", serverProperties.getUrl());
+        serverInfoContentAsString = serverInfoContentAsString.replace("${{onerecord.server.identifier}}", serverProperties.getIdentifier());
         log.info("Server Information: {}", serverInfoContentAsString);
         Model serverInfoModel = Rio.parse(IOUtils.toInputStream(serverInfoContentAsString, Charset.defaultCharset()),
                 RDFFormat.JSONLD);

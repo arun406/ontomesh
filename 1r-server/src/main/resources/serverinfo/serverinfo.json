@@ -7,7 +7,7 @@
   "@type": "api:ServerInformation",
   "api:hasDataHolder": {
     "@type": "cargo:Company",
-    "@id": "${{onerecord.server.url}}/logistics-objects/ontomesh"
+    "@id": "${{onerecord.server.url}}/logistics-objects/${{onerecord.server.identifier}}"
   },
   "api:hasServerEndpoint": "${{onerecord.server.url}}",
   "api:hasSupportedApiVersion": [

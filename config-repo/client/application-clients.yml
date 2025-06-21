@@ -1,9 +1,9 @@
 app:
   webclients:
     - name: Subscriber1
-      clientId: "http://server.ontomesh.io/logistics-objects/24596a9f-f974-41dd-b6e5-2905ca3da20d"
-      baseUrl: http://server.ontomesh.io:90
-      description: Subscriber 1 one record server
+      clientId: http://forwarder.ontomesh.io:4200/logistics-objects/5f1a4869-e324-45b1-9ab0-60271ba54185
+      baseUrl: http://forwarder.ontomesh.io:4200
+      description: Fowarder one record server
       services:
         - key: notifications
           endpoint:
@@ -11,21 +11,23 @@ app:
             path: /notifications
             headers:
               - key: Accept
+                value: application/ld+json
+              - key: Content-Type
                 value: application/ld+json
             requestBody: "java.lang.String"
             responseBody: "java.lang.Void"
 
-    - name: Subscriber2
-      clientId: "http://server.ontomesh.io/logistics-objects/piece-24596a9f-f974-41dd-b6e5-2905ca3da20e"
-      baseUrl: http://server.ontomesh.io:70
-      description: Subscriber 2 one record server
-      services:
-        - key: notifications
-          endpoint:
-            method: POST
-            path: /notifications
-            headers:
-              - key: Accept
-                value: application/ld+json
-            requestBody: "java.lang.String"
-            responseBody: "java.lang.Void"
+#    - name: Subscriber2
+#      clientId: "http://server.ontomesh.io/logistics-objects/piece-24596a9f-f974-41dd-b6e5-2905ca3da20e"
+#      baseUrl: http://server.ontomesh.io:70
+#      description: Subscriber 2 one record server
+#      services:
+#        - key: notifications
+#          endpoint:
+#            method: POST
+#            path: /notifications
+#            headers:
+#              - key: Accept
+#                value: application/ld+json
+#            requestBody: "java.lang.String"
+#            responseBody: "java.lang.Void"

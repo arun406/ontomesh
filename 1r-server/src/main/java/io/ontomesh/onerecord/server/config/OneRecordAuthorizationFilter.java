@@ -29,6 +29,13 @@ public class OneRecordAuthorizationFilter extends OncePerRequestFilter {
 
     private final AuthorizationService authorizationService;
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        log.debug("path : {} ", path);
+        return path.matches("^/$|^/notifications/?$");
+    }
+
     /**
      * Perform Authorization.
      *

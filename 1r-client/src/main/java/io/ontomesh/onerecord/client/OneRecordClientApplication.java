@@ -18,6 +18,6 @@ public class OneRecordClientApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-
+        log.info("one record client stared......");
     }
 }

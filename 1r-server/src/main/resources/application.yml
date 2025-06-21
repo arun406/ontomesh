@@ -25,6 +25,7 @@ spring:
   application:
     name: server
   config:
-    import: "${CONFIG_SERVER_URL:optional:configserver:http://config:server@config-server:8080}"
+    import: "optional:configserver:http://config:server@localhost:8888"
+    #    import: "${CONFIG_SERVER_URL:optional:configserver:http://config:server@config-server:8080}"
     username: ${CONFIG_USERNAME:config}
     password: ${CONFIG_PASSWORD:server}

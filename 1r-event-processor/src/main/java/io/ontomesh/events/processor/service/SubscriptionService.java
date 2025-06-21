@@ -42,7 +42,7 @@ public class SubscriptionService {
                 .stream()
                 .filter(IRI.class::isInstance)
                 .map(IRI.class::cast)
-                .filter(iri -> !model.filter(iri, INCLUDE_SUBSCRIPTION_EVENT_TYPE, eventType).isEmpty())
+//                .filter(iri -> !model.filter(iri, INCLUDE_SUBSCRIPTION_EVENT_TYPE, eventType).isEmpty())
                 .forEach(iri -> subscribersMap.put(iri, model.filter(iri, null, null)));
 
         log.info("No of subscribers available for the event {} of lo id {} of type {} is {}",
