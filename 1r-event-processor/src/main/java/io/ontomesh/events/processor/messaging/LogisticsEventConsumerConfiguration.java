@@ -58,19 +58,38 @@ public class LogisticsEventConsumerConfiguration {
             String payload = message.getPayload();
             String contentType = getContentType(message.getHeaders());
             IRI notificationId = getNotificationId(message);
-            log.debug("Content Type [{}], Key [{}] ", contentType, notificationId);
+            String topicName = getTopicName(message.getHeaders());
+            
+            log.info("=== EVENT PROCESSOR: INCOMING EVENT RECEIVED ===");
+            log.info("Topic: {}", topicName);
+            log.info("Event ID: {}", notificationId);
+            log.info("Content Type: {}", contentType);
+            log.info("Payload Length: {} characters", payload.length());
+            log.info("Message Headers: {}", message.getHeaders());
+            log.debug("Full Payload: {}", payload);
 
             Model eventModel = this.stringToModelConverter.convert(payload);
             if (eventModel == null) {
+                log.warn("Failed to convert payload to RDF model for event: {} from topic: {}", notificationId, topicName);
                 return;
             }
+            
+            log.info("Successfully converted payload to RDF model for event: {} from topic: {}", notificationId, topicName);
+            log.info("Event model contains {} statements", eventModel.size());
 
             List<Message<String>> notificationMessages =
-                    this.notificationService.createNotificationMessages(notificationId, eventModel);
+                    this.notificationService.createNotificationMessages(notificationId, eventModel, topicName);
+            
+            log.info("Created {} notification messages for event: {} from topic: {}", notificationMessages.size(), notificationId, topicName);
+            
             if (notificationMessages.isEmpty()) {
+                log.info("No notification messages to send for event: {} from topic: {}", notificationId, topicName);
                 return;
             }
-            notificationMessages.forEach(this::send);
+            
+            log.info("Sending {} notification messages for event: {} from topic: {}", notificationMessages.size(), notificationId, topicName);
+            notificationMessages.forEach(msg -> send(msg, topicName));
+            log.info("=== EVENT PROCESSOR: EVENT PROCESSING COMPLETED for topic: {} ===", topicName);
         };
     }
 
@@ -95,11 +114,52 @@ public class LogisticsEventConsumerConfiguration {
     }
 
     /**
+     * Get the topic name from message headers.
+     *
+     * @param headers the message headers
+     * @return the topic name
+     */
+    private static String getTopicName(MessageHeaders headers) {
+        // Try to get topic name from Kafka headers
+        Object topic = headers.get(KafkaHeaders.RECEIVED_TOPIC);
+        if (topic != null) {
+            return topic.toString();
+        }
+        
+        // Try alternative header names
+        Object topicAlt = headers.get("kafka_receivedTopic");
+        if (topicAlt != null) {
+            return topicAlt.toString();
+        }
+        
+        // Try to extract from other headers
+        for (String key : headers.keySet()) {
+            if (key.toLowerCase().contains("topic")) {
+                Object value = headers.get(key);
+                if (value != null) {
+                    return value.toString();
+                }
+            }
+        }
+        
+        // Fallback to a default if not found
+        log.warn("Could not determine topic name from headers: {}", headers.keySet());
+        return "unknown-topic";
+    }
+
+    /**
      * Send the notification message.
      *
      * @param notificationMessage the notification message
+     * @param topicName           the topic name
      */
-    private void send(Message<String> notificationMessage) {
+    private void send(Message<String> notificationMessage, String topicName) {
+        log.info("Sending notification message to output stream (from topic: {})", topicName);
+        log.debug("Notification message headers: {}", notificationMessage.getHeaders());
+        log.debug("Notification message payload length: {} characters", notificationMessage.getPayload().length());
+        
         this.streamBridge.send("output", notificationMessage);
+        
+        log.info("Notification message sent successfully to output stream (from topic: {})", topicName);
     }
 }

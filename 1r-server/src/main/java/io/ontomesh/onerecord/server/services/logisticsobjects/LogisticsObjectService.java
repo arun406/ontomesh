@@ -212,14 +212,26 @@ public class LogisticsObjectService extends AbstractLogisticsObjectService {
 
     @Transactional
     public void saveLogisticsObject(LogisticsObject logisticsObject) {
+        log.info("saveLogisticsObject called for: {}", logisticsObject.iri());
+        
         validate(logisticsObject);
+        log.debug("Validation passed for: {}", logisticsObject.iri());
 
         // Add Audit: creationDate
         logisticsObject.add(CARGO.creationDate, SimpleValueFactory.getInstance().createLiteral(OffsetDateTime.now(ZoneOffset.UTC)));
+        log.debug("Added creation date for: {}", logisticsObject.iri());
 
         super.saveLogisticsObject(logisticsObject);
+        log.debug("Super.saveLogisticsObject completed for: {}", logisticsObject.iri());
+        
         // create and publish event.
-        addEventToLogisticsObject(NotificationEventType.LOGISTICS_OBJECT_CREATED, logisticsObject.iri());
+        log.info("About to create event for: {}", logisticsObject.iri());
+        try {
+            addEventToLogisticsObject(NotificationEventType.LOGISTICS_OBJECT_CREATED, logisticsObject.iri());
+            log.info("Successfully called addEventToLogisticsObject for: {}", logisticsObject.iri());
+        } catch (Exception e) {
+            log.error("Exception occurred while adding event for: {}", logisticsObject.iri(), e);
+        }
     }
 
     @Transactional

@@ -100,21 +100,41 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
 
     public void addEventToLogisticsObject(IRI loId, NotificationEventType eventType, LogisticsEvent logisticsEvent,
                                           IRI tenant, boolean link) {
-        log.debug("Adding {} event to logistics object {} ", eventType.label(), loId);
+        log.info("=== LOGISTICS EVENT SERVICE: ADDING EVENT TO LOGISTICS OBJECT ===");
+        log.info("Logistics Object ID: {}", loId);
+        log.info("Event Type: {}", eventType.label());
+        log.info("Tenant: {}", tenant);
+        log.info("Link Event: {}", link);
+        log.info("Provided Event: {}", logisticsEvent != null ? logisticsEvent.iri() : "null");
+        
         // Create event if not provided.
         logisticsEvent = Optional.ofNullable(logisticsEvent)
                 .orElseGet(() -> createEventModel(loId, eventType, tenant));
+        
+        log.info("Final Event IRI: {}", logisticsEvent.iri());
 
         // Save the event model to the repository.
+        log.info("Persisting event to repository: {}", logisticsEvent.iri());
         persist(logisticsEvent);
+        log.info("Event persisted successfully: {}", logisticsEvent.iri());
 
         // Link the event to the logistics object if specified.
         if (link) {
+            log.info("Linking event to logistics object: {} -> {}", logisticsEvent.iri(), loId);
             linkToLogisticsObject(loId, logisticsEvent.iri());
+            log.info("Event linked successfully: {} -> {}", logisticsEvent.iri(), loId);
         }
 
         // Publish the event to middleware.
-        publishLogisticsEvent(logisticsEvent, tenant);
+        try {
+            log.info("About to publish logistics event: {} to topic", logisticsEvent.iri());
+            publishLogisticsEvent(logisticsEvent, tenant);
+            log.info("Successfully called publishLogisticsEvent for: {}", logisticsEvent.iri());
+        } catch (Exception e) {
+            log.error("Exception occurred while publishing logistics event: {}", logisticsEvent.iri(), e);
+        }
+        
+        log.info("=== LOGISTICS EVENT SERVICE: EVENT ADDITION COMPLETED ===");
     }
 
     /**
@@ -190,11 +210,36 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
     private void publishLogisticsEvent(LogisticsEvent logisticsEvent, IRI tenant) {
         // Convert the event model to a JSON-LD string.
         String eventString = new ModelToStringConverter(RDFFormat.JSONLD).convert(logisticsEvent.model());
+        
+        log.info("=== LOGISTICS EVENT SERVICE: PUBLISHING EVENT ===");
+        log.info("Event IRI: {}", logisticsEvent.iri());
+        log.info("Tenant: {}", tenant);
+        log.info("Event String Length: {} characters", eventString.length());
+        log.info("Event Model Size: {} statements", logisticsEvent.model().size());
+        log.debug("Event String Content: {}", eventString);
 
         // Send the event to the producer and update its status based on the outcome.
         eventProducer.send(logisticsEvent.iri().stringValue(), eventString, tenant, (result, throwable) -> {
             EventStatus eventStatus = (throwable == null) ? PUBLISHED : FAILED;
+            
+            if (throwable == null) {
+                log.info("=== LOGISTICS EVENT SERVICE: EVENT PUBLISHED SUCCESSFULLY ===");
+                log.info("Event IRI: {}", logisticsEvent.iri());
+                log.info("Tenant: {}", tenant);
+                log.info("Status: {}", eventStatus);
+                log.info("Partition: {}", result.getRecordMetadata().partition());
+                log.info("Offset: {}", result.getRecordMetadata().offset());
+                log.info("Topic: {}", result.getRecordMetadata().topic());
+            } else {
+                log.error("=== LOGISTICS EVENT SERVICE: EVENT PUBLISHING FAILED ===");
+                log.error("Event IRI: {}", logisticsEvent.iri());
+                log.error("Tenant: {}", tenant);
+                log.error("Status: {}", eventStatus);
+                log.error("Error: {}", throwable.getMessage(), throwable);
+            }
+            
             getRepository().update(logisticsEvent.iri(), OntoMesh.hasEventStatus, OntoMesh.hasEventStatusNew, eventStatus.label());
+            log.info("Event status updated in repository: {} -> {}", logisticsEvent.iri(), eventStatus.label());
         });
     }
 
@@ -207,11 +252,20 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      * @return The created LogisticsEvent.
      */
     public LogisticsEvent createEventModel(IRI loId, NotificationEventType eventType, IRI tenant) {
+        log.info("=== LOGISTICS EVENT SERVICE: CREATING EVENT MODEL ===");
+        log.info("Logistics Object ID: {}", loId);
+        log.info("Event Type: {}", eventType.name());
+        log.info("Tenant: {}", tenant);
+        
         IdProvider idProvider = getIdProvider();
         OntoMeshId eventId = idProvider.createUniqueLogisticsEvent(loId);
         IRI eventCodeIRI = idProvider.createInternalIri();
 
         LocalDateTime now = LocalDateTime.now();
+        
+        log.info("Generated Event ID: {}", eventId.iri());
+        log.info("Generated Event Code IRI: {}", eventCodeIRI);
+        log.info("Event Date: {}", now);
 
         // Build model for event
         //@formatter:off
@@ -238,8 +292,15 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
                 .subject(CARGO.ACTUAL)
                     .add(RDF.TYPE, CARGO.EventTimeType);
         //@formatter:on
+        
         // Build and return the event model
-        return new LogisticsEvent(eventId.iri(), builder.build());
+        LogisticsEvent event = new LogisticsEvent(eventId.iri(), builder.build());
+        
+        log.info("Event model created successfully: {}", event.iri());
+        log.info("Event model contains {} statements", event.model().size());
+        log.info("=== LOGISTICS EVENT SERVICE: EVENT MODEL CREATION COMPLETED ===");
+        
+        return event;
     }
 
 

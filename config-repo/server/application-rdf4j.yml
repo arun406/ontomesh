@@ -3,7 +3,7 @@ rdf4j:
   spring:
     repository:
       remote:
-        manager-url: ${REPOSITORY_URL:http://GGKMAC23066.local:7201}
+        manager-url: ${REPOSITORY_URL:http://graphdb:7200}
         name: ${REPOSITORY_NAME:ontomesh}
         username: ${REPOSITORY_USERNAME:admin}
         password: ${REPOSITORY_PASSWORD:admin}

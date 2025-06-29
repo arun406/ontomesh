@@ -6,11 +6,11 @@ spring:
           consumeNotification-in-0: input
       bindings:
         input:
-          destination: ${LOGISTICS_EVENTS_NOTIFICATION_TOPIC:notifications}
+          destination: ${KAFKA_TOPIC_CLIENT:logistics-client}
           group: notification-group-01
       kafka:
         binder:
-          brokers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092,localhost:39092,localhost:49092}
+          brokers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
         #          #          defaultBrokerPort: 9092
         #          #Default empty
         #          configuration:

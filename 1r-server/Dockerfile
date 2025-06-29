@@ -7,18 +7,24 @@ WORKDIR /app
 #COPY ${DEPENDENCY}/BOOT-INF/classes /app
 #ENTRYPOINT ["java","-cp","app:app/lib/*","io.ontomesh.onerecord.server.OneRecordServerApplication"]
 
-COPY ./tls.crt /usr/local/share/ca-certificates/keycloak.crt
+# Copy certificate initialization script
+COPY ./init-certs.sh /app/init-certs.sh
+RUN chmod +x /app/init-certs.sh
 
-# Import the certificate into the JVM's truststore
-RUN keytool -importcert \
-    -file /usr/local/share/ca-certificates/keycloak.crt \
-    -keystore /usr/lib/jvm/java-21-amazon-corretto/lib/security/cacerts \
-    -storepass changeit \
-    -noprompt
-
+# Copy the application jar
 COPY target/*.jar app.jar
 
-ENTRYPOINT  java -jar /app/app.jar
+# Create entrypoint script that initializes certificates before starting the application
+RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
+    echo 'set -e' >> /app/entrypoint.sh && \
+    echo 'echo "Starting certificate initialization..."' >> /app/entrypoint.sh && \
+    echo '/app/init-certs.sh' >> /app/entrypoint.sh && \
+    echo 'echo "Starting application..."' >> /app/entrypoint.sh && \
+    echo 'exec java -jar /app/app.jar' >> /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+
 #                -javaagent:/app/opentelemetry-javaagent.jar \
 #                -Dotel.traces.exporter=otlp \
 #                -Dotel.metrics.exporter=otlp \

@@ -25,6 +25,10 @@
         <maven.compiler.target>21</maven.compiler.target>
         <logbook.version>3.9.0</logbook.version>
         <jackson-bom.version>2.17.3</jackson-bom.version>
+        <lombok.version>1.18.30</lombok.version>
+        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
+        <spring-boot-maven-plugin.version>3.3.8</spring-boot-maven-plugin.version>
     </properties>
     <modules>
         <module>ontomesh-core</module>
@@ -108,6 +112,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>

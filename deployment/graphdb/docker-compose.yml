@@ -1,45 +1,58 @@
 services:
-  graphdb-node-1:
+  graphdb:
     image: ontotext/graphdb:10.8.0
-    container_name: graphdb-node-1
+    container_name: graphdb
     ports:
       - "7200:7200"
       - "7300:7300"
     environment:
       - GRAPHDB_AUTH_TOKEN_SECRET=superSecretToken
+      - GRAPHDB_HEAP_SIZE=2G
+      - GRAPHDB_MAX_MEMORY=2G
     command: [ "/opt/graphdb/dist/bin/graphdb", "-Dgraphdb.auth.token.secret=superSecretToken" ]
     volumes:
-      - graphdb_data_1:/opt/graphdb/home
+      - graphdb_data:/opt/graphdb/home
     networks:
-      - graphdb-cluster
-    restart: always
+      - graphdb-network
+    restart: unless-stopped
     healthcheck:
-      test: "curl -f http://localhost:7200/rest/repositories || exit 1"
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7200/rest/repositories"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   graph-db-setup:
     image: ontotext/graphdb:10.8.0
     entrypoint: [ "/bin/bash", "-c" ]
     restart: "no"
     depends_on:
-      graph-db:
+      graphdb:
         condition: service_healthy
     command:
-      - /opt/ontomesh/graphdb/init.sh
+      - |
+        # Install curl if not available
+        if ! command -v curl &> /dev/null; then
+          apt-get update && apt-get install -y curl
+        fi
+        # Wait a bit more for GraphDB to be fully ready
+        sleep 10
+        /opt/ontomesh/graphdb/init-repo.sh
     environment:
       - ONTOMESH_REPO_ID=ontomesh
     volumes:
-      - "./graphdb/init.sh:/opt/neone/graphdb/init.sh"
-      - "./graphdb/neone-repository.ttl:/opt/neone/graphdb/neone-repository.ttl"
+      - "./init-repo.sh:/opt/ontomesh/graphdb/init-repo.sh"
+      - "./repo-ontomesh.ttl:/opt/ontomesh/graphdb/repo-ontomesh.ttl"
+      - "./IATA-1R-DM-Ontology.ttl:/opt/ontomesh/graphdb/IATA-1R-DM-Ontology.ttl"
+    networks:
+      - graphdb-network
 
 networks:
-  graphdb-cluster:
+  graphdb-network:
     driver: bridge
 
 volumes:
-  graphdb_data_1:
+  graphdb_data:
     driver: local
 #  graphdb_data_2:
 #    driver: local

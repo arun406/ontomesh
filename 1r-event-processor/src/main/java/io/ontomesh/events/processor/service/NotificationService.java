@@ -57,24 +57,45 @@ public class NotificationService {
      *
      * @param subject    the subject IRI representing the event entity
      * @param eventModel the RDF model containing event details
+     * @param topicName  the topic name where the event was received from
      * @return a list of notification messages to be sent, or an empty list if no notifications are needed
      */
-    public List<Message<String>> createNotificationMessages(IRI subject, Model eventModel) {
+    public List<Message<String>> createNotificationMessages(IRI subject, Model eventModel, String topicName) {
+        log.info("Processing event: {} from topic: {}", subject, topicName);
+        
         Optional<IRI> loIdOpt = Models.objectIRI(eventModel.filter(subject, EVENT_FOR, null));
-        if (loIdOpt.isEmpty()) return Collections.emptyList();
+        if (loIdOpt.isEmpty()) {
+            log.warn("No logistics object found for event: {} from topic: {}", subject, topicName);
+            return Collections.emptyList();
+        }
 
         IRI loId = loIdOpt.get();
+        log.info("Event is for logistics object: {} from topic: {}", loId, topicName);
+        
         IRI loType = Models.objectIRI(eventModel.filter(loId, RDF.TYPE, null)).orElse(null);
         IRI eventType = extractEventType(eventModel, loId);
 
-        if (eventType == null) return Collections.emptyList();
+        if (eventType == null) {
+            log.warn("Could not determine event type for event: {} from topic: {}", subject, topicName);
+            return Collections.emptyList();
+        }
+        
+        log.info("Event type: {} from topic: {}", eventType, topicName);
 
         Map<IRI, Model> subscribersMap = subscriptionService.listSubscribers(loId, loType, eventType);
-        if (subscribersMap.isEmpty()) return Collections.emptyList();
+        log.info("Found {} subscribers for logistics object: {} with event type: {} from topic: {}", subscribersMap.size(), loId, eventType, topicName);
+        
+        if (subscribersMap.isEmpty()) {
+            log.info("No subscribers found for event: {} from topic: {}", subject, topicName);
+            return Collections.emptyList();
+        }
 
-        return createNotifications(subscribersMap, eventType, loType, loId).stream()
+        List<Message<String>> notifications = createNotifications(subscribersMap, eventType, loType, loId).stream()
                 .map(n -> createNotificationMessage(subject, n))
                 .collect(Collectors.toList());
+                
+        log.info("Created {} notification messages for event: {} from topic: {}", notifications.size(), subject, topicName);
+        return notifications;
     }
 
     /**

@@ -30,6 +30,11 @@ logging:
   level:
     reactor.netty: INFO
     org.springframework.cloud.gateway: INFO
+    io.ontomesh.onerecord.server: DEBUG
+    io.ontomesh.onerecord.server.event: DEBUG
+    io.ontomesh.onerecord.server.services.logisticsobjects.events: DEBUG
+    org.apache.kafka: INFO
+    org.springframework.kafka: INFO
 
 server.ssl.trust-store: "classpath:1r-server-truststore.jks"
 server.ssl.trust-store-password: changeit

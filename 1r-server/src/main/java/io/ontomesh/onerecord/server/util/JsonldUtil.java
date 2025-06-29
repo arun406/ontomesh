@@ -59,9 +59,23 @@ public class JsonldUtil {
         Map<String, Object> result = new HashMap<>();
         for (Map<String, Object> objectMap : graph) {
             Object o = objectMap.get("@type");
-            if (o != null && ((String) o).equals(type.toString())) {
-                result = objectMap;
-                break;
+            if (o != null) {
+                boolean typeMatches = false;
+                if (o instanceof String) {
+                    typeMatches = ((String) o).equals(type.toString());
+                } else if (o instanceof List) {
+                    List<?> typeList = (List<?>) o;
+                    for (Object typeItem : typeList) {
+                        if (typeItem instanceof String && ((String) typeItem).equals(type.toString())) {
+                            typeMatches = true;
+                            break;
+                        }
+                    }
+                }
+                if (typeMatches) {
+                    result = objectMap;
+                    break;
+                }
             }
         }
         return result;
