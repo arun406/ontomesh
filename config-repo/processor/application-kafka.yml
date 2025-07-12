@@ -1,35 +1,45 @@
-#-----------------Spring configuration -----------------------#
+#===============================================================================
+# KAFKA CONFIGURATION FOR EVENT PROCESSOR
+#===============================================================================
+# This configuration defines Kafka settings for the 1r-event-processor service.
+# The processor consumes logistics events from Kafka topics and processes them.
+
+#----------------- SPRING KAFKA CONFIGURATION -----------------#
 spring:
-  #--------- Spring Kafka configurations ------------#
   kafka:
+    # Kafka broker connection settings
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    
+    # Consumer configuration
     consumer:
+      # Consumer group ID - must be unique per consumer group
       group-id: ${KAFKA_CONSUMER_GROUP_ID:logistics-processor-group-03}
+      
+      # Offset reset behavior when no offset is stored
       auto-offset-reset: ${KAFKA_CONSUMER_AUTO_OFFSET_RESET:earliest}
+      
+      # Manual commit mode for better control
       enable-auto-commit: false
       auto-commit-interval: ${KAFKA_CONSUMER_AUTO_COMMIT_INTERVAL:1000}
+      
+      # Session and heartbeat settings for consumer group management
       session-timeout: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
       heartbeat-interval: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
+      
+      # Polling configuration for message processing
       max-poll-interval: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL:300000}
       max-poll-records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500}
+      
+      # Fetch configuration for message retrieval
       fetch-min-bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1}
       fetch-max-wait: ${KAFKA_CONSUMER_FETCH_MAX_WAIT:500}
+      
+      # Serialization settings
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
-# Kafka topic configuration
-kafka:
-  topic:
-    processor: ${KAFKA_TOPIC_PROCESSOR:logistics-events}
-  consumer:
-    group-id: ${KAFKA_CONSUMER_GROUP_ID:logistics-processor-group-03}
-    auto-offset-reset: ${KAFKA_CONSUMER_AUTO_OFFSET_RESET:earliest}
-    enable-auto-commit: false
-    auto-commit-interval: ${KAFKA_CONSUMER_AUTO_COMMIT_INTERVAL:1000}
-    session-timeout: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
-    heartbeat-interval: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
-    max-poll-interval: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL:300000}
-    max-poll-records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500}
-    fetch-min-bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1}
-    fetch-max-wait: ${KAFKA_CONSUMER_FETCH_MAX_WAIT:500}
-  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+#----------------- APPLICATION KAFKA TOPIC CONFIGURATION -----------------#
+# Custom topic configuration for the application
+    topic: ${KAFKA_TOPIC_PROCESSOR:logistics-events}
+      # Topic name for logistics events processing
+#      processor: ${KAFKA_TOPIC_PROCESSOR:logistics-events}

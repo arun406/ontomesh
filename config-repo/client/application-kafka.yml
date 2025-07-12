@@ -1,39 +1,26 @@
+#===============================================================================
+# KAFKA CONFIGURATION FOR ONE RECORD CLIENT
+#===============================================================================
+# This configuration defines Kafka settings for the 1r-client service.
+# The client consumes notification events from Kafka topics and processes them.
+
+#----------------- SPRING KAFKA CONFIGURATION -----------------#
 spring:
-  cloud:
-    stream:
-      function:
-        bindings:
-          consumeNotification-in-0: input
-      bindings:
-        input:
-          destination: ${KAFKA_TOPIC_CLIENT:logistics-client}
-          group: notification-client-group-01
-      kafka:
-        binder:
-          brokers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
-        #          #          defaultBrokerPort: 9092
-        #          #Default empty
-        #          configuration:
-        #          #Default 10
-        #          healthTimeout: 20
-        #          #Default
-        #          requiredAcks: 1
-        #          #Default 1
-        #          replicationFactor: 1
-        #          #Default is true
-        #          autoCreateTopics: true
-        bindings:
-          input:
-            consumer:
-              autoCommitOffset: false
-              ackEachRecord: false
-              startOffset:
-              standardHeaders: both
-              configuration:
-                commit.interval.ms: 1000
-                max.poll.records: 10
-              #                default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-              #                default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-#              enableDlq: true
-#              dlqName: ontomesh.onerecord.client.notifications.dql
-#              dlqProducerProperties:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:notification-client-group}
+      auto-offset-reset: ${KAFKA_CONSUMER_AUTO_OFFSET_RESET:earliest}
+      enable-auto-commit: false
+      auto-commit-interval: ${KAFKA_CONSUMER_AUTO_COMMIT_INTERVAL:1000}
+      session-timeout: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
+      heartbeat-interval: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
+      max-poll-interval: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL:300000}
+      max-poll-records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500}
+      fetch-min-bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1}
+      fetch-max-wait: ${KAFKA_CONSUMER_FETCH_MAX_WAIT:500}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+#----------------- APPLICATION KAFKA TOPIC CONFIGURATION -----------------
+    topic: ${KAFKA_TOPIC_NOTIFICATION:notifications}

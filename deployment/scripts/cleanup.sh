@@ -43,8 +43,41 @@ confirm_action() {
     fi
 }
 
+# Function to stop all running containers
+stop_all_containers() {
+    print_status "Stopping all running containers..."
+    
+    # Get list of running containers
+    local running_containers=$(docker ps -q)
+    
+    if [[ -n "$running_containers" ]]; then
+        print_status "Found running containers, stopping them..."
+        docker stop $running_containers
+        print_success "All containers stopped"
+    else
+        print_status "No running containers found"
+    fi
+}
+
+# Function to remove all containers
+remove_all_containers() {
+    print_status "Removing all containers..."
+    
+    # Get list of all containers (including stopped ones)
+    local all_containers=$(docker ps -aq)
+    
+    if [[ -n "$all_containers" ]]; then
+        print_status "Found containers, removing them..."
+        docker rm $all_containers
+        print_success "All containers removed"
+    else
+        print_status "No containers found"
+    fi
+}
+
 # Stop and remove application containers
 print_status "Stopping application containers..."
+cd ../application
 docker compose down --remove-orphans --volumes
 
 # Stop and remove Kafka cluster
@@ -52,6 +85,22 @@ print_status "Stopping Kafka cluster..."
 cd ../kafka
 docker compose down --remove-orphans --volumes
 cd ../application
+
+# Ensure all containers are stopped and removed
+stop_all_containers
+remove_all_containers
+
+# Wait a moment to ensure all containers are fully stopped
+print_status "Waiting for containers to fully stop..."
+sleep 3
+
+# Verify no containers are running
+running_count=$(docker ps -q | wc -l)
+if [[ $running_count -gt 0 ]]; then
+    print_warning "Some containers are still running. Attempting to force stop..."
+    docker ps -q | xargs -r docker stop --time=10
+    sleep 2
+fi
 
 # Remove all OntoMesh images
 print_status "Removing OntoMesh images..."
