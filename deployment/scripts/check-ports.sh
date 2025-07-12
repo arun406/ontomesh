@@ -8,32 +8,27 @@ set -e
 echo "Checking OntoMesh port configuration and service connectivity..."
 echo ""
 
-# Define ports to check
-declare -A ports=(
-    ["Config Server"]="8888"
-    ["Service Discovery"]="8761"
-    ["1r-client"]="8081"
-    ["1r-processor"]="8083"
-    ["1r-server"]="8085"
-    ["Kafka"]="9092"
-    ["Keycloak"]="8443"
-    ["GraphDB REST"]="7200"
-    ["GraphDB Workbench"]="7300"
-)
+# Define ports to check using simple arrays
+services=("Config_Server" "Service_Discovery" "OneR_Client" "OneR_Processor" "OneR_Server" "Kafka" "Keycloak" "GraphDB_REST" "GraphDB_Workbench")
+ports=("8888" "8761" "8081" "8083" "8085" "9092" "8443" "7200" "7300")
 
 # Check port availability
 echo "=== Port Availability Check ==="
 all_ports_available=true
 
-for service in "${!ports[@]}"; do
-    port=${ports[$service]}
+for i in "${!services[@]}"; do
+    service="${services[$i]}"
+    port="${ports[$i]}"
+    
+    # Convert underscore back to space for display
+    display_name=$(echo "$service" | sed 's/_/ /g')
     
     # Check if port is in use
-    if lsof -i :$port >/dev/null 2>&1; then
-        echo "⚠  Port $port ($service) is in use"
+    if lsof -i :"$port" >/dev/null 2>&1; then
+        echo "⚠  Port $port ($display_name) is in use"
         all_ports_available=false
     else
-        echo "✓  Port $port ($service) is available"
+        echo "✓  Port $port ($display_name) is available"
     fi
 done
 
@@ -62,11 +57,34 @@ echo "Checking service health..."
 
 # Application services
 for service in "config-server" "service-discovery" "1r-client" "1r-processor" "1r-server"; do
-    port=${ports[$(echo $service | sed 's/-/ /g' | sed 's/1r/1r-/')]}
+    # Map service names to display names
+    case $service in
+        "config-server")
+            display_name="Config Server"
+            port="8888"
+            ;;
+        "service-discovery")
+            display_name="Service Discovery"
+            port="8761"
+            ;;
+        "1r-client")
+            display_name="1r-client"
+            port="8081"
+            ;;
+        "1r-processor")
+            display_name="1r-processor"
+            port="8083"
+            ;;
+        "1r-server")
+            display_name="1r-server"
+            port="8085"
+            ;;
+    esac
+    
     if curl -s -f "http://localhost:$port/actuator/health" >/dev/null 2>&1; then
-        echo "✓ $service (port $port) is healthy"
+        echo "✓ $display_name (port $port) is healthy"
     else
-        echo "⚠ $service (port $port) is not responding"
+        echo "⚠ $display_name (port $port) is not responding"
     fi
 done
 

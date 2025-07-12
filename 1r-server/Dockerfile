@@ -14,13 +14,16 @@ RUN chmod +x /app/init-certs.sh
 # Copy the application jar
 COPY target/*.jar app.jar
 
+# Set JVM memory settings for local deployment
+ENV JAVA_OPTS="-Xms512m -Xmx1g -XX:+UseG1GC -XX:+UseContainerSupport"
+
 # Create entrypoint script that initializes certificates before starting the application
 RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
     echo 'set -e' >> /app/entrypoint.sh && \
     echo 'echo "Starting certificate initialization..."' >> /app/entrypoint.sh && \
     echo '/app/init-certs.sh' >> /app/entrypoint.sh && \
     echo 'echo "Starting application..."' >> /app/entrypoint.sh && \
-    echo 'exec java -jar /app/app.jar' >> /app/entrypoint.sh && \
+    echo 'exec java $JAVA_OPTS -jar /app/app.jar' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]

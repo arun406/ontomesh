@@ -4,7 +4,7 @@ This directory contains scripts to automatically build, deploy, and manage the O
 
 ## Scripts Overview
 
-### 1. `start-fresh.sh` - Complete Fresh Build and Deploy
+### 1. `../scripts/start-fresh.sh` - Complete Fresh Build and Deploy
 **Use this when you want to rebuild everything from scratch**
 
 This script:
@@ -16,10 +16,11 @@ This script:
 - Checks service health and shows logs for any issues
 
 ```bash
+cd ../scripts
 ./start-fresh.sh
 ```
 
-### 2. `docker-up.sh` - Docker Compose Fresh Start
+### 2. `../scripts/docker-up.sh` - Docker Compose Fresh Start
 **Use this when you only want to rebuild Docker images (assumes Maven projects are already built)**
 
 This script:
@@ -30,10 +31,11 @@ This script:
 - Checks service health
 
 ```bash
+cd ../scripts
 ./docker-up.sh
 ```
 
-### 3. `cleanup.sh` - Clean Up Old Resources
+### 3. `../scripts/cleanup.sh` - Clean Up Old Resources
 **Use this to remove old containers, images, and volumes**
 
 This script:
@@ -44,6 +46,7 @@ This script:
 - Removes unused networks
 
 ```bash
+cd ../scripts
 ./cleanup.sh
 ```
 
@@ -122,21 +125,23 @@ docker compose up -d --force-recreate [service-name]
 
 ### Clean Everything and Start Fresh
 ```bash
+cd ../scripts
 ./cleanup.sh
+cd ../scripts
 ./start-fresh.sh
 ```
 
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Maven installed (for `start-fresh.sh`)
+- Maven installed (for `../scripts/start-fresh.sh`)
 - Java 21+ installed (for Maven builds)
 - Environment variables configured (see `env.example`)
 
 ## Notes
 
-- The `start-fresh.sh` script builds all Maven projects, which can take several minutes
-- The `docker-up.sh` script is faster as it only rebuilds Docker images
-- Use `cleanup.sh` carefully as it can delete all data in GraphDB and PostgreSQL
+- The `../scripts/start-fresh.sh` script builds all Maven projects, which can take several minutes
+- The `../scripts/docker-up.sh` script is faster as it only rebuilds Docker images
+- Use `../scripts/cleanup.sh` carefully as it can delete all data in GraphDB and PostgreSQL
 - All scripts include colored output and status messages for better visibility
 - Scripts will exit on any error to prevent partial deployments 

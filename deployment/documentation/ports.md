@@ -51,7 +51,7 @@
 ### Infrastructure Services
 - Keycloak: `https://localhost:8443/health/ready`
 - GraphDB: `http://localhost:7200/rest/repositories`
-- Kafka: Internal health check via `kafka-topics.sh`
+- Kafka: Internal health check via `kafka-topics.sh` (from scripts directory)
 
 ## Network Configuration
 

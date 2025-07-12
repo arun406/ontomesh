@@ -3,7 +3,10 @@ WORKDIR /app
 COPY target/*.jar app.jar
 EXPOSE 8080
 
-ENTRYPOINT java -jar /app/app.jar
+# Set JVM memory settings for local deployment
+ENV JAVA_OPTS="-Xms128m -Xmx256m -XX:+UseG1GC -XX:+UseContainerSupport"
+
+ENTRYPOINT java $JAVA_OPTS -jar /app/app.jar
 #                -javaagent:/app/opentelemetry-javaagent.jar \
 #                -Dotel.traces.exporter=otlp \
 #                -Dotel.metrics.exporter=otlp \

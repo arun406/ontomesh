@@ -24,7 +24,7 @@ public class KafkaConfig {
     @Value(value = "${spring.kafka.client-id:client-1}")
     private String clientId;
 
-    @Value(value = "${spring.kafka.consumer.group-id:group-1")
+    @Value(value = "${spring.kafka.consumer.group-id:group-1}")
     private String groupId;
 
     private Map<String, Object> getConsumerProps() {

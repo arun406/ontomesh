@@ -2,7 +2,7 @@
 onerecord:
   logistics:
     events:
-      destination: ${KAFKA_TOPIC_SERVER:logistics-server}
+      destination: ${KAFKA_TOPIC_PROCESSOR:logistics-events}
   server:
     identifier: ${LOGISTICS_SERVER_ID:5f1a4869-e324-45b1-9ab0-60271ba54185}
     internalIriScheme: ${IRI_SCHEME:ontomesh}

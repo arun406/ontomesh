@@ -1,44 +1,35 @@
 #-----------------Spring configuration -----------------------#
 spring:
-  #--------- Spring cloud stream configurations ------------#
-  cloud:
-    stream:
-      function:
-        bindings:
-          processEvents-in-0: input
-          processEvents-out-0: output
-      bindings:
-        input:
-          destination: ${KAFKA_TOPIC_PROCESSOR:logistics-processor}
-          group: logistics-group-01
-          consumer:
-            use-native-decoding: true
-        output:
-          destination: ${LOGISTICS_EVENTS_NOTIFICATION_TOPIC:logistics-events-notification}
-          content-type: text/plain
-          producer:
-            use-native-encoding: true
-      #-------- Kafka binder configuration ------------#
-      #https://docs.spring.io/spring-cloud-stream/reference/kafka/kafka-binder/config-options.html
-      kafka:
-        bindings:
-          output:
-            producer:
-              configuration:
-                "key.serializer": org.apache.kafka.common.serialization.StringSerializer
-                "value.serializer": org.apache.kafka.common.serialization.StringSerializer
-          input:
-            consumer:
-              enableDlq: true
-              dlqName: logistics-events-dlq
-              dqlProducerProperties:
-                configuration:
-                  value.serializer: org.apache.kafka.common.serialization.StringSerializer
-              configuration:
-                "key.deserializer": org.apache.kafka.common.serialization.StringDeserializer
-                "value.deserializer": org.apache.kafka.common.serialization.StringDeserializer
+  #--------- Spring Kafka configurations ------------#
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:logistics-processor-group-03}
+      auto-offset-reset: ${KAFKA_CONSUMER_AUTO_OFFSET_RESET:earliest}
+      enable-auto-commit: false
+      auto-commit-interval: ${KAFKA_CONSUMER_AUTO_COMMIT_INTERVAL:1000}
+      session-timeout: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
+      heartbeat-interval: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
+      max-poll-interval: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL:300000}
+      max-poll-records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500}
+      fetch-min-bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1}
+      fetch-max-wait: ${KAFKA_CONSUMER_FETCH_MAX_WAIT:500}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
-        binder:
-          brokers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
-          configuration:
-            commit.interval.ms: 10000
+# Kafka topic configuration
+kafka:
+  topic:
+    processor: ${KAFKA_TOPIC_PROCESSOR:logistics-events}
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:logistics-processor-group-03}
+    auto-offset-reset: ${KAFKA_CONSUMER_AUTO_OFFSET_RESET:earliest}
+    enable-auto-commit: false
+    auto-commit-interval: ${KAFKA_CONSUMER_AUTO_COMMIT_INTERVAL:1000}
+    session-timeout: ${KAFKA_CONSUMER_SESSION_TIMEOUT:30000}
+    heartbeat-interval: ${KAFKA_CONSUMER_HEARTBEAT_INTERVAL:3000}
+    max-poll-interval: ${KAFKA_CONSUMER_MAX_POLL_INTERVAL:300000}
+    max-poll-records: ${KAFKA_CONSUMER_MAX_POLL_RECORDS:500}
+    fetch-min-bytes: ${KAFKA_CONSUMER_FETCH_MIN_BYTES:1}
+    fetch-max-wait: ${KAFKA_CONSUMER_FETCH_MAX_WAIT:500}
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}

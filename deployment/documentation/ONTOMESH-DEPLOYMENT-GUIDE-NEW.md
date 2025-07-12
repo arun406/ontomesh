@@ -104,7 +104,7 @@ cd /Users/arun/source/ontomesh/deployment/application
 
 # Verify you're in the correct directory
 ls -la
-# Should show: docker-compose.yml, start-fresh.sh, setup-env.sh, etc.
+# Should show: docker-compose.yml, ../scripts/start-fresh.sh, ../scripts/setup-env.sh, etc.
 ```
 
 ### Step 2: Generate SSL Certificates
@@ -1039,4 +1039,4 @@ curl -f http://localhost:8085/actuator/health
 
 ---
 
-**Need Help?** If you encounter issues not covered in this guide, check the troubleshooting section or create an issue in the project repository.
+**Need Help?** If you encounter issues not covered in this guide, check the troubleshooting section or create an issue in the project repository. 

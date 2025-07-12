@@ -81,13 +81,17 @@ update_env_var() {
     local var_name="$1"
     local new_value="$2"
     local file="$3"
-    
+
+    # Remove newlines from new_value
+    local safe_value
+    safe_value=$(printf '%s' "$new_value" | tr '\n' ' ')
+
     if grep -q "^${var_name}=" "$file"; then
-        # Variable exists, update it - use | as delimiter to avoid issues with slashes
-        sed -i '' "s|^${var_name}=.*|${var_name}=${new_value}|" "$file"
+        # Variable exists, update it using awk for robustness
+        awk -v var="$var_name" -v val="$safe_value" 'BEGIN{found=0} {if($0 ~ "^"var"="){print var"="val; found=1} else {print $0}} END{if(!found) print var"="val}' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
     else
         # Variable doesn't exist, add it
-        echo "${var_name}=${new_value}" >> "$file"
+        echo "${var_name}=${safe_value}" >> "$file"
     fi
 }
 

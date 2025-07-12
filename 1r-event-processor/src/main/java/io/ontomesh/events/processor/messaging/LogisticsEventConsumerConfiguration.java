@@ -6,8 +6,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.util.Values;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.stream.function.StreamBridge;
+//import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -21,37 +20,35 @@ import java.util.function.Consumer;
 
 /**
  * Configuration class for the Logistics Event Consumer.
+ * This class is now deprecated in favor of LogisticsEventKafkaListener.
  */
 @Slf4j
 @Configuration
-@EnableAutoConfiguration
 public class LogisticsEventConsumerConfiguration {
 
-    private final StreamBridge streamBridge;
     private final NotificationService notificationService;
     private final Converter<String, Model> stringToModelConverter;
 
     /**
      * Constructor for LogisticsEventConsumerConfiguration.
      *
-     * @param streamBridge           the stream bridge
      * @param stringToModelConverter the converter from String to Model
      * @param notificationService    the notification service
      */
-    public LogisticsEventConsumerConfiguration(StreamBridge streamBridge,
+    public LogisticsEventConsumerConfiguration(
                                                @Qualifier("stringToJsonLDConverter")
                                                Converter<String, Model> stringToModelConverter,
                                                NotificationService notificationService) {
-        this.streamBridge = streamBridge;
         this.notificationService = notificationService;
         this.stringToModelConverter = stringToModelConverter;
     }
 
     /**
-     * Process Events.
+     * Process Events - DEPRECATED: Use LogisticsEventKafkaListener instead.
      *
      * @return Consumer of Message
      */
+    /*
     @Bean
     public Consumer<Message<String>> processEvents() {
         return (Message<String> message) -> {
@@ -92,6 +89,7 @@ public class LogisticsEventConsumerConfiguration {
             log.info("=== EVENT PROCESSOR: EVENT PROCESSING COMPLETED for topic: {} ===", topicName);
         };
     }
+    */
 
     /**
      * Get the notification id.
@@ -153,13 +151,16 @@ public class LogisticsEventConsumerConfiguration {
      * @param notificationMessage the notification message
      * @param topicName           the topic name
      */
+    /*
     private void send(Message<String> notificationMessage, String topicName) {
         log.info("Sending notification message to output stream (from topic: {})", topicName);
         log.debug("Notification message headers: {}", notificationMessage.getHeaders());
         log.debug("Notification message payload length: {} characters", notificationMessage.getPayload().length());
         
-        this.streamBridge.send("output", notificationMessage);
+        // Note: StreamBridge removed, just log for now
+        log.info("Notification message: {}", notificationMessage.getPayload());
         
         log.info("Notification message sent successfully to output stream (from topic: {})", topicName);
     }
+    */
 }

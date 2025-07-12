@@ -12,16 +12,19 @@ This directory contains the Docker Compose configuration for deploying the compl
 
 1. **Generate SSL certificates:**
    ```bash
+   cd ../scripts
    ./generate-certs.sh
    ```
 
 2. **Check port availability:**
    ```bash
+   cd ../scripts
    ./check-ports.sh
    ```
 
 3. **Set up environment variables:**
    ```bash
+   cd ../scripts
    # Interactive setup (recommended for first time)
    ./setup-env.sh
    
@@ -47,16 +50,19 @@ This directory contains the Docker Compose configuration for deploying the compl
 
 7. **Verify certificate setup:**
    ```bash
+   cd ../scripts
    ./verify-certs.sh
    ```
 
 8. **Verify GraphDB setup:**
    ```bash
+   cd ../scripts
    ./verify-graphdb.sh
    ```
 
 9. **Test IATA ontology:**
    ```bash
+   cd ../scripts
    ./test-ontology.sh
    ```
 
@@ -83,6 +89,7 @@ The `setup-env.sh` script provides a comprehensive way to configure all environm
 
 ### Usage Examples
 ```bash
+cd ../scripts
 # Show available sections
 ./setup-env.sh --show-sections
 
@@ -210,25 +217,25 @@ The deployment uses self-signed SSL certificates for Keycloak HTTPS access. All 
 ### Certificate Files
 - `certs/tls.crt`: Public certificate
 - `certs/tls.key`: Private key
-- `init-certs.sh`: Certificate initialization script
-- `generate-certs.sh`: Certificate generation script
-- `verify-certs.sh`: Certificate verification script
+- `../scripts/init-certs.sh`: Certificate initialization script
+- `../scripts/generate-certs.sh`: Certificate generation script
+- `../scripts/verify-certs.sh`: Certificate verification script
 
 ### Ontology Files
 - `graphdb/IATA-1R-DM-Ontology.ttl`: IATA ONE Record ontology (515KB)
 - `graphdb/repo-ontomesh.ttl`: GraphDB repository configuration
-- `graphdb/init-repo.sh`: Repository and ontology initialization script
+- `../scripts/init-repo.sh`: Repository and ontology initialization script
 
 ### Certificate Workflow
-1. **Generation**: `./generate-certs.sh` creates self-signed certificates
+1. **Generation**: `../scripts/generate-certs.sh` creates self-signed certificates
 2. **Mounting**: Certificates are mounted to all application containers
 3. **Import**: Each container imports certificates into Java truststore at startup
-4. **Verification**: `./verify-certs.sh` validates the setup
+4. **Verification**: `../scripts/verify-certs.sh` validates the setup
 
 ### Certificate Scripts
-- **`generate-certs.sh`**: Creates self-signed certificates for development
-- **`verify-certs.sh`**: Validates certificate configuration and connectivity
-- **`init-certs.sh`**: Imports certificates into Java truststore (used by containers)
+- **`../scripts/generate-certs.sh`**: Creates self-signed certificates for development
+- **`../scripts/verify-certs.sh`**: Validates certificate configuration and connectivity
+- **`../scripts/init-certs.sh`**: Imports certificates into Java truststore (used by containers)
 
 ### Production Considerations
 For production deployments:

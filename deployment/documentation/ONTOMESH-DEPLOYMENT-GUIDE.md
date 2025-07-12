@@ -104,12 +104,13 @@ cd /Users/arun/source/ontomesh/deployment/application
 
 # Verify you're in the correct directory
 ls -la
-# Should show: docker-compose.yml, start-fresh.sh, setup-env.sh, etc.
+# Should show: docker-compose.yml, ../scripts/start-fresh.sh, ../scripts/setup-env.sh, etc.
 ```
 
 ### Step 2: Generate SSL Certificates
 ```bash
 # Generate self-signed certificates for HTTPS services
+cd ../scripts
 ./generate-certs.sh
 
 # Verify certificates were created
@@ -120,6 +121,7 @@ ls -la certs/
 ### Step 3: Check Port Availability
 ```bash
 # Run the port check script
+cd ../scripts
 ./check-ports.sh
 
 # If any ports are in use, stop the conflicting services
@@ -129,6 +131,7 @@ ls -la certs/
 ### Step 4: Configure Environment
 ```bash
 # Interactive setup (recommended for first time)
+cd ../scripts
 ./setup-env.sh
 
 # This will prompt you for various configuration options
@@ -156,6 +159,7 @@ Eureka Password [server]: [Press Enter for default]
 ### Step 5: Start the Complete Stack
 ```bash
 # Complete fresh build (recommended for first time)
+cd ../scripts
 ./start-fresh.sh
 
 # This will:
@@ -289,6 +293,7 @@ config-repo/
 #### Quick Setup with Defaults
 ```bash
 # Use default configuration (recommended for development)
+cd ../scripts
 ./setup-env.sh -n
 
 # This creates a .env file with sensible defaults:
@@ -1039,4 +1044,4 @@ curl -f http://localhost:8085/actuator/health
 
 ---
 
-**Need Help?** If you encounter issues not covered in this guide, check the troubleshooting section or create an issue in the project repository. 
+**Need Help?** If you encounter issues not covered in this guide, check the troubleshooting section or create an issue in the project repository.

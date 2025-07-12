@@ -14,14 +14,15 @@ RUN chmod +x /app/init-certs.sh
 # Copy the application jar
 COPY target/*.jar app.jar
 
-# Create entrypoint script that initializes certificates before starting the application
+# Create entrypoint script that uses JAVA_OPTS
 RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
     echo 'set -e' >> /app/entrypoint.sh && \
-    echo 'echo "Starting certificate initialization..."' >> /app/entrypoint.sh && \
-    echo '/app/init-certs.sh' >> /app/entrypoint.sh && \
     echo 'echo "Starting application..."' >> /app/entrypoint.sh && \
-    echo 'exec java -jar /app/app.jar' >> /app/entrypoint.sh && \
+    echo 'exec java $JAVA_OPTS -jar /app/app.jar' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
+
+# Set JVM memory settings for local deployment
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport"
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 #                -javaagent:/app/opentelemetry-javaagent.jar \

@@ -7,6 +7,25 @@ set -e
 
 echo "Generating SSL certificates for Keycloak..."
 
+# Check for existing certificate files
+if [ -f "certs/tls.key" ] || [ -f "certs/tls.crt" ]; then
+    echo "Warning: Existing certificate files found:"
+    [ -f "certs/tls.key" ] && echo "  - certs/tls.key"
+    [ -f "certs/tls.crt" ] && echo "  - certs/tls.crt"
+    echo ""
+    read -p "Do you want to delete existing certificates and generate new ones? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Operation cancelled. Existing certificates will be preserved."
+        exit 0
+    fi
+    
+    echo "Removing existing certificate files..."
+    rm -f certs/tls.key certs/tls.crt
+    echo "Existing certificates removed."
+    echo ""
+fi
+
 # Create certs directory if it doesn't exist
 mkdir -p certs
 
