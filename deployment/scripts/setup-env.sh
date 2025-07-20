@@ -237,10 +237,10 @@ echo "OntoMesh Environment Setup"
 echo "========================================"
 
 # Check if .env already exists
-if [ -f ".env" ]; then
+if [ -f "deployment/application/.env" ]; then
     if [ "$FORCE" = "true" ]; then
         print_warning "Overwriting existing .env file (--force specified)"
-        rm .env
+        rm deployment/application/.env
     else
         print_warning ".env file already exists!"
         echo ""
@@ -251,12 +251,12 @@ if [ -f ".env" ]; then
             exit 0
         fi
     fi
-    ENV_FILE=".env"
+    ENV_FILE="deployment/application/.env"
 else
     print_info "Creating .env file from env.example..."
-    cp env.example .env
+    cp deployment/application/env.example deployment/application/.env
     print_status ".env file created"
-    ENV_FILE=".env"
+    ENV_FILE="deployment/application/.env"
 fi
 
 echo ""
@@ -310,10 +310,10 @@ echo "Environment Setup Complete!"
 echo "========================================"
 echo ""
 print_info "📋 Key Service Credentials:"
-echo "   Config Server: $(grep '^CONFIG_USERNAME=' .env | cut -d'=' -f2) / $(grep '^CONFIG_PASSWORD=' .env | cut -d'=' -f2)"
-echo "   Eureka Service Discovery: $(grep '^EUREKA_USERNAME=' .env | cut -d'=' -f2) / $(grep '^EUREKA_PASSWORD=' .env | cut -d'=' -f2)"
-echo "   GraphDB: $(grep '^REPOSITORY_USERNAME=' .env | cut -d'=' -f2) / $(grep '^REPOSITORY_PASSWORD=' .env | cut -d'=' -f2)"
-echo "   PostgreSQL: $(grep '^POSTGRES_USER=' .env | cut -d'=' -f2) / $(grep '^POSTGRES_PASSWORD=' .env | cut -d'=' -f2)"
+echo "   Config Server: $(grep '^CONFIG_USERNAME=' deployment/application/.env | cut -d'=' -f2) / $(grep '^CONFIG_PASSWORD=' deployment/application/.env | cut -d'=' -f2)"
+echo "   Eureka Service Discovery: $(grep '^EUREKA_USERNAME=' deployment/application/.env | cut -d'=' -f2) / $(grep '^EUREKA_PASSWORD=' deployment/application/.env | cut -d'=' -f2)"
+echo "   GraphDB: $(grep '^REPOSITORY_USERNAME=' deployment/application/.env | cut -d'=' -f2) / $(grep '^REPOSITORY_PASSWORD=' deployment/application/.env | cut -d'=' -f2)"
+echo "   PostgreSQL: $(grep '^POSTGRES_USER=' deployment/application/.env | cut -d'=' -f2) / $(grep '^POSTGRES_PASSWORD=' deployment/application/.env | cut -d'=' -f2)"
 echo ""
 print_info "🌐 Service URLs:"
 echo "   Config Server: http://localhost:8888"
