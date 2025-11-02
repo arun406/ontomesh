@@ -23,10 +23,10 @@ onerecordServer:
     limits:
       memory: "1Gi"
 
-# Repository Secret
+# Repository Secret of base64 
 repositoryCredentials:
-  username: "b250b21lc2g=" 
-  password: "b250b21lc2g="
+  username: 
+  password: 
 
 # Service
 service:

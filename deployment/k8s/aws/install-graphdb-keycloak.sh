@@ -159,7 +159,11 @@ echo "Deployment complete. GraphDB should be accessible via LoadBalancer service
 # --region $REGION  \
 # --disable-eviction || true
 
-#eksctl delete cluster --name ontomesh --region ap-south-2
+# eksctl delete cluster --name $CLUSTER_NAME  --region $REGION 
+
+# helm uninstall onerecord -n onerecord
+# helm uninstall graphdb --namespace graphdb
+# helm uninstall keycloak -n keycloak
 
 # helm repo add bitnami https://charts.bitnami.com/bitnami
 # helm repo update
