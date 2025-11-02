@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-client
+  labels:
+    app: kafka-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-client
+  template:
+    metadata:
+      labels:
+        app: kafka-client
+    spec:
+      initContainers:
+        - name: download-msk-iam-auth
+          image: curlimages/curl:8.6.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "📥 Downloading AWS MSK IAM Auth plugin..."
+              mkdir -p /opt/kafka/libs && \
+              curl -L -o /opt/kafka/libs/aws-msk-iam-auth.jar \
+              https://github.com/aws/aws-msk-iam-auth/releases/download/v2.3.4/aws-msk-iam-auth-2.3.4-all.jar && \
+              ls -lh /opt/kafka/libs
+          volumeMounts:
+            - name: kafka-libs
+              mountPath: /opt/kafka/libs
+      serviceAccountName: ontonesh-kafka-client-sa
+      containers:
+        - name: kafka-client
+          image: bitnamilegacy/kafka:3.8.0
+          command:
+            - /bin/bash
+            - -c
+          args:
+            - |
+              echo "Installing dependencies..."
+              apt-get update -qq && apt-get install -y -qq netcat unzip python3-pip;
+              pip install awscli --break-system-packages;
+              echo "Ready to run Kafka CLI commands"
+              sleep infinity;
+          env:
+            - name: CLASSPATH
+              value: "/opt/kafka/libs/aws-msk-iam-auth.jar:/opt/bitnami/kafka/libs/*"
+            - name: KAFKA_OPTS
+              value: "-cp /opt/kafka/libs/aws-msk-iam-auth.jar:/opt/bitnami/kafka/libs/*"
+          volumeMounts:
+            - name: kafka-config
+              mountPath: /opt/kafka/config
+            - name: kafka-libs
+              mountPath: /opt/kafka/libs
+      volumes:
+        - name: kafka-config
+          configMap:
+            name: kafka-client-config
+        - name: kafka-libs
+          emptyDir: {}

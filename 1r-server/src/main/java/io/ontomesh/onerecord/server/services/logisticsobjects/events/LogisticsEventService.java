@@ -163,7 +163,7 @@ public class LogisticsEventService extends AbstractLogisticsObjectService {
      */
     private void validate(IRI logisticsObjectIRI) {
         if (!getRepository().findLoById(logisticsObjectIRI).isPresent()) {
-            throw new LogisticsObjectNotFoundException(logisticsObjectIRI, "Logistics Object not found.");
+            throw new LogisticsObjectNotFoundException(logisticsObjectIRI);
         }
     }
 

@@ -10,12 +10,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.LinkedHashModelFactory;
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.BooleanQuery;
-import org.eclipse.rdf4j.query.QueryLanguage;
-import org.eclipse.rdf4j.query.TupleQuery;
-import org.eclipse.rdf4j.query.TupleQueryResult;
-import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.query.*;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -66,7 +61,7 @@ public class AuthorizationService extends AbstractLogisticsObjectService {
         TupleQueryResult result = tupleQuery.evaluate();
 
         if (!result.hasNext()) {
-            throw new LogisticsObjectNotFoundException(iri, "Authorization acl not found.");
+            throw new LogisticsObjectNotFoundException(iri);
         }
         // Create a default model using ModelFactory
         Model model = new LinkedHashModelFactory().createEmptyModel();

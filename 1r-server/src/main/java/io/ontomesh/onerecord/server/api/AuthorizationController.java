@@ -1,25 +1,23 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.authorization.AuthorizationService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectRevisionService;
 import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.eclipse.rdf4j.model.IRI;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
 
+/**
+ * REST controller for managing Authorization ACLs.
+ */
 @RestController
 @RequestMapping("/authorizations-acls")
 public class AuthorizationController extends BaseController {
@@ -27,37 +25,44 @@ public class AuthorizationController extends BaseController {
     private final AuthorizationService authorizationService;
 
     /**
-     * Constructor.
+     * Constructs an AuthorizationController with required dependencies.
      *
-     * @param logisticsObjectService logistics object service.
+     * @param idProvider IdProvider for generating and parsing IDs
+     * @param logisticsObjectRevisionService Service for logistics object revision management
+     * @param logisticsObjectService Service for logistics object operations
+     * @param authorizationService Service for authorization operations
      */
-    public AuthorizationController(LogisticsObjectService logisticsObjectService, AuthorizationService authorizationService) {
-        super(logisticsObjectService);
+    public AuthorizationController(IdProvider idProvider,
+                                   LogisticsObjectRevisionService logisticsObjectRevisionService,
+                                   LogisticsObjectService logisticsObjectService,
+                                   AuthorizationService authorizationService) {
+        super(idProvider, logisticsObjectRevisionService, logisticsObjectService, null, null, null, null);
         this.authorizationService = authorizationService;
     }
 
+    /**
+     * Assigns an ACL to a logistics object.
+     *
+     * @param logisticsObject The logistics object to assign the ACL to
+     * @return ResponseEntity with location header
+     */
     @PostMapping(produces = {}, consumes = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
-    public ResponseEntity<Void> assignACL(@RequestBody LogisticsObject logisticsObject) {
+    public ResponseEntity<Void> assignACL(@Valid @RequestBody LogisticsObject logisticsObject) {
 
         LogisticsObjectService logisticsObjectService = getLogisticsObjectService();
 
         logisticsObjectService.saveLogisticsObject(logisticsObject);
 
-        return ResponseEntity.created(logisticsObject.uri())
-                .headers(httpHeaders -> {
-                    httpHeaders.setLocation(logisticsObject.uri());
-                    httpHeaders.add("Type", "http://www.w3.org/ns/auth/acl#Authorization");
-                })
-                .build();
+        return ResponseEntity.created(logisticsObject.uri()).build();
     }
 
 
     /**
-     * Fetch the ACL by Id
+     * Fetches the ACL by ID.
      *
-     * @param aclId
-     * @param httpServletRequest
-     * @return
+     * @param aclId The ACL ID
+     * @param httpServletRequest The HTTP servlet request
+     * @return The logistics object representing the ACL
      */
     @GetMapping(value = "/{aclId}", produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> getACL(@PathVariable("aclId") String aclId,
@@ -71,11 +76,11 @@ public class AuthorizationController extends BaseController {
 
 
     /**
-     * Delete the ACL by Id
+     * Deletes the ACL by ID.
      *
-     * @param aclId
-     * @param httpServletRequest
-     * @return
+     * @param aclId The ACL ID
+     * @param httpServletRequest The HTTP servlet request
+     * @return ResponseEntity with no content
      */
     @DeleteMapping(value = "/{aclId}", produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> deleteACL(@PathVariable("aclId") String aclId,

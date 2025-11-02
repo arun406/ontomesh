@@ -1,0 +1,12 @@
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: AWS_MSK_IAM
+      sasl.jaas.config: software.amazon.msk.auth.iam.IAMLoginModule required;
+      sasl.client.callback.handler.class: software.amazon.msk.auth.iam.IAMClientCallbackHandler
+    client-id: ${KAFKA_CLIENT_ID:onerecord-server-kafka-client}
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:onerecord-server-group}
+      auto-offset-reset: earliest

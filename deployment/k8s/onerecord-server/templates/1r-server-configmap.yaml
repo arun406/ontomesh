@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: 1r-server-config
+  labels:
+    app: 1r-server
+data:
+  ONERECORD_SERVER_PROFILES: {{ .Values.onerecordConfig.profiles | quote }}
+  KAFKA_TOPIC_PROCESSOR: {{ .Values.onerecordConfig.kafkaTopicProcessor | quote }}
+  IRI_SCHEME: {{ .Values.onerecordConfig.iriScheme | quote }}
+  ONERECORD_SERVER_URL: {{ .Values.onerecordConfig.serverUrl | quote }}
+  ONERECORD_SERVER_PORT: {{ .Values.onerecordConfig.serverPort | quote }}
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.onerecordConfig.kafkaBootstrapServers | quote }}
+  KAFKA_CLIENT_ID: {{ .Values.onerecordConfig.kafkaClientId | quote }}
+  KAFKA_GROUP_ID: {{ .Values.onerecordConfig.kafkaGroupId | quote }}
+  REPOSITORY_URL: {{ .Values.onerecordConfig.repositoryUrl | quote }}
+  REPOSITORY_NAME: {{ .Values.onerecordConfig.repositoryName | quote }}
+  ISSUER_URI: {{ .Values.onerecordConfig.issuerUri | quote }}

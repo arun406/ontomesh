@@ -17,7 +17,7 @@ public class LogisticsEventNotFoundExceptionHandler extends AbstractBadRequestEx
 
     @Override
     public Model getErrorModel(LogisticsEventNotFoundException exception, IRI errorIRI, IRI errorDetailsIRI, HttpStatus httpStatus) {
-        return new ModelBuilder().setNamespace(API.PREFIX, API.NAMESPACE)
+        ModelBuilder builder = new ModelBuilder().setNamespace(API.PREFIX, API.NAMESPACE)
                 .subject(errorIRI)
                 .add(RDF.TYPE, API.Error)
                 .add(API.hasTitle, Values.literal("Logistics Event not found"))
@@ -25,9 +25,14 @@ public class LogisticsEventNotFoundExceptionHandler extends AbstractBadRequestEx
                 .subject(errorDetailsIRI)
                 .add(RDF.TYPE, API.ErrorDetail)
                 .add(API.hasCode, httpStatus.value())
-                .add(API.hasMessage, exception.getMessage())
-                .add(API.hasResource, exception.getIri().stringValue())
-                .build();
+                .add(API.hasMessage, exception.getMessage());
+        
+        // Add resource IRI if available
+        if (exception.getIri() != null) {
+            builder.add(API.hasResource, exception.getIri().stringValue());
+        }
+        
+        return builder.build();
     }
 
     @ExceptionHandler(value = LogisticsEventNotFoundException.class)

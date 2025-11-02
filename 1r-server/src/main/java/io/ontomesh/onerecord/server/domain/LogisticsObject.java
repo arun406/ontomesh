@@ -68,6 +68,14 @@ public record LogisticsObject(IRI iri, IRI type, Model model, Literal revision) 
 
     }
 
+    /**
+     * Returns the latest revision for this logistics object. For now, returns the same as revision().
+     * You can update this logic if you want to fetch the latest revision from a service or repository.
+     */
+    public Integer getLatestRevision() {
+        return revision() != null ? revision().intValue() : null;
+    }
+
     @Transactional
     public void updateRevision(int newRevision) {
         remove(API.hasRevision, null);

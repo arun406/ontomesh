@@ -6,26 +6,32 @@ logging:
     org.eclipse.rdf4j.spring.operationlog.log.slf4: ERROR
     root: INFO
 
-organizations: '[{name=Test Airline, type=airline, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
-    {name=Test GHA, type=gha, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
-    {name=Test Forwarder, type=forwarder, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbdb}]'
+#organizations: '[{name=Test Airline, type=airline, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
+#    {name=Test GHA, type=gha, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbda},
+#    {name=Test Forwarder, type=forwarder, identifier=http://localhost:8080/logistics-objects/957e2622-9d31-493b-8b8f-3c805064dbdb}]'
 
 #----------------- SPRINGBOOT Configuration --------------------#
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URI:https://keycloak.ontomesh.io:8443/realms/ontomesh}
+
   banner:
     location: classpath:banner/banner.txt
   profiles:
-    active: ${ONERECORD_SERVER_PROFILES:kafka,onerecord,rdf4j}
-  cloud:
-    config:
-      label: server
-      fail-fast: true
-      username: ${CONFIG_USERNAME:configuser}
-      password: ${CONFIG_PASSWORD:configpass}
+    active: ${ONERECORD_SERVER_PROFILES:management,kafka,airline-onerecord,rdf4j}
+  #  cloud:
+  #    config:
+  #      label: server
+  #      fail-fast: true
+  #      username: ${CONFIG_USERNAME:configuser}
+  #      password: ${CONFIG_PASSWORD:configpass}
   application:
     name: server
-  config:
-    #    import: "optional:configserver:http://configuser:configpass@localhost:8888"
-    import: "${CONFIG_SERVER_URL:optional:configserver:http://config:server@config-server:8080}"
+#  config:
+#    #    import: "optional:configserver:http://configuser:configpass@localhost:8888"
+#    import: "${CONFIG_SERVER_URL:optional:configserver:http://config:server@config-server:8080}"
 #    username: ${CONFIG_USERNAME:config}
 #    password: ${CONFIG_PASSWORD:server}

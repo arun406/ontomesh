@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 1r-server
+  labels:
+    app: 1r-server
+spec:
+  replicas: {{ .Values.onerecordServer.replicas }}
+  selector:
+    matchLabels:
+      app: 1r-server
+  template:
+    metadata:
+      labels:
+        app: 1r-server
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: {{ .Values.onerecordServer.serviceAccount }}
+      containers:
+        - name: 1r-server
+          image: {{ .Values.onerecordServer.image }}
+          imagePullPolicy: {{ .Values.onerecordServer.imagePullPolicy }}
+          ports:
+            - containerPort: 8080
+
+          envFrom:
+            - configMapRef:
+                name: 1r-server-config
+          env:
+            - name: REPOSITORY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: 1r-server-repository-credentials
+                  key: username
+            - name: REPOSITORY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: 1r-server-repository-credentials
+                  key: password
+            - name: JAVA_OPTS
+              value: "{{ .Values.onerecordServer.javaOpts }}"
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
+          resources:
+            requests:
+              memory: {{ .Values.onerecordServer.resources.requests.memory | quote }}
+            limits:
+              memory: {{ .Values.onerecordServer.resources.limits.memory | quote }}

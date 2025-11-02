@@ -5,41 +5,41 @@ GDB_HOST="http://graphdb:7200"
 ONTOMESH_REPO_ID="${ONTOMESH_REPO_ID:-ontomesh}"
 
 # Function to import the IATA ontology
-import_ontology() {
-    echo "Starting IATA ontology import..."
-    
-    # Wait a bit for repository to be fully ready
-    sleep 5
-    
-    # Import the ontology file
-    import_response=$(curl -X POST "$GDB_HOST/repositories/$ONTOMESH_REPO_ID/statements" \
-        -H 'Content-Type: text/turtle' \
-        -H 'Accept: application/json' \
-        --data-binary @/opt/ontomesh/graphdb/IATA-1R-DM-Ontology.ttl \
-        -w "%{http_code}" \
-        -s)
-    
-    if [ "$import_response" -eq 204 ] || [ "$import_response" -eq 200 ]; then
-        echo "IATA ontology imported successfully!"
-        
-        # Verify the import by checking for ontology triples
-        echo "Verifying ontology import..."
-        verify_response=$(curl -s -G "$GDB_HOST/repositories/$ONTOMESH_REPO_ID/statements" \
-            --data-urlencode "query=SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }" \
-            -H "Accept: application/sparql-results+json")
-        
-        if echo "$verify_response" | grep -q '"count":"[0-9]*"'; then
-            count=$(echo "$verify_response" | grep -o '"count":"[0-9]*"' | grep -o '[0-9]*')
-            echo "Ontology import verified. Total triples in repository: $count"
-        else
-            echo "Warning: Could not verify ontology import"
-        fi
-        
-    else
-        echo "ERROR: Failed to import IATA ontology. HTTP response: $import_response"
-        exit 1
-    fi
-}
+# import_ontology() {
+#     echo "Starting IATA ontology import..."
+#     
+#     # Wait a bit for repository to be fully ready
+#     sleep 5
+#     
+#     # Import the ontology file
+#     import_response=$(curl -X POST "$GDB_HOST/repositories/$ONTOMESH_REPO_ID/statements" \
+#         -H 'Content-Type: text/turtle' \
+#         -H 'Accept: application/json' \
+#         --data-binary @/opt/ontomesh/graphdb/IATA-1R-DM-Ontology.ttl \
+#         -w "%{http_code}" \
+#         -s)
+#     
+#     if [ "$import_response" -eq 204 ] || [ "$import_response" -eq 200 ]; then
+#         echo "IATA ontology imported successfully!"
+#         
+#         # Verify the import by checking for ontology triples
+#         echo "Verifying ontology import..."
+#         verify_response=$(curl -s -G "$GDB_HOST/repositories/$ONTOMESH_REPO_ID/statements" \
+#             --data-urlencode "query=SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }" \
+#             -H "Accept: application/sparql-results+json")
+#         
+#         if echo "$verify_response" | grep -q '"count":"[0-9]*"'; then
+#             count=$(echo "$verify_response" | grep -o '"count":"[0-9]*"' | grep -o '[0-9]*')
+#             echo "Ontology import verified. Total triples in repository: $count"
+#         else
+#             echo "Warning: Could not verify ontology import"
+#         fi
+#         
+#     else
+#         echo "ERROR: Failed to import IATA ontology. HTTP response: $import_response"
+#         exit 1
+#     fi
+# }
 
 echo "Starting GraphDB repository initialization..."
 echo "GraphDB Host: $GDB_HOST"
@@ -73,18 +73,20 @@ if [ "$response" -eq 200 ]; then
     echo "Repository '$ONTOMESH_REPO_ID' already exists."
     
     # Check if ontology is already imported
-    echo "Checking if IATA ontology is already imported..."
-    ontology_check=$(curl -s -G "$GDB_HOST/repositories/$ONTOMESH_REPO_ID/statements" \
-        --data-urlencode "query=ASK { <https://onerecord.iata.org/ns/cargo> a <http://www.w3.org/2002/07/owl#Ontology> }" \
-        -H "Accept: application/sparql-results+json")
-    
-    if echo "$ontology_check" | grep -q '"boolean":true'; then
-        echo "IATA ontology is already imported."
-        exit 0
-    else
-        echo "IATA ontology not found, importing..."
-        import_ontology
-    fi
+    # echo "Checking if IATA ontology is already imported..."
+    # ontology_check=$(curl -s -G "$GDB_HOST/repositories/$ONTOMESH_REPO_ID/statements" \
+    #     --data-urlencode "query=ASK { <https://onerecord.iata.org/ns/cargo> a <http://www.w3.org/2002/07/owl#Ontology> }" \
+    #     -H "Accept: application/sparql-results+json")
+    # 
+    # if echo "$ontology_check" | grep -q '"boolean":true'; then
+    #     echo "IATA ontology is already imported."
+    #     exit 0
+    # else
+    #     echo "IATA ontology not found, importing..."
+    #     import_ontology
+    # fi
+    echo "Repository initialization completed successfully."
+    exit 0
 else
     echo "Repository '$ONTOMESH_REPO_ID' not found. Creating a new repository..."
 
@@ -99,8 +101,10 @@ else
         echo "Repository '$ONTOMESH_REPO_ID' created successfully."
         
         # Import the IATA ontology
-        echo "Importing IATA ONE Record ontology..."
-        import_ontology
+        # echo "Importing IATA ONE Record ontology..."
+        # import_ontology
+        echo "Repository initialization completed successfully."
+        exit 0
         
     else
         echo "ERROR: Failed to create repository. HTTP response: $create_response"

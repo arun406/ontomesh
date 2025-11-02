@@ -1,0 +1,22 @@
+#----------------- RDF4J Configuration --------------------#
+rdf4j:
+  spring:
+    repository:
+      remote:
+        manager-url: ${REPOSITORY_URL:http://graphdb:7200}
+        name: ${REPOSITORY_NAME:ontomesh}
+        username: ${REPOSITORY_USERNAME:admin}
+        password: ${REPOSITORY_PASSWORD:admin}
+    operationlog:
+      enabled: false
+      jmx:
+        enabled: false
+    pool:
+      enabled: true
+    resultcache:
+      enabled: true
+    tx:
+      enabled: true
+    uuidsource:
+      predictable:
+        enabled: true

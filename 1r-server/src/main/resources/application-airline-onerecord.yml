@@ -1,0 +1,17 @@
+#----------------- ONERECORD Configuration --------------------#
+onerecord:
+  logistics:
+    events:
+      destination: ${KAFKA_TOPIC_PROCESSOR:logistics-events}
+  server:
+    identifier: 957e2622-9d31-493b-8b8f-3c805064dbda
+    internalIriScheme: ${IRI_SCHEME:ontomesh}
+    url: ${ONERECORD_SERVER_URL:http://airline.ontomesh.io:${ONERECORD_SERVER_PORT}}
+    subscriptions:
+      notify-request-status-change: false
+      send-logistics-object-body: false
+      subscribe-to-logistics-events: false
+      include-subscription-event-type:
+        - https://onerecord.iata.org/ns/api#LOGISTICS_EVENT_RECEIVED
+        - https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_CREATED
+        - https://onerecord.iata.org/ns/api#LOGISTICS_OBJECT_UPDATED

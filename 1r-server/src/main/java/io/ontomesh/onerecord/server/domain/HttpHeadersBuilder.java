@@ -61,4 +61,17 @@ public class HttpHeadersBuilder {
     public HttpHeaders build() {
         return headers;
     }
+
+    // Centralized static method for building headers from a context object
+    public static HttpHeaders buildFromContext(HttpHeadersContext ctx) {
+        HttpHeadersBuilder builder = new HttpHeadersBuilder();
+        if (ctx.getContentType() != null) builder.contentType(ctx.getContentType());
+        if (ctx.getContentLanguage() != null) builder.contentLanguage(ctx.getContentLanguage());
+        if (ctx.getLastModified() != null) builder.lastModified(ctx.getLastModified());
+        if (ctx.getLocation() != null) builder.location(ctx.getLocation());
+        if (ctx.getType() != null) builder.type(ctx.getType());
+        if (ctx.getRevision() != null) builder.revision(ctx.getRevision());
+        if (ctx.getLatestRevision() != null) builder.latestRevision(ctx.getLatestRevision());
+        return builder.build();
+    }
 }

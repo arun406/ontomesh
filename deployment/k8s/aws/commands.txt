@@ -1,0 +1,56 @@
+# Create Cluster
+eksctl create cluster --name=onerecord \
+                      --region=us-east-1 \
+                      --zones=us-east-1a,us-east-1b \
+                      --without-nodegroup 
+
+# Get List of clusters
+eksctl get clusters                  
+
+#Create Key Pair
+aws ec2 create-key-pair --key-name OneRecord-Key-Pair --query 'KeyMaterial' --output text > OneRecordKeyPair.pem
+
+#IAM Association
+eksctl utils associate-iam-oidc-provider \
+    --region us-east-1 \  
+    --cluster onerecord \    
+    --approve
+
+eksctl create addon --name aws-ebs-csi-driver --cluster ontomesh --region ap-south-1 --force
+
+aws eks describe-nodegroup \
+  --cluster-name ontomesh \
+  --nodegroup-name ontomesh \
+  --query "nodegroup.nodeRole" \
+  --output text
+
+aws iam create-policy \                                             
+    --policy-name AmazonEKS_EBS_CSI_Driver_Policy \
+    --policy-document file://ebs-csi-policy.json
+
+aws iam attach-role-policy \
+  --role-name eksctl-ontomesh-nodegroup-ontomesh-NodeInstanceRole-VxkoLUP1RWkG \
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+
+aws iam attach-role-policy \
+  --role-name eksctl-ontomesh-nodegroup-ontomesh-NodeInstanceRole-VxkoLUP1RWkG \
+  --policy-arn arn:aws:iam::aws:policy/AmazonEKSLoadBalancerControllerPolicy
+
+
+#Create Node Group
+eksctl create nodegroup --cluster=onerecord \
+                        --region=us-east-1 \
+                        --name=onerecord-ng-public1 \
+                        --node-type=t3.large \ 
+                        --nodes=2 \ 
+                        --nodes-min=1 \
+                        --nodes-max=2 \ 
+                        --node-volume-size=10 \
+                        --ssh-access \
+                        --ssh-public-key=OneRecord-Key-Pair \
+                        --managed \
+                        --asg-access \
+                        --external-dns-access \
+                        --full-ecr-access \
+                        --appmesh-access \
+                        --alb-ingress-access

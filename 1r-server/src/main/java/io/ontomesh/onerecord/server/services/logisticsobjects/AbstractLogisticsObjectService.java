@@ -54,8 +54,9 @@ public abstract class AbstractLogisticsObjectService {
     public LogisticsObject findLogisticsObject(IRI iri) {
         log.info("Searching for Logistics Object of IRI {}", iri.toString());
         Predicate<Statement> predicate = statement -> !(statement.getPredicate().equals(OntoMesh.hasLogisticsEvents));
+        
         return repository.findLoById(iri, predicate)
-                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, "logistics object not found."));
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri));
     }
 
     /**

@@ -7,6 +7,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.query.GraphQueryResult;
 import org.eclipse.rdf4j.query.QueryResults;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,6 +17,19 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class SubscriptionRepository extends BaseRepository {
+
+    public SubscriptionRepository(Repository repository) {
+        super(repository);
+    }
+
+    /**
+     * Get a connection to the underlying repository.
+     *
+     * @return RepositoryConnection
+     */
+    private RepositoryConnection getConnection() {
+        return getRepository().getConnection();
+    }
 
     /**
      * List all subscribers.

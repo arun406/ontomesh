@@ -172,7 +172,7 @@ public class AuditTrailService extends AbstractLogisticsObjectService {
         // log.info("audit trail id {}", auditIri);
         return this.getRepository().findLoById(auditTrailId,
                         (iri) -> OntoMeshId.isValidIri(iri, getIdProvider().getLogisticsObjectBaseIRI()))
-                .orElseThrow(() -> new LogisticsObjectNotFoundException(auditTrailId, "Audit Trail not found."));
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(auditTrailId));
     }
 
     public void addError(IRI changeRequestIRI, ErrorObject errorObject) {

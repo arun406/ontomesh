@@ -266,7 +266,7 @@ services:
     networks:
       - ontomesh-network
     # healthcheck:
-    #   test: ["CMD-SHELL", "pgrep -f keycloak || exit 1"]
+    #   test: ["CMD-SHELL", "pg_isready -f keycloak || exit 1"]
     #   interval: 30s
     #   timeout: 10s
     #   retries: 5
@@ -283,10 +283,11 @@ services:
     container_name: graphdb
     ports:
       - "7200:7200"
+      - "7300:7300"
     environment:
       - GRAPHDB_AUTH_TOKEN_SECRET=superSecretToken
-      - GRAPHDB_HEAP_SIZE=1G
-      - GRAPHDB_MAX_MEMORY=1G
+      - GRAPHDB_HEAP_SIZE=2G
+      - GRAPHDB_MAX_MEMORY=2G
     command: [ "/opt/graphdb/dist/bin/graphdb", "-Dgraphdb.auth.token.secret=superSecretToken" ]
     volumes:
       - graphdb_data:/opt/graphdb/home
@@ -327,7 +328,6 @@ services:
     volumes:
       - "../graphdb/init-repo.sh:/opt/ontomesh/graphdb/init-repo.sh"
       - "../graphdb/repo-ontomesh.ttl:/opt/ontomesh/graphdb/repo-ontomesh.ttl"
-      - "../graphdb/IATA-1R-DM-Ontology.ttl:/opt/ontomesh/graphdb/IATA-1R-DM-Ontology.ttl"
     networks:
       - ontomesh-network
     deploy:
@@ -336,6 +336,7 @@ services:
           memory: 512M
         reservations:
           memory: 256M
+
 volumes:
   postgres_data:
     driver: local

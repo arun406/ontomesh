@@ -9,11 +9,13 @@ import org.eclipse.rdf4j.model.util.ModelBuilder;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.iata.onerecord.api.API;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Order(2)
 @RestControllerAdvice
 public class InvalidApiRequestExceptionHandler extends AbstractBadRequestExceptionHandler<InvalidApiRequestException> {
 

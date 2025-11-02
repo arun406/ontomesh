@@ -1,64 +1,75 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
-import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService;
-import io.ontomesh.onerecord.server.services.logisticsobjects.audittrail.AuditTrailService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectRevisionService;
 import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectService;
 import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectValidationUtil;
+import io.ontomesh.onerecord.server.services.logisticsobjects.audittrail.AuditTrailService;
 import io.ontomesh.onerecord.server.services.logisticsobjects.snapshot.SnapshotService;
 import io.ontomesh.onerecord.server.services.subscriptions.SubscriptionService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.iata.onerecord.api.API;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.time.Instant;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
 
+/**
+ * REST controller for managing Logistics Objects and related operations.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/logistics-objects")
 public class LogisticsObjectController extends BaseController {
 
 
-    @Autowired
-    private SubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
 
-    public LogisticsObjectController(LogisticsObjectService logisticsObjectService,
-                                     SnapshotService snapshotService, AuditTrailService auditTrailService,
-                                     ActionRequestService actionRequestService) {
-        super(logisticsObjectService, snapshotService, auditTrailService, actionRequestService);
+    /**
+     * Constructs a LogisticsObjectController with required dependencies.
+     *
+     * @param idProvider IdProvider for generating and parsing IDs
+     * @param logisticsObjectRevisionService Service for logistics object revision management
+     * @param logisticsObjectService Service for logistics object operations
+     * @param snapshotService Service for snapshot operations
+     * @param auditTrailService Service for audit trail operations
+     * @param actionRequestService Service for action request operations
+     * @param subscriptionService Service for subscription operations
+     */
+    public LogisticsObjectController(IdProvider idProvider,
+                                     LogisticsObjectRevisionService logisticsObjectRevisionService,
+                                     LogisticsObjectService logisticsObjectService,
+                                     SnapshotService snapshotService,
+                                     AuditTrailService auditTrailService,
+                                     ActionRequestService actionRequestService,
+                                     SubscriptionService subscriptionService) {
+        super(idProvider, logisticsObjectRevisionService, logisticsObjectService, snapshotService, actionRequestService, null, auditTrailService);
+        this.subscriptionService = subscriptionService;
     }
 
+    /**
+     * Retrieves a list of logistics object IRIs, optionally filtered by type.
+     *
+     * @param type   Optional IRI type filter
+     * @param limit  Maximum number of results to return
+     * @param offset Offset for pagination
+     * @return List of logistics object IRIs as strings
+     */
     @GetMapping()
-    private ResponseEntity<List<String>> getLogisticsObjects(@RequestParam(value = "type", required = false) IRI type,
-                                                             @RequestParam(value = "limit", defaultValue = "20") int limit,
-                                                             @RequestParam(value = "offset", defaultValue = "0") int offset) {
+    public ResponseEntity<List<String>> getLogisticsObjects(@RequestParam(value = "type", required = false) IRI type,
+                                                           @RequestParam(value = "limit", defaultValue = "20") int limit,
+                                                           @RequestParam(value = "offset", defaultValue = "0") int offset) {
 
         List<IRI> iriList = this.getLogisticsObjectService().listAllLogisticsObjects(type, limit, offset);
         if (iriList != null) {
@@ -66,39 +77,33 @@ public class LogisticsObjectController extends BaseController {
                     .body(iriList.stream().map(Object::toString).collect(Collectors.toList()));
         }
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentLanguage(Locale.US)
-                .contentType(MediaType.APPLICATION_JSON)
-                .build();
-
-        return ResponseEntity.ok().headers(headers).build();
+        return ResponseEntity.ok().build();
     }
 
+    /**
+     * Retrieves the subscriptions for a given logistics object.
+     *
+     * @param httpServletRequest The HTTP servlet request
+     * @return The logistics object with subscription information
+     */
     @GetMapping(path = "/{loId}/subscriptions",
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
-    private ResponseEntity<LogisticsObject> getLogisticsSubscriptions(HttpServletRequest httpServletRequest) {
+    public ResponseEntity<LogisticsObject> getLogisticsSubscriptions(HttpServletRequest httpServletRequest) {
 
         IRI iri = getLoFromRequest(httpServletRequest);
         LogisticsObject logisticsObject = this.subscriptionService.getSubscriptionsByLoId(iri);
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentLanguage(Locale.US)
-                .contentType(MediaType.valueOf(httpServletRequest.getHeader(HttpHeaders.ACCEPT)))
-                .lastModified(Instant.now())
-                .build();
-
-        return ResponseEntity.ok().headers(headers).body(logisticsObject);
+        return ResponseEntity.ok().body(logisticsObject);
     }
 
     /**
-     * returns the Logistics object
+     * Retrieves a logistics object by ID, optionally at a specific snapshot in time.
      *
-     * @param httpServletRequest http servlet request
-     * @param loReferenceId      logistics object id
-     * @param at                 snapshot at time (time is in YYYYMMDDThhmmssZ format)
-     * @param embedded           Optional parameter that can be used to request an embedded version of a Logistics Object,
-     *                           if the parameter is not set, a linked version of the Logistics Object is returned
-     * @return Logistics Object
+     * @param httpServletRequest The HTTP servlet request
+     * @param loReferenceId      The logistics object ID
+     * @param at                 Optional snapshot time (YYYYMMDDThhmmssZ)
+     * @param embedded           Whether to return an embedded version
+     * @return The logistics object
      */
     @GetMapping(path = "/{id}",
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
@@ -118,69 +123,41 @@ public class LogisticsObjectController extends BaseController {
     }
 
     /**
-     * returns the LogisticsObject's Snapshot 'at' a specific time.
+     * Retrieves a snapshot of a logistics object at a specific time.
      *
-     * @param at        snapshot time.
-     * @param id        LogisticObject's reference.
-     * @param mediaType Content Type.
-     * @return response.
+     * @param at        The snapshot time
+     * @param id        The logistics object reference
+     * @param mediaType The content type
+     * @return The logistics object snapshot
      */
     protected ResponseEntity<LogisticsObject> getLogisticsObjectSnapshot(String at, OntoMeshId id, MediaType mediaType) {
         log.debug("finding the snapshot for the lo id {} at {}", id.uri(), at);
-
         LogisticsObject logisticsObject = this.snapshotService.findSnapshot(id.iri(), at);
-        Literal snapshotVersion = logisticsObject.revision();
-        Integer latestRevision = logisticsObjectRevisionService.getRevision(id.iri());
-
-
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentType(mediaType)
-                .contentLanguage(Locale.US)
-                .lastModified(Instant.now())
-                .type(logisticsObject.type().stringValue())
-                .latestRevision(latestRevision)
-                .revision(snapshotVersion.intValue())
-                .location(id.uri())
-                .build();
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(logisticsObject);
+        return ResponseEntity.ok().body(logisticsObject);
     }
 
     /**
-     * returns the latest logisticsObject
+     * Retrieves the latest version of a logistics object.
      *
-     * @param id        logisticsObject reference
-     * @param mediaType content type.
-     * @return Response Entity.
+     * @param id        The logistics object reference
+     * @param mediaType The content type
+     * @return The latest logistics object
      */
-
     protected ResponseEntity<LogisticsObject> getLogisticsObject(OntoMeshId id, MediaType mediaType) {
-
+        
         LogisticsObject logisticsObject = super.getLogisticsObjectService().findLogisticsObject(id.iri());
-        String revision = String.valueOf(logisticsObject.revision());
+
         log.debug("The logisticsObject {} revision is {} ", logisticsObject.iri(), logisticsObject.revision());
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentType(mediaType)
-                .contentLanguage(Locale.US)
-                .lastModified(Instant.now())
-                .type(logisticsObject.type().stringValue())
-                .latestRevision(logisticsObject.revision().intValue())
-                .revision(logisticsObject.revision().intValue())
-                .location(id.uri())
-                .build();
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(logisticsObject);
+        return ResponseEntity.ok().body(logisticsObject);
     }
 
     /**
-     * Returns the audit trail.
+     * Retrieves the audit trail for a logistics object.
      *
-     * @return logistics object audit.
+     * @param accept              The Accept header value
+     * @param httpServletRequest  The HTTP servlet request
+     * @return The logistics object audit trail
      */
     @GetMapping(path = "/{id}/audit-trail",
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
@@ -191,26 +168,19 @@ public class LogisticsObjectController extends BaseController {
         IRI iri = getLoFromRequest(httpServletRequest);
         LogisticsObject logisticsObject = auditTrailService.getAuditTrail(iri);
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentType(StringUtils.hasLength(accept) ? MediaType.valueOf(accept) : APPLICATION_JSON_LD)
-                .contentLanguage(Locale.US)
-                .build();
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(logisticsObject);
+        return ResponseEntity.ok().body(logisticsObject);
     }
 
     /**
-     * Saves the logistics object
+     * Saves a new logistics object.
      *
-     * @param logisticsObject logistics object
-     * @return void
+     * @param logisticsObject The logistics object to save
+     * @return ResponseEntity with location header
      */
     @PostMapping(
             consumes = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE},
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
-    public ResponseEntity<Void> saveLogisticsObject(@RequestBody LogisticsObject logisticsObject) {
+    public ResponseEntity<Void> saveLogisticsObject(@Valid @RequestBody LogisticsObject logisticsObject) {
 
         boolean hasId = isIdPresent(logisticsObject);
         if (hasId) {
@@ -223,24 +193,19 @@ public class LogisticsObjectController extends BaseController {
 
         URI location = logisticsObject.uri();
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .location(location)
-                .type(logisticsObject.type().stringValue())
-                .build();
-
-        return ResponseEntity.created(location).headers(headers).build();
+        return ResponseEntity.created(location).build();
     }
 
     /**
-     * Update logistics objects
+     * Updates an existing logistics object.
      *
-     * @param change             change logistics object.
-     * @param httpServletRequest http servlet request.
-     * @return void
+     * @param change             The changes to apply
+     * @param httpServletRequest The HTTP servlet request
+     * @return ResponseEntity with location header
      */
     @PatchMapping(path = "/{id}", consumes = {APPLICATION_JSON_LD_VALUE},
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
-    public ResponseEntity<Void> updateLogisticObject(@RequestBody LogisticsObject change,
+    public ResponseEntity<Void> updateLogisticObject(@Valid @RequestBody LogisticsObject change,
                                                      HttpServletRequest httpServletRequest) {
 
         IRI iri = getLoFromRequest(httpServletRequest);
@@ -249,12 +214,6 @@ public class LogisticsObjectController extends BaseController {
 
         URI location = URI.create(actionRequest.stringValue());
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentType(APPLICATION_JSON_LD)
-                .location(location)
-                .type(API.ChangeRequest.stringValue())
-                .build();
-
-        return ResponseEntity.created(location).headers(headers).build();
+        return ResponseEntity.created(location).build();
     }
 }

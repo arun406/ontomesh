@@ -1,0 +1,31 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,threaddump,httpexchanges,loggers,beans
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always       # show full health details instead of just "UP"/"DOWN"
+      probes:
+        enabled: true            # enable liveness/readiness probes for K8s
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true            # enable Prometheus scrape endpoint
+    tags:
+      application: ${spring.application.name}
+      instance: ${HOSTNAME:localhost}
+  health:
+    diskspace:
+      enabled: true
+    ping:
+      enabled: true
+#  server:
+#    port: 8081                   # optional — separate port for management endpoints
+  security:
+    enabled: false

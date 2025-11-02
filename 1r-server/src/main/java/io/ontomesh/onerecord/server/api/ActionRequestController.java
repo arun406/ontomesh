@@ -1,37 +1,29 @@
 package io.ontomesh.onerecord.server.api;
 
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.common.OntoMeshId;
 import io.ontomesh.onerecord.server.domain.ActionRequest;
-import io.ontomesh.onerecord.server.domain.HttpHeadersBuilder;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
+import io.ontomesh.onerecord.server.exception.OntomeshBadRequestException;
 import io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectRevisionService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.util.Values;
 import org.iata.onerecord.api.API;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
 
+/**
+ * REST controller for managing Action Requests.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/action-requests")
@@ -44,15 +36,27 @@ public class ActionRequestController extends BaseController {
             API.REQUEST_REVOKED);
 
     /**
-     * constructor.
+     * Constructs an ActionRequestController with required dependencies.
      *
-     * @param actionRequestService
+     * @param idProvider IdProvider for generating and parsing IDs
+     * @param logisticsObjectRevisionService Service for logistics object revision management
+     * @param actionRequestService Service for action request operations
      */
-    public ActionRequestController(ActionRequestService actionRequestService) {
-        super(actionRequestService);
+    public ActionRequestController(IdProvider idProvider,
+                                   LogisticsObjectRevisionService logisticsObjectRevisionService,
+                                   ActionRequestService actionRequestService) {
+        super(idProvider, logisticsObjectRevisionService, null, null, actionRequestService, null, null);
     }
 
-
+    /**
+     * Lists all action requests, optionally filtered by type and status.
+     *
+     * @param type   The type of action request
+     * @param status The status of the action request
+     * @param offset The page offset
+     * @param limit  The page size
+     * @return List of ActionRequest objects
+     */
     @GetMapping(produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<List<ActionRequest>>
     listAll(
@@ -64,18 +68,14 @@ public class ActionRequestController extends BaseController {
         List<ActionRequest> actionRequests = this.actionRequestService
                 .listAll(SimpleValueFactory.getInstance().createIRI(type), limit, offset, SimpleValueFactory.getInstance().createIRI(status));
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentType(APPLICATION_JSON)
-                .contentLanguage(Locale.US)
-                .lastModified(Instant.now()).build();
-
-        return ResponseEntity.ok().headers(headers).body(actionRequests);
+        return ResponseEntity.ok().body(actionRequests);
     }
 
     /**
-     * Get Action Request Details
+     * Retrieves an action request by ID.
      *
-     * @return Action Request.
+     * @param actionRequestReference The action request reference ID
+     * @return The logistics object representing the action request
      */
     @GetMapping(value = "/{id}", produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<LogisticsObject> get(@PathVariable("id") String actionRequestReference) {
@@ -83,25 +83,15 @@ public class ActionRequestController extends BaseController {
         OntoMeshId actionRequestId = getActionRequestId(actionRequestReference);
         LogisticsObject actionRequest = actionRequestService.get(actionRequestId.iri());
 
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .contentType(APPLICATION_JSON_LD)
-                .contentLanguage(Locale.US)
-                .type(actionRequest.type().stringValue())
-                .lastModified(Instant.now()).build();
-
-        return ResponseEntity.ok().headers(headers).body(actionRequest);
+        return ResponseEntity.ok().body(actionRequest);
     }
 
     /**
-     * Update an Action Request.
+     * Updates the status of an action request.
      *
-     * <p>
-     * This API action can be used the holder/publisher of a Logistics Object to approve or reject
-     * a pending ActionRequest.
-     *
-     * @param actionRequestReference action request reference.
-     * @param status                 status of the action request.
-     * @return no content.
+     * @param actionRequestReference The action request reference ID
+     * @param status                 The new status
+     * @return ResponseEntity with no content
      */
     @PatchMapping(value = "/{id}",
             produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
@@ -109,7 +99,7 @@ public class ActionRequestController extends BaseController {
                                        @RequestParam(required = false, name = "status") String status) {
 
         if (!StringUtils.hasText(status)) {
-            throw new IllegalArgumentException("status cannot be blank.");
+            throw new OntomeshBadRequestException("status cannot be blank.");
         }
         OntoMeshId actionRequestId = getActionRequestId(actionRequestReference);
         IRI newStatus = null;
@@ -118,30 +108,20 @@ public class ActionRequestController extends BaseController {
             newStatus = Values.iri(status);
         } catch (IllegalArgumentException iae) {
             if (!VALID_ACTION_REQUEST_STATUSES.contains(Values.iri(API.NAMESPACE + status))) {
-                throw new IllegalArgumentException("Invalid status.");
+                throw new OntomeshBadRequestException("Invalid status.");
             }
             newStatus = Values.iri(API.NAMESPACE + status);
         }
 
         this.actionRequestService.updateStatus(actionRequestId.iri(), newStatus);
-        HttpHeaders headers = new HttpHeadersBuilder()
-                .location(actionRequestId.uri())
-                .contentType(APPLICATION_JSON_LD).build();
-
-        return ResponseEntity.noContent()
-                .headers(headers)
-                .build();
+        return ResponseEntity.noContent().build();
     }
 
     /**
-     * Revoke Action Request.
+     * Revokes an action request by ID.
      *
-     * <p>
-     * This API action MUST be used to revoke an Action Request MUST be revoked only by the original requester of the
-     * ActionRequest or the holder/publisher of the Logistics Object.
-     *
-     * @param actionRequestReference action request reference.
-     * @return no content.
+     * @param actionRequestReference The action request reference ID
+     * @return ResponseEntity with no content
      */
     @DeleteMapping(value = "/{id}", produces = {APPLICATION_JSON_LD_VALUE, APPLICATION_TURTLE_VALUE, TEXT_TURTLE_VALUE})
     public ResponseEntity<Void> delete(@PathVariable("id") String actionRequestReference) {
@@ -151,7 +131,6 @@ public class ActionRequestController extends BaseController {
 
         // A ChangeRequest MUST only be revoked as long as it is in REQUEST_PENDING status
         this.actionRequestService.revokeActionRequest(actionRequestId.iri(), idProvider.createUniqueLoUri().iri());
-        HttpHeaders headers = new HttpHeaders();
-        return ResponseEntity.noContent().headers(headers).build();
+        return ResponseEntity.noContent().build();
     }
 }

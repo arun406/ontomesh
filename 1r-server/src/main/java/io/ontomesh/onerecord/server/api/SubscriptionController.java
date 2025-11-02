@@ -1,9 +1,11 @@
 package io.ontomesh.onerecord.server.api;
 
 import io.ontomesh.onerecord.server.api.enums.RequestType;
+import io.ontomesh.onerecord.server.common.IdProvider;
 import io.ontomesh.onerecord.server.domain.LogisticsObject;
 import io.ontomesh.onerecord.server.exception.InvalidApiRequestException;
 import io.ontomesh.onerecord.server.services.actionrequests.ActionRequestService;
+import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectRevisionService;
 import io.ontomesh.onerecord.server.services.logisticsobjects.LogisticsObjectService;
 import io.ontomesh.onerecord.server.services.subscriptions.SubscriptionService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,27 +13,20 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.util.Values;
 import org.iata.onerecord.api.API;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Set;
 
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_JSON_LD_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.APPLICATION_TURTLE_VALUE;
-import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.TEXT_TURTLE_VALUE;
+import static io.ontomesh.onerecord.server.common.SemanticWebMediaType.*;
 
+/**
+ * REST controller for managing Subscriptions.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/subscriptions")
@@ -39,20 +34,29 @@ public class SubscriptionController extends BaseController {
 
     private final SubscriptionService subscriptionService;
 
-    public SubscriptionController(LogisticsObjectService logisticsObjectService,
+    /**
+     * Constructs a SubscriptionController with required dependencies.
+     *
+     * @param idProvider IdProvider for generating and parsing IDs
+     * @param logisticsObjectRevisionService Service for logistics object revision management
+     * @param logisticsObjectService Service for logistics object operations
+     * @param subscriptionService Service for subscription operations
+     * @param actionRequestService Service for action request operations
+     */
+    public SubscriptionController(IdProvider idProvider,
+                                  LogisticsObjectRevisionService logisticsObjectRevisionService,
+                                  LogisticsObjectService logisticsObjectService,
                                   SubscriptionService subscriptionService,
                                   ActionRequestService actionRequestService) {
-        super(logisticsObjectService, actionRequestService);
+        super(idProvider, logisticsObjectRevisionService, logisticsObjectService, null, actionRequestService, null, null);
         this.subscriptionService = subscriptionService;
     }
 
     /**
-     * the subscriber initiates the subscription process by actively sending subscription information to the publisher.
-     * The subscription information can either specify a type of Logistics Object or a specific Logistics Object.
-     * The publisher creates a SubscriptionRequest from the submitted Subscription.
+     * Subscribes to a topic or logistics object.
      *
-     * @param subscription Subscription Logistics Object
-     * @return
+     * @param subscription The subscription logistics object
+     * @return ResponseEntity with location header
      */
     @RequestMapping(method = RequestMethod.POST,
             produces = {APPLICATION_JSON_LD_VALUE},
@@ -75,22 +79,16 @@ public class SubscriptionController extends BaseController {
         IRI actionRequestID = this.actionRequestService
                 .createActionRequest(subscription, RequestType.SubscriptionRequest);
         // update location.
-        HttpHeaders headers = new HttpHeaders();
-//        headers.setLocation(URI.create(subscriptionRequest.iri().stringValue()));
-        headers.setContentType(APPLICATION_JSON_LD);
-        headers.add("Type", API.SubscriptionRequest.stringValue());
-
-        return ResponseEntity.created(URI.create(actionRequestID.stringValue())).headers(headers).build();
+        return ResponseEntity.created(URI.create(actionRequestID.stringValue())).build();
     }
 
 
     /**
-     * The publisher wants to notify the subscriber about changes to Logistics Objects of a certain type
-     * (e.g. Waybill or Piece)
+     * Handles a subscription proposal for a topic or logistics object type.
      *
-     * @param topic     topic
-     * @param topicType topic type
-     * @return
+     * @param topic     The topic IRI as a string
+     * @param topicType The topic type IRI as a string
+     * @return The logistics object representing the subscription proposal
      */
     @GetMapping(produces = {APPLICATION_JSON_LD_VALUE,
             APPLICATION_TURTLE_VALUE,
@@ -113,18 +111,14 @@ public class SubscriptionController extends BaseController {
         LogisticsObject subscriptionProposal = this.subscriptionService
                 .createSubscriptionProposalResponse(topicIRI, topicTypeIRI);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(APPLICATION_JSON_LD);
-        headers.setContentLanguage(Locale.US);
-
-        return ResponseEntity.ok().headers(headers).body(subscriptionProposal);
+        return ResponseEntity.ok().body(subscriptionProposal);
     }
 
     /**
-     * Validates the topic and topic type.
+     * Validates the topic and topic type for a subscription.
      *
-     * @param topic     topic
-     * @param topicType topic type
+     * @param topic     The topic IRI
+     * @param topicType The topic type IRI
      */
     private void validate(IRI topic, IRI topicType) {
         log.trace("validating the request parameters.");

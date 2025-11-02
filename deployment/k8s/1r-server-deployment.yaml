@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 1r-server
+  labels:
+    app: 1r-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 1r-server
+  template:
+    metadata:
+      labels:
+        app: 1r-server
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: ontonesh-kafka-client-sa  # Required only if using IRSA for MSK IAM auth
+      containers:
+        - name: 1r-server
+          image: arun406/1r-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+
+          # Bring in environment variables from ConfigMap and Secret
+          envFrom:
+            - configMapRef:
+                name: onerecord-config
+          env:
+            - name: REPOSITORY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: 1r-server-repository-credentials
+                  key: username
+            - name: REPOSITORY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: 1r-server-repository-credentials
+                  key: password
+            - name: JAVA_OPTS
+              value: "-Xms512m -Xmx1g -XX:+UseG1GC"
+
+          # Health probes
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
+          # Resource management
+          resources:
+            requests:
+              memory: "512Mi"
+            limits:
+              memory: "1Gi"

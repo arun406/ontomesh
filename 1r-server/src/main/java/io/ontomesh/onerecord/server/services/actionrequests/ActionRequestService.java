@@ -202,7 +202,7 @@ public class ActionRequestService extends AbstractLogisticsObjectService {
                 || statement.getPredicate().equals(API.hasTopic));
         return this.getRepository()
                 .findLoById(iri, predicate)
-                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri, String.format("Action request with iri  %s not found.", iri)));
+                .orElseThrow(() -> new LogisticsObjectNotFoundException(iri));
     }
 
     /**
