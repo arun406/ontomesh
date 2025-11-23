@@ -13,6 +13,11 @@ data:
   KAFKA_BOOTSTRAP_SERVERS: {{ .Values.onerecordConfig.kafkaBootstrapServers | quote }}
   KAFKA_CLIENT_ID: {{ .Values.onerecordConfig.kafkaClientId | quote }}
   KAFKA_GROUP_ID: {{ .Values.onerecordConfig.kafkaGroupId | quote }}
+  # MSK IAM Authentication Configuration
+  KAFKA_SECURITY_PROTOCOL: {{ .Values.onerecordConfig.kafkaSecurityProtocol | default "SASL_SSL" | quote }}
+  KAFKA_SASL_MECHANISM: {{ .Values.onerecordConfig.kafkaSaslMechanism | default "AWS_MSK_IAM" | quote }}
+  KAFKA_SASL_JAAS_CONFIG: {{ .Values.onerecordConfig.kafkaSaslJaasConfig | default "software.amazon.msk.auth.iam.IAMLoginModule required;" | quote }}
+  KAFKA_SASL_CLIENT_CALLBACK_HANDLER_CLASS: {{ .Values.onerecordConfig.kafkaSaslCallbackHandler | default "software.amazon.msk.auth.iam.IAMClientCallbackHandler" | quote }}
   REPOSITORY_URL: {{ .Values.onerecordConfig.repositoryUrl | quote }}
   REPOSITORY_NAME: {{ .Values.onerecordConfig.repositoryName | quote }}
   ISSUER_URI: {{ .Values.onerecordConfig.issuerUri | quote }}

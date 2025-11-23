@@ -31,11 +31,26 @@ extraEnvVars:
   - name: KC_PRODUCTION
     value: "true"
 
+  # Proxy configuration for ALB/Load Balancer
+  - name: KC_PROXY
+    value: "edge"
+  
+  # Read X-Forwarded-* headers from ALB
+  - name: KC_PROXY_HEADERS
+    value: "xforwarded"
+  
+  # Set the frontend URL (used for redirects and token issuer)
+  - name: KC_HOSTNAME
+    value: "keycloak.ontomesh.com"
+  
   - name: KC_HOSTNAME_STRICT
     value: "false"
+  
+  # Allow HTTP on backend (HTTPS terminated at ALB)
   - name: KC_HTTP_ENABLED
     value: "true"
-
+  
+  # Optimize for production
   - name: VERTX_WORKER_POOL_SIZE
     value: "20"
   - name: VERTX_EVENT_LOOP_POOL_SIZE

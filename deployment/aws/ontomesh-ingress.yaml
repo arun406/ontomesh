@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ontomesh-ingress
+  namespace: ontomesh
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/group.name: ontomesh
+    alb.ingress.kubernetes.io/actions.keycloak:
+      '{"Type":"forward","ForwardConfig":{"TargetGroups":[{"ServiceName":"keycloak","ServicePort":"8080"}]},"Conditions":[{"Field":"path-pattern","PathPatternConfig":{"Values":["/auth*"]}}]}'
+    alb.ingress.kubernetes.io/actions.graphdb:
+      '{"Type":"forward","ForwardConfig":{"TargetGroups":[{"ServiceName":"graphdb","ServicePort":"7200"}]},"Conditions":[{"Field":"path-pattern","PathPatternConfig":{"Values":["/graphdb*"]}}]}'
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /auth
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: keycloak
+                port:
+                  number: 8080
+          - path: /graphdb
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: graphdb
+                port:
+                  number: 7200

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onerecord-test
+  namespace: ontomesh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: onerecord-test
+  template:
+    metadata:
+      labels:
+        app: onerecord-test
+    spec:
+      containers:
+      - name: test-app
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: NGINX_PORT
+          value: "8080"
+        command: ["/bin/sh"]
+        args: ["-c", "echo 'OneRecord Test Service - Ready!' > /usr/share/nginx/html/index.html && echo 'Healthy' > /usr/share/nginx/html/actuator/health && mkdir -p /usr/share/nginx/html/actuator && echo 'Healthy' > /usr/share/nginx/html/actuator/health && nginx -g 'daemon off;' -c /dev/stdin <<< 'events {} http { server { listen 8080; location / { root /usr/share/nginx/html; index index.html; } } }'"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: onerecord-server-service
+  namespace: ontomesh
+spec:
+  selector:
+    app: onerecord-test
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP

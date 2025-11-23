@@ -1,0 +1,70 @@
+# Global PostgreSQL settings
+global:
+  postgresql:
+    auth:
+      username: bn_keycloak
+      password: bn_keycloak
+      database: bitnami_keycloak
+
+# Keycloak Admin User Configuration
+auth:
+  adminUser: admin
+  adminPassword: admin
+
+# PostgreSQL Specific Configuration
+postgresql:
+  enabled: true
+  auth:
+    username: bn_keycloak
+    password: bn_keycloak
+    database: bitnami_keycloak
+
+# Kubernetes Service Configuration
+service:
+  type: ClusterIP
+  ports:
+    http: 8080
+
+# Additional Keycloak Environment Variables
+extraEnvVars:
+  # Enable production mode to prevent thread blocking
+  - name: KC_PRODUCTION
+    value: "true"
+
+  # Proxy configuration for ALB/Load Balancer
+  - name: KC_PROXY
+    value: "edge"
+  
+  # Read X-Forwarded-* headers from ALB
+  - name: KC_PROXY_HEADERS
+    value: "xforwarded"
+  
+  # Set the frontend URL (used for redirects and token issuer)
+  - name: KC_HOSTNAME
+    value: "keycloak.ontomesh.com"
+  
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  
+  # Allow HTTP on backend (HTTPS terminated at ALB)
+  - name: KC_HTTP_ENABLED
+    value: "true"
+  
+  # Optimize for production
+  - name: VERTX_WORKER_POOL_SIZE
+    value: "20"
+  - name: VERTX_EVENT_LOOP_POOL_SIZE
+    value: "8"
+#   - name: KEYCLOAK_IMPORT
+#     value: "/opt/bitnami/keycloak/data/import/ontomesh-realm.json"
+#   - name: KEYCLOAK_IMPORT_STRATEGY
+#     value: "OVERWRITE_EXISTING"
+
+# extraVolumes:
+#   - name: realm-import
+#     configMap:
+#       name: keycloak-realm-config
+
+# extraVolumeMounts:
+#   - name: realm-import
+#     mountPath: /opt/bitnami/keycloak/data/import
