@@ -21,6 +21,10 @@ service:
   type: ClusterIP
   port: 7200
 
+# License configuration - optional for free edition
+license:
+  optional: true
+
 # Disable default ingress - we manage our own via deploy-applications.sh
 ingress:
   enabled: false

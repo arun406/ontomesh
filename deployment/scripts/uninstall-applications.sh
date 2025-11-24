@@ -189,22 +189,22 @@ echo ""
 if [ "$SKIP_ONERECORD" = false ]; then
     log "📦 Uninstalling OneRecord..."
     
-    # Delete OneRecord deployments
-    log "Deleting OneRecord deployments..."
-    kubectl delete deployment onerecord-server -n ontomesh 2>/dev/null || warning "onerecord-server deployment not found"
-    kubectl delete deployment onerecord-client -n ontomesh 2>/dev/null || warning "onerecord-client deployment not found"
-    kubectl delete deployment onerecord-event-processor -n ontomesh 2>/dev/null || warning "onerecord-event-processor deployment not found"
+    # Check if Helm release exists
+    if helm list -n ontomesh | grep -q onerecord-server; then
+        log "Uninstalling OneRecord Helm release..."
+        helm uninstall onerecord-server -n ontomesh
+        success "OneRecord Helm release uninstalled"
+    else
+        warning "No OneRecord Helm release found"
+    fi
     
-    # Delete OneRecord services
-    log "Deleting OneRecord services..."
-    kubectl delete service onerecord-server -n ontomesh 2>/dev/null || warning "onerecord-server service not found"
-    kubectl delete service onerecord-client -n ontomesh 2>/dev/null || warning "onerecord-client service not found"
-    kubectl delete service onerecord-event-processor -n ontomesh 2>/dev/null || warning "onerecord-event-processor service not found"
-    
-    # Delete ConfigMaps and Secrets
-    log "Deleting OneRecord ConfigMaps and Secrets..."
-    kubectl delete configmap -l app=onerecord -n ontomesh 2>/dev/null || true
-    kubectl delete secret -l app=onerecord -n ontomesh 2>/dev/null || true
+    # Delete any remaining resources
+    log "Cleaning up remaining OneRecord resources..."
+    kubectl delete deployment --all -n ontomesh 2>/dev/null || true
+    kubectl delete statefulset --all -n ontomesh 2>/dev/null || true
+    kubectl delete service --all -n ontomesh 2>/dev/null || true
+    kubectl delete configmap --all -n ontomesh 2>/dev/null || true
+    kubectl delete secret --all -n ontomesh 2>/dev/null || true
     
     if [ "$DELETE_PVCS" = true ]; then
         log "Deleting OneRecord PVCs..."

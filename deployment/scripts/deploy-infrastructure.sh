@@ -165,33 +165,39 @@ configure_kubectl() {
 install_ebs_csi_driver() {
     log "💾 Installing EBS CSI Driver..."
     
-    # Check if already installed
-    if helm list -n kube-system | grep -q aws-ebs-csi-driver; then
-        warning "EBS CSI Driver already installed, skipping..."
-        # Still ensure gp2 is set as default
-        log "Ensuring gp2 storage class is set as default..."
-        kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}' 2>/dev/null || true
-        return 0
+    # Get EBS CSI IAM role ARN from Terraform
+    local ebs_csi_role_arn=$(cd "$TERRAFORM_DIR" && terraform output -raw ebs_csi_role_arn 2>/dev/null)
+    
+    if [ -z "$ebs_csi_role_arn" ]; then
+        error "Failed to get EBS CSI IAM role ARN from Terraform"
     fi
     
-    # Install EBS CSI driver
-    helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-    helm repo update
-    
-    helm install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver \
-        --namespace kube-system \
-        --set controller.serviceAccount.create=false \
-        --set controller.serviceAccount.name=ebs-csi-controller-sa
+    # Check if already installed
+    if helm list -n kube-system | grep -q aws-ebs-csi-driver; then
+        warning "EBS CSI Driver already installed, upgrading..."
+        helm upgrade aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver \
+            --namespace kube-system \
+            --set controller.serviceAccount.create=true \
+            --set controller.serviceAccount.name=ebs-csi-controller-sa \
+            --set controller.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="$ebs_csi_role_arn"
+    else
+        # Add Helm repo
+        helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver 2>/dev/null || true
+        helm repo update
+        
+        # Install EBS CSI driver with IAM role
+        helm install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver \
+            --namespace kube-system \
+            --set controller.serviceAccount.create=true \
+            --set controller.serviceAccount.name=ebs-csi-controller-sa \
+            --set controller.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="$ebs_csi_role_arn"
+    fi
     
     # Wait for deployment
     log "Waiting for EBS CSI driver to be ready..."
     kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-ebs-csi-driver -n kube-system --timeout=300s
     
-    # Set gp2 as default storage class
-    log "Setting gp2 as default storage class..."
-    kubectl patch storageclass gp2 -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-    
-    success "EBS CSI Driver installed and gp2 set as default storage class"
+    success "EBS CSI Driver installed (gp2 StorageClass created by Terraform)"
 }
 
 # Verify infrastructure

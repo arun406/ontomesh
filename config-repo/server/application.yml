@@ -8,7 +8,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${ISSUER_URI:https://keycloak.ontomesh.io:8443/realms/ontomesh}
+          issuer-uri: ${ISSUER_URI:http://keycloak.keycloak.svc.cluster.local:8080/realms/ontomesh}
 #          jwk-set-uri: ${JWK_SET_URI:https://keycloak.ontomesh.io:8443/realms/ontomesh/protocol/openid-connect/certs}
 ##service discovery client  configuration
 #eureka:

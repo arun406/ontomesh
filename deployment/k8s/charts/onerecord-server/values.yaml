@@ -6,7 +6,7 @@ onerecordConfig:
   profiles: "management,kafka,airline-onerecord,rdf4j"
   kafkaTopicProcessor: "1r-processor"
   iriScheme: "ontomesh"
-  serverUrl: "http://airline.ontomesh.com"
+  serverUrl: "https://airline.ontomesh.com"
   serverPort: "8080"
   # Replace the value below with your MSK bootstrap brokers (TLS), e.g.:
   # "b-1.foo.amazonaws.com:9098,b-2.foo.amazonaws.com:9098,b-3.foo.amazonaws.com:9098"
@@ -17,8 +17,9 @@ onerecordConfig:
   # GraphDB repository HTTP URL (update if graphdb is installed in a different namespace)
   repositoryUrl: "http://graphdb.graphdb.svc.cluster.local:7200"
   repositoryName: "ontomesh"
-  # Keycloak issuer URI for OpenID Connect
-  issuerUri: "http://keycloak.ontomesh.com/realms/ontomesh"
+  # Keycloak issuer URI - use internal Kubernetes service for pod connectivity
+  # External clients (browsers) will use https://keycloak.ontomesh.com
+  issuerUri: "http://keycloak.keycloak.svc.cluster.local:8080/realms/ontomesh"
 
 onerecordServer:
   replicas: 1

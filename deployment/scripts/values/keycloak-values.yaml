@@ -39,11 +39,16 @@ extraEnvVars:
   - name: KC_PROXY_HEADERS
     value: "xforwarded"
   
-  # Set the frontend URL (used for redirects and token issuer)
+  # Use internal service name for issuer to avoid DNS resolution issues from pods
+  # External access via ingress/ALB will still work with X-Forwarded-Host header
   - name: KC_HOSTNAME
-    value: "keycloak.ontomesh.com"
+    value: "keycloak.keycloak.svc.cluster.local"
   
   - name: KC_HOSTNAME_STRICT
+    value: "false"
+  
+  # Allow hostname from X-Forwarded-Host header for external access
+  - name: KC_HOSTNAME_STRICT_BACKCHANNEL
     value: "false"
   
   # Allow HTTP on backend (HTTPS terminated at ALB)

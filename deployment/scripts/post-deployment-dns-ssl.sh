@@ -48,17 +48,17 @@ echo ""
 log "Step 1: Verifying applications are deployed and running..."
 
 REQUIRED_PODS=(
-    "keycloak:keycloak"
-    "graphdb:graphdb"
-    "ontomesh:onerecord-server"
+    "keycloak:app.kubernetes.io/name=keycloak"
+    "graphdb:app.kubernetes.io/name=graphdb"
+    "ontomesh:app=1r-server"
 )
 
 for pod_check in "${REQUIRED_PODS[@]}"; do
-    IFS=':' read -r namespace app <<< "$pod_check"
-    if ! kubectl get pods -n "$namespace" -l app="$app" 2>/dev/null | grep -q Running; then
-        error "Application $app in namespace $namespace is not running. Deploy applications first!"
+    IFS=':' read -r namespace label_selector <<< "$pod_check"
+    if ! kubectl get pods -n "$namespace" -l "$label_selector" 2>/dev/null | grep -q Running; then
+        error "Application with label $label_selector in namespace $namespace is not running. Deploy applications first!"
     fi
-    success "$app is running in $namespace"
+    success "Application in $namespace is running"
 done
 
 success "All applications are running"
@@ -125,7 +125,7 @@ echo ""
 log "Step 4: Waiting for Application Load Balancer to be provisioned..."
 ALB_DNS=""
 for i in {1..30}; do
-    ALB_DNS=$(kubectl get ingress -n graphdb graphdb-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+    ALB_DNS=$(kubectl get ingress -n ontomesh onerecord-ingress -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
     if [ -n "$ALB_DNS" ]; then
         success "ALB provisioned: $ALB_DNS"
         break
@@ -138,7 +138,23 @@ if [ -z "$ALB_DNS" ]; then
     error "ALB hostname not available after 5 minutes. Check ingress status: kubectl get ingress -A"
 fi
 
-success "Application Load Balancer is ready"
+# Verify ALB is active
+log "Verifying ALB is active..."
+ALB_STATE=$(aws elbv2 describe-load-balancers --region "$AWS_REGION" --query "LoadBalancers[?contains(DNSName, \`$(echo $ALB_DNS | cut -d'-' -f2-4)\`)].State.Code" --output text 2>/dev/null || echo "unknown")
+if [ "$ALB_STATE" != "active" ]; then
+    log "ALB state is '$ALB_STATE', waiting for it to become active..."
+    for i in {1..20}; do
+        sleep 15
+        ALB_STATE=$(aws elbv2 describe-load-balancers --region "$AWS_REGION" --query "LoadBalancers[?contains(DNSName, \`$(echo $ALB_DNS | cut -d'-' -f2-4)\`)].State.Code" --output text 2>/dev/null || echo "unknown")
+        if [ "$ALB_STATE" = "active" ]; then
+            success "ALB is now active"
+            break
+        fi
+        echo "ALB state: $ALB_STATE (attempt $i/20)"
+    done
+fi
+
+success "Application Load Balancer is ready and active"
 echo ""
 
 # Step 5: Enable DNS and SSL

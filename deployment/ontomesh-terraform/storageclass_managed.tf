@@ -1,10 +1,10 @@
 /*
-  StorageClass configuration for EKS.
+  StorageClass configuration for EKS with EBS CSI Driver.
   
-  The gp2 storage class is created by default in EKS clusters.
-  We use a data source to reference it instead of trying to create it.
+  Creates a gp2 storage class that uses the EBS CSI Driver provisioner (ebs.csi.aws.com).
+  This replaces the deprecated kubernetes.io/aws-ebs provisioner.
   
-  The EBS CSI Driver is installed separately via Helm (see deploy-infrastructure.sh).
+  The EBS CSI Driver itself is installed via Helm (see deploy-infrastructure.sh).
 */
 
 variable "storage_class" {
@@ -13,12 +13,27 @@ variable "storage_class" {
   default     = "gp2"
 }
 
-# Reference the existing gp2 storage class created by EKS
-# This avoids the "already exists" error
-data "kubernetes_storage_class_v1" "gp2" {
+# Create gp2 StorageClass with EBS CSI Driver provisioner
+resource "kubernetes_storage_class_v1" "gp2" {
   metadata {
     name = "gp2"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
   }
-  
-  depends_on = [module.eks]
+
+  storage_provisioner    = "ebs.csi.aws.com"
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+
+  parameters = {
+    type      = "gp3"
+    encrypted = "true"
+  }
+
+  depends_on = [
+    module.eks,
+    kubernetes_service_account.ebs_csi_sa
+  ]
 }

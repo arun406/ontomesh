@@ -10,15 +10,21 @@ resource "kubernetes_ingress_v1" "onerecord" {
   metadata {
     name      = "onerecord-ingress"
     namespace = var.msk_namespace
-    annotations = {
-      "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
-      "alb.ingress.kubernetes.io/target-type"      = "ip"
-      "alb.ingress.kubernetes.io/group.name"       = var.ingress_group_name
-      "alb.ingress.kubernetes.io/listen-ports"     = jsonencode([{ HTTP = 80 }, { HTTPS = 443 }])
-      "alb.ingress.kubernetes.io/ssl-redirect"     = "443"
-      "alb.ingress.kubernetes.io/certificate-arn"  = var.create_dns ? aws_acm_certificate.ontomesh_wildcard[0].arn : ""
-      "alb.ingress.kubernetes.io/healthcheck-path" = "/actuator/health"
-    }
+    annotations = merge(
+      {
+        "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"      = "ip"
+        "alb.ingress.kubernetes.io/group.name"       = var.ingress_group_name
+        "alb.ingress.kubernetes.io/healthcheck-path" = "/actuator/health"
+      },
+      var.create_dns ? {
+        "alb.ingress.kubernetes.io/listen-ports"     = jsonencode([{ HTTP = 80 }, { HTTPS = 443 }])
+        "alb.ingress.kubernetes.io/ssl-redirect"     = "443"
+        "alb.ingress.kubernetes.io/certificate-arn"  = aws_acm_certificate.ontomesh_wildcard[0].arn
+      } : {
+        "alb.ingress.kubernetes.io/listen-ports"     = jsonencode([{ HTTP = 80 }])
+      }
+    )
   }
 
   spec {
@@ -57,17 +63,23 @@ resource "kubernetes_ingress_v1" "keycloak" {
   metadata {
     name      = "keycloak-ingress"
     namespace = "keycloak"
-    annotations = {
-      "alb.ingress.kubernetes.io/scheme"                      = "internet-facing"
-      "alb.ingress.kubernetes.io/target-type"                 = "ip"
-      "alb.ingress.kubernetes.io/group.name"                  = var.ingress_group_name
-      "alb.ingress.kubernetes.io/listen-ports"                = jsonencode([{ HTTP = 80 }, { HTTPS = 443 }])
-      "alb.ingress.kubernetes.io/ssl-redirect"                = "443"
-      "alb.ingress.kubernetes.io/certificate-arn"             = var.create_dns ? aws_acm_certificate.ontomesh_wildcard[0].arn : ""
-      "alb.ingress.kubernetes.io/healthcheck-path"            = "/"
-      "alb.ingress.kubernetes.io/success-codes"               = "200-399"
-      "alb.ingress.kubernetes.io/backend-protocol"            = "HTTP"
-    }
+    annotations = merge(
+      {
+        "alb.ingress.kubernetes.io/scheme"                      = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"                 = "ip"
+        "alb.ingress.kubernetes.io/group.name"                  = var.ingress_group_name
+        "alb.ingress.kubernetes.io/healthcheck-path"            = "/"
+        "alb.ingress.kubernetes.io/success-codes"               = "200-399"
+        "alb.ingress.kubernetes.io/backend-protocol"            = "HTTP"
+      },
+      var.create_dns ? {
+        "alb.ingress.kubernetes.io/listen-ports"                = jsonencode([{ HTTP = 80 }, { HTTPS = 443 }])
+        "alb.ingress.kubernetes.io/ssl-redirect"                = "443"
+        "alb.ingress.kubernetes.io/certificate-arn"             = aws_acm_certificate.ontomesh_wildcard[0].arn
+      } : {
+        "alb.ingress.kubernetes.io/listen-ports"                = jsonencode([{ HTTP = 80 }])
+      }
+    )
   }
 
   spec {
@@ -106,16 +118,22 @@ resource "kubernetes_ingress_v1" "graphdb" {
   metadata {
     name      = "graphdb-ingress"
     namespace = "graphdb"
-    annotations = {
-      "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
-      "alb.ingress.kubernetes.io/target-type"      = "ip"
-      "alb.ingress.kubernetes.io/group.name"       = var.ingress_group_name
-      "alb.ingress.kubernetes.io/listen-ports"     = jsonencode([{ HTTP = 80 }, { HTTPS = 443 }])
-      "alb.ingress.kubernetes.io/ssl-redirect"     = "443"
-      "alb.ingress.kubernetes.io/certificate-arn"  = var.create_dns ? aws_acm_certificate.ontomesh_wildcard[0].arn : ""
-      "alb.ingress.kubernetes.io/healthcheck-path" = "/rest/repositories"
-      "alb.ingress.kubernetes.io/backend-protocol" = "HTTP"
-    }
+    annotations = merge(
+      {
+        "alb.ingress.kubernetes.io/scheme"           = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"      = "ip"
+        "alb.ingress.kubernetes.io/group.name"       = var.ingress_group_name
+        "alb.ingress.kubernetes.io/healthcheck-path" = "/rest/repositories"
+        "alb.ingress.kubernetes.io/backend-protocol" = "HTTP"
+      },
+      var.create_dns ? {
+        "alb.ingress.kubernetes.io/listen-ports"     = jsonencode([{ HTTP = 80 }, { HTTPS = 443 }])
+        "alb.ingress.kubernetes.io/ssl-redirect"     = "443"
+        "alb.ingress.kubernetes.io/certificate-arn"  = aws_acm_certificate.ontomesh_wildcard[0].arn
+      } : {
+        "alb.ingress.kubernetes.io/listen-ports"     = jsonencode([{ HTTP = 80 }])
+      }
+    )
   }
 
   spec {

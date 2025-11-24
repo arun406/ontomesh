@@ -18,6 +18,7 @@ NAMESPACE=${NAMESPACE:-graphdb}
 POD_NAME=${POD_NAME:-}
 SERVICE_NAME=${SERVICE_NAME:-graphdb}
 REPO_CONFIG="$SCRIPT_DIR/graphdb/repo-ontomesh.ttl"
+LICENSE_FILE="$SCRIPT_DIR/graphdb/graphdb.license"
 REPO_ID=${REPO_ID:-ontomesh}
 
 # Colors
@@ -111,6 +112,12 @@ if [ ! -f "$REPO_CONFIG" ]; then
     error "Repository config file not found: $REPO_CONFIG"
 fi
 
+# Check if license file exists
+if [ ! -f "$LICENSE_FILE" ]; then
+    warning "GraphDB license file not found: $LICENSE_FILE"
+    warning "GraphDB will run without a license (free mode with limitations)"
+fi
+
 # Auto-detect pod name if not provided
 if [ -z "$POD_NAME" ]; then
     log "Auto-detecting GraphDB pod..."
@@ -136,6 +143,33 @@ success "GraphDB pod is ready"
 # Give GraphDB a bit more time to fully start
 log "Waiting for GraphDB service to be fully ready..."
 sleep 15
+
+# Copy license file if it exists
+if [ -f "$LICENSE_FILE" ]; then
+    log "Copying GraphDB license file to pod..."
+    kubectl cp "$LICENSE_FILE" "$NAMESPACE/$POD_NAME:/opt/graphdb/home/conf/graphdb.license"
+    success "License file copied successfully"
+    
+    # Restart GraphDB to load the license
+    log "Restarting GraphDB pod to load license..."
+    kubectl delete pod "$POD_NAME" -n "$NAMESPACE"
+    
+    # Wait for pod to restart
+    log "Waiting for GraphDB pod to restart..."
+    sleep 10
+    
+    # Re-detect pod name after restart
+    POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=graphdb -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+    if [ -z "$POD_NAME" ]; then
+        error "Could not find GraphDB pod after restart"
+    fi
+    
+    kubectl wait --for=condition=ready pod/"$POD_NAME" -n "$NAMESPACE" --timeout=300s || error "GraphDB pod not ready after restart"
+    success "GraphDB restarted with license"
+    
+    # Give it extra time to initialize with license
+    sleep 15
+fi
 
 # Check GraphDB health using kubectl exec
 log "Checking GraphDB health..."

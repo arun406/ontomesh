@@ -191,12 +191,15 @@ deploy_onerecord() {
     # Get MSK bootstrap brokers from Terraform output
     local MSK_BOOTSTRAP_BROKERS
     cd "$REPO_ROOT/deployment/ontomesh-terraform"
-    MSK_BOOTSTRAP_BROKERS=$(terraform output -raw msk_bootstrap_brokers_tls 2>/dev/null || echo "")
+    MSK_BOOTSTRAP_BROKERS=$(terraform output -raw msk_bootstrap_brokers_sasl_iam 2>/dev/null || echo "")
     
     if [ -z "$MSK_BOOTSTRAP_BROKERS" ]; then
         warning "Could not retrieve MSK bootstrap brokers from Terraform. Using placeholder."
-        MSK_BOOTSTRAP_BROKERS="<MSK_BOOTSTRAP_BROKERS_TLS>"
+        MSK_BOOTSTRAP_BROKERS="<MSK_BOOTSTRAP_BROKERS>"
     fi
+    
+    # Escape commas in MSK_BOOTSTRAP_BROKERS for Helm --set
+    MSK_BOOTSTRAP_BROKERS_ESCAPED="${MSK_BOOTSTRAP_BROKERS//,/\\,}"
     
     log "Installing OneRecord server via Helm chart..."
     
@@ -205,12 +208,12 @@ deploy_onerecord() {
         "$REPO_ROOT/deployment/k8s/charts/onerecord-server" \
         --namespace ontomesh \
         --create-namespace \
-        --set onerecordConfig.kafkaBootstrapServers="$MSK_BOOTSTRAP_BROKERS" \
-        --set onerecordConfig.repositoryUrl="http://graphdb-service.graphdb.svc.cluster.local:7200" \
-        --set onerecordConfig.repositoryName="ontomesh" \
-        --set onerecordConfig.issuerUri="http://keycloak-service.keycloak.svc.cluster.local:8080/realms/ontomesh" \
-        --set onerecordConfig.serverUrl="http://airline.ontomesh.com" \
-        --set service.type="ClusterIP" \
+        --set "onerecordConfig.kafkaBootstrapServers=$MSK_BOOTSTRAP_BROKERS_ESCAPED" \
+        --set "onerecordConfig.repositoryUrl=http://graphdb.graphdb.svc.cluster.local:7200" \
+        --set "onerecordConfig.repositoryName=ontomesh" \
+        --set "onerecordConfig.issuerUri=http://keycloak.keycloak.svc.cluster.local:8080/realms/ontomesh" \
+        --set "onerecordConfig.serverUrl=https://airline.ontomesh.com" \
+        --set "service.type=ClusterIP" \
         --wait \
         --timeout 5m
     
@@ -284,9 +287,9 @@ main() {
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "Deployed Applications (ClusterIP services):"
-    echo "  ✅ Keycloak: keycloak-service.keycloak.svc.cluster.local:8080"
-    echo "  ✅ GraphDB: graphdb-service.graphdb.svc.cluster.local:7200"
-    echo "  ✅ OneRecord: onerecord-server-service.ontomesh.svc.cluster.local:8080"
+    echo "  ✅ Keycloak: keycloak.keycloak.svc.cluster.local:8080"
+    echo "  ✅ GraphDB: graphdb.graphdb.svc.cluster.local:7200"
+    echo "  ✅ OneRecord: onerecord-server.ontomesh.svc.cluster.local:8080"
     echo ""
     echo "Status:"
     echo "  ✅ All services are ClusterIP (internal only)"

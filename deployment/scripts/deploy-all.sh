@@ -206,20 +206,22 @@ main() {
     fi
     
     # Phase 3: DNS and SSL Setup
-    if [ "$SKIP_DNS" = false ] && [ "$SKIP_APPS" = false ]; then
+    if [ "$SKIP_DNS" = false ]; then
         log "🌐 Phase 3: Setting up Public Access (ALB, Ingress, DNS, SSL)..."
         log "           (This may take 10-15 minutes for certificate validation)"
         echo ""
         
-        # Wait a moment for pods to stabilize
-        log "Waiting for pods to stabilize..."
-        sleep 10
+        # Wait a moment for pods to stabilize if apps were just deployed
+        if [ "$SKIP_APPS" = false ]; then
+            log "Waiting for pods to stabilize..."
+            sleep 10
+        fi
         
         # Run Phase 3 script
         "$SCRIPT_DIR/post-deployment-dns-ssl.sh"
         success "DNS and SSL setup completed"
         echo ""
-    elif [ "$SKIP_DNS" = true ]; then
+    else
         log "⏭️  Skipping DNS/SSL setup (--skip-dns flag)"
         echo ""
         warning "⚠️  IMPORTANT: Applications deployed WITHOUT public access"
@@ -227,8 +229,6 @@ main() {
         echo "To enable public HTTPS access later:"
         echo "  cd $SCRIPT_DIR && ./post-deployment-dns-ssl.sh"
         echo ""
-    else
-        log "⏭️  Skipping DNS/SSL setup (applications not deployed)"
     fi
     
     # Final summary
@@ -264,13 +264,20 @@ main() {
         echo "   - Load Balancer: Provisioned"
         echo "   - Route53 DNS: Configured"
         echo "   - SSL Certificate: Issued"
+    elif [ "$SKIP_DNS" = false ]; then
+        echo "✅ Phase 3: Public Access Configured"
+        echo "   - ALB Controller: Installed"
+        echo "   - Ingress Resources: Created"
+        echo "   - Load Balancer: Provisioned"
+        echo "   - Route53 DNS: Configured"
+        echo "   - SSL Certificate: Issued"
     else
         echo "⏭️  Phase 3: Public Access Skipped"
     fi
     
     echo ""
     
-    if [ "$SKIP_DNS" = false ] && [ "$SKIP_APPS" = false ]; then
+    if [ "$SKIP_DNS" = false ]; then
         echo "📝 Access Your Applications:"
         echo "   • https://airline.ontomesh.com - OneRecord API"
         echo "   • https://keycloak.ontomesh.com - Keycloak Admin Console (admin/admin)"
@@ -285,9 +292,7 @@ main() {
         echo "📝 Next Steps:"
         echo "   1. Verify all pods are Running: kubectl get pods -A"
         echo "   2. Wait for all pods to be ready (1-2 minutes)"
-        if [ "$SKIP_DNS" = true ]; then
-            echo "   3. Run Phase 3 manually: cd $SCRIPT_DIR && ./post-deployment-dns-ssl.sh"
-        fi
+        echo "   3. Run Phase 3 manually: cd $SCRIPT_DIR && ./post-deployment-dns-ssl.sh"
     fi
     echo ""
     echo "🛠️  Troubleshooting:"
